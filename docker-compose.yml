@@ -9,7 +9,7 @@ version: '3.5'
 #
 services:
   nexus-prod_nexus:
-    container_name: ${NEXUS_CONTAINER:nexus-prod_nexus}
+    container_name: ${NEXUS_CONTAINER}
     image: bsbdock/nexus
     build:
       context: ./bsbdock.nexus_context
@@ -29,11 +29,11 @@ services:
     networks:
       reticulum-test_net:
         aliases:
-          - nexus
+          - ${NEXUS_CONTAINER_ALIAS}
     volumes:
       - type: bind
         source: ${NEXUS_COMPOSE_HOME}/${NEXUS_ROOT_BIND}
-        target: ${NEXUS_ROOT:/root}
+        target: ${NEXUS_ROOT}
     logging:
       driver: "json-file"
       options:
@@ -45,5 +45,5 @@ services:
 #
 networks:
   reticulum-test_net:
-    name: ${NEXUS_NETWORK:nexus-prod_net}
+    name: ${NEXUS_NETWORK}
     driver: bridge
