@@ -3,9 +3,10 @@ version: '3.5'
 #################################################
 # Reticulum Node
 #
-# docker exec -it nexus-prod_nexus bash
-# docker exec -it nexus-prod_nexus rnstatus
-# docker exec -it nexus-prod_nexus nomadnet
+# docker exec -it nexus-broadcast_node01 bash
+# docker exec -it nexus-broadcast_node01 rnstatus
+# docker exec -it nexus-broadcast_node01 nomadnet
+# docker exec -it nexus-broadcast_node01 bash
 #
 services:
   nexus-prod_nexus:
