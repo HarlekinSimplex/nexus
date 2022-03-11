@@ -17,13 +17,13 @@ services:
     restart: unless-stopped
     ports:
 # Port for the Reticulum Server API for Reticulum Client access if required
-#      - 4242:4242
-      - 127.0.0.1:4242:4242
+#      - 4242:4242  / - 127.0.0.1:4242:4242
+      - ${NEXUS_PORT_RNSAPI}:4242
 # Port of the NExus Server web client and Mobile App TCP API
-#      - 4280:4280
-      - 127.0.0.1:4280:4280
-      - 4281:4281
-#      - 127.0.0.1:4281:4181
+#      - 4280:4280 / - 127.0.0.1:4280:4180
+#      - 4281:4281 / - 127.0.0.1:4281:4181
+      - ${NEXUS_PORT_WEB}:4280
+      - ${NEXUS_PORT_JSONAPI}:4281
 #    devices:
 #      - "/dev/ttyACM0:/dev/ttyACM0"
     networks:
