@@ -12,8 +12,8 @@ services:
     container_name: ${NEXUS_CONTAINER}
     image: bsbdock/nexus
     build:
-      context: ./bsbdock.nexus_context
-      dockerfile: ./bsbdock.nexus_context/Dockerfile
+      context: ${NEXUS_COMPOSE_HOME}/bsbdock.nexus_context
+      dockerfile: ${NEXUS_DOCKERFILE}
     restart: unless-stopped
     ports:
 # Port for the Reticulum Server API for Reticulum Client access if required
