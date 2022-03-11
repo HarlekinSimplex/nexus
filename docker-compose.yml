@@ -3,12 +3,13 @@ version: '3.5'
 #################################################
 # Reticulum Node
 #
-# docker exec -it reticulum-prod_rnsd bash
-# rnstatus --config /bsb/reticulum
+# docker exec -it nexus-prod_nexus bash
+# docker exec -it nexus-prod_nexus rnstatus
+# docker exec -it nexus-prod_nexus nomadnet
 #
 services:
   nexus-prod_nexus:
-    container_name: nexus-prod_nexus
+    container_name: ${NEXUS_CONTAINER:nexus-prod_nexus}
     image: bsbdock/nexus
     build:
       context: ./bsbdock.nexus_context
@@ -32,7 +33,7 @@ services:
     volumes:
       - type: bind
         source: ${NEXUS_COMPOSE_HOME}/${NEXUS_ROOT_BIND}
-        target: ${NEXUS_ROOT}
+        target: ${NEXUS_ROOT:/root}
     logging:
       driver: "json-file"
       options:
@@ -44,5 +45,5 @@ services:
 #
 networks:
   reticulum-test_net:
-    name: nexus-prod_net
+    name: ${NEXUS_NETWORK:nexus-prod_net}
     driver: bridge
