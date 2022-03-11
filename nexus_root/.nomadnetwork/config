@@ -21,6 +21,6 @@
 
 [node]
   enable_node = yes
-  node_name = Nexus Server
+  node_name = Nexus Server [01]
   announce_interval = 360
   announce_at_start = Yes
