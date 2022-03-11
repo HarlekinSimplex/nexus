@@ -1,0 +1,43 @@
+############################################################
+# bsbdock/reticulum Dockerfile
+#
+# How to build this container:
+# docker buildx build --no-cache --tag bsbdock/reticulum .
+#
+# How to invoke a shell into this container:
+# docker run -it bsbdock/reticulum bash
+#
+# How to run the reticulum stack as a service
+# docker run --rm --name reticulum-prod_rnsd -it bsbdock/reticulum
+#
+#FROM ubuntu
+#FROM debian:bookworm-slim
+FROM balenalib/raspberry-pi-debian:latest
+
+# Set timezone and interactive mode
+ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+
+# Update base image if neccessary
+RUN apt-get update
+RUN apt-get install tzdata
+
+# Install python and pip3
+#RUN apt install python
+RUN apt install python3-pip
+#RUN pip3 install pyserial --upgrade
+
+# Install Reticulum stack and NomadNet massenger application
+#RUN pip3 install rnodeconf
+#RUN apt install unzip
+
+# Install Reticulum stack and NomadNet massenger application
+RUN pip3 install nomadnet
+
+# Install personal helper tools
+RUN apt -y install mc
+
+# Expose port for Reticulum server TCP Interface (disable as default) 
+EXPOSE 4242
+
+# Launch Reticulum service if not specified otherwise
+CMD ["rnsd"]

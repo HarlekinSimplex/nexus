@@ -1,0 +1,70 @@
+[reticulum]
+  enable_transport = Yes
+  share_instance = Yes
+#  shared_instance_port = 37428
+#  instance_control_port = 37429
+  panic_on_interface_error = Yes
+
+[logging]
+  # Valid log levels are 0 through 7:
+  loglevel = 5
+
+[interfaces]
+
+  [[RNS Testnet - Server DA:01]]
+    type = TCPServerInterface
+    interface_enabled = False
+    outgoing = True
+    listen_ip = 0.0.0.0
+    listen_port = 4242
+
+  [[TCP Client Interface]]
+    type = TCPClientInterface
+    interface_enabled = True
+    outgoing = True
+    target_host = reticulum.deltamatrix.org
+    target_port = 4980
+
+  [[RNode LoRa Interface]]
+    type = RNodeInterface
+    interface_enabled = False
+    port = /dev/ttyACM0
+    frequency = 867200000
+    bandwidth = 125000
+    txpower = 7
+    spreadingfactor = 7
+    codingrate = 5
+    id_callsign = DD8SB-0
+    id_interval = 600
+    flow_control = False
+
+  [[Packet Radio KISS Interface]]
+    type = KISSInterface
+    interface_enabled = False
+    outgoing = true
+    port = /dev/ttyUSB1
+    speed = 115200
+    databits = 8
+    parity = none
+    stopbits = 1
+    preamble = 150
+    txtail = 10
+    slottime = 20
+    flow_control = false
+  
+  [[Packet Radio AX.25 KISS Interface]]
+    type = AX25KISSInterface
+    callsign = NO1CLL
+    ssid = 0
+    interface_enabled = False
+    outgoing = true
+    port = /dev/ttyUSB2
+    speed = 115200
+    databits = 8
+    parity = none
+    stopbits = 1
+    flow_control = false
+    preamble = 150
+    txtail = 10
+    persistence = 200
+    slottime = 20

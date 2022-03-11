@@ -1,0 +1,48 @@
+version: '3.5'
+
+#################################################
+# Reticulum Node
+#
+# docker exec -it reticulum-prod_rnsd bash
+# rnstatus --config /bsb/reticulum
+#
+services:
+  nexus-prod_nexus:
+    container_name: nexus-prod_nexus
+    image: bsbdock/nexus
+    build:
+      context: ./bsbdock.nexus_context
+      dockerfile: ./bsbdock.nexus_context/Dockerfile
+    restart: unless-stopped
+    ports:
+# Port for the Reticulum Server API for Reticulum Client access if required
+#      - 4242:4242
+      - 127.0.0.1:4242:4242
+# Port of the NExus Server web client and Mobile App TCP API
+#      - 4280:4280
+      - 127.0.0.1:4280:4280
+      - 4281:4281
+#      - 127.0.0.1:4281:4181
+#    devices:
+#      - "/dev/ttyACM0:/dev/ttyACM0"
+    networks:
+      reticulum-test_net:
+        aliases:
+          - nexus
+    volumes:
+      - type: bind
+        source: ${NEXUS_COMPOSE_HOME}/${NEXUS_ROOT_BIND}
+        target: ${NEXUS_ROOT}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+#################################################
+# Reticulum Networks
+#
+networks:
+  reticulum-test_net:
+    name: nexus-prod_net
+    driver: bridge
