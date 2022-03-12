@@ -1,22 +1,90 @@
+# This is the default Reticulum config file.
+# You should probably edit it to include any additional,
+# interfaces and settings you might need.
+
+# Only the most basic options are included in this default
+# configuration. To see a more verbose, and much longer,
+# configuration example, you can run the command:
+# rnsd --exampleconfig
+
+
 [reticulum]
-  enable_transport = Yes
-  share_instance = Yes
+  
+  # If you enable Transport, your system will route traffic
+  # for other peers, pass announces and serve path requests.
+  # This should be done for systems that are suited to act
+  # as transport nodes, ie. if they are stationary and
+  # always-on. This directive is optional and can be removed
+  # for brevity.
+  
+  enable_transport = True
+  
+  
+  # By default, the first program to launch the Reticulum
+  # Network Stack will create a shared instance, that other
+  # programs can communicate with. Only the shared instance
+  # opens all the configured interfaces directly, and other
+  # local programs communicate with the shared instance over
+  # a local socket. This is completely transparent to the
+  # user, and should generally be turned on. This directive
+  # is optional and can be removed for brevity.
+  
+  share_instance = No
+#  share_instance = Yes
+  
+  
+  # If you want to run multiple *different* shared instances
+  # on the same system, you will need to specify different
+  # shared instance ports for each. The defaults are given
+  # below, and again, these options can be left out if you
+  # don't need them.
+  
 #  shared_instance_port = 37428
 #  instance_control_port = 37429
-  panic_on_interface_error = Yes
+  
+  
+  # You can configure Reticulum to panic and forcibly close
+  # if an unrecoverable interface error occurs, such as the
+  # hardware device for an interface disappearing. This is
+  # an optional directive, and can be left out for brevity.
+  # This behaviour is disabled by default.
+  
+  panic_on_interface_error = No
+
 
 [logging]
   # Valid log levels are 0 through 7:
-  loglevel = 5
+  #   0: Log only critical information
+  #   1: Log errors and lower log levels
+  #   2: Log warnings and lower log levels
+  #   3: Log notices and lower log levels
+  #   4: Log info and lower (this is the default)
+  #   5: Verbose logging
+  #   6: Debug logging
+  #   7: Extreme logging
+  
+  loglevel = 7
+
+
+# The interfaces section defines the physical and virtual
+# interfaces Reticulum will use to communicate on. This
+# section will contain examples for a variety of interface
+# types. You can modify these or use them as a basis for
+# your own config, or simply remove the unused ones.
 
 [interfaces]
-
-  [[RNS Testnet - Server DA:01]]
-    type = TCPServerInterface
-    interface_enabled = False
-    outgoing = True
-    listen_ip = 0.0.0.0
-    listen_port = 4242
+  
+  # This interface enables communication with other
+  # link-local Reticulum nodes over UDP. It does not
+  # need any functional IP infrastructure like routers
+  # or DHCP servers, but will require that at least link-
+  # local IPv6 is enabled in your operating system, which
+  # should be enabled by default in almost any OS. See
+  # the Reticulum Manual for more configuration options.
+  
+#  [[Default Interface]]
+#    type = AutoInterface
+#    interface_enabled = True
 
   [[TCP Client Interface]]
     type = TCPClientInterface
@@ -25,46 +93,3 @@
     target_host = reticulum.deltamatrix.org
     target_port = 4980
 
-  [[RNode LoRa Interface]]
-    type = RNodeInterface
-    interface_enabled = False
-    port = /dev/ttyACM0
-    frequency = 867200000
-    bandwidth = 125000
-    txpower = 7
-    spreadingfactor = 7
-    codingrate = 5
-    id_callsign = DD8SB-0
-    id_interval = 600
-    flow_control = False
-
-  [[Packet Radio KISS Interface]]
-    type = KISSInterface
-    interface_enabled = False
-    outgoing = true
-    port = /dev/ttyUSB1
-    speed = 115200
-    databits = 8
-    parity = none
-    stopbits = 1
-    preamble = 150
-    txtail = 10
-    slottime = 20
-    flow_control = false
-  
-  [[Packet Radio AX.25 KISS Interface]]
-    type = AX25KISSInterface
-    callsign = NO1CLL
-    ssid = 0
-    interface_enabled = False
-    outgoing = true
-    port = /dev/ttyUSB2
-    speed = 115200
-    databits = 8
-    parity = none
-    stopbits = 1
-    flow_control = false
-    preamble = 150
-    txtail = 10
-    persistence = 200
-    slottime = 20
