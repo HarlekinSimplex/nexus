@@ -13,18 +13,17 @@ import RNS
 # them all within the app namespace "example_utilities"
 APP_NAME = "example_utilities"
 
-
 # This initialisation is executed when the program is started
 def program_setup(configpath, channel=None):
     # We must first initialise Reticulum
     reticulum = RNS.Reticulum(configpath)
-
+    
     # If the user did not select a "channel" we use
     # a default one called "public_information".
     # This "channel" is added to the destination name-
     # space, so the user can select different broadcast
     # channels.
-    if channel is None:
+    if channel == None:
         channel = "public_information"
 
     # We create a PLAIN destination. This is an uncencrypted endpoint
@@ -41,24 +40,22 @@ def program_setup(configpath, channel=None):
     # We specify a callback that will get called every time
     # the destination receives data.
     broadcast_destination.set_packet_callback(packet_callback)
-
+    
     # Everything's ready!
     # Let's hand over control to the main loop
     broadcastLoop(broadcast_destination)
 
-
 def packet_callback(data, packet):
     # Simply print out the received data
     print("")
-    print("Received data: " + data.decode("utf-8") + "\r\n> ", end="")
+    print("Received data: "+data.decode("utf-8")+"\r\n> ", end="")
     sys.stdout.flush()
-
 
 def broadcastLoop(destination):
     # Let the user know that everything is ready
     RNS.log(
-        "Broadcast example " +
-        RNS.prettyhexrep(destination.hash) +
+        "Broadcast example "+
+        RNS.prettyhexrep(destination.hash)+
         " running, enter text and hit enter to broadcast (Ctrl-C to quit)"
     )
 
@@ -70,14 +67,15 @@ def broadcastLoop(destination):
         entered = input()
 
         if entered != "":
-            data = entered.encode("utf-8")
-            packet = RNS.Packet(destination, data)
+            data    = entered.encode("utf-8")
+            packet  = RNS.Packet(destination, data)
             packet.send()
 
 
-#######################################################
-# Program Startup #####################################
-#######################################################
+
+##########################################################
+#### Program Startup #####################################
+##########################################################
 
 # This part of the program gets run at startup,
 # and parses input from the user, and then starts

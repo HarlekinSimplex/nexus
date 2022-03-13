@@ -1,0 +1,280 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Getting Started Fast &#8212; Reticulum Network Stack 0.3.3 beta documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using Reticulum on Your System" href="using.html" />
+    <link rel="prev" title="What is Reticulum?" href="whatis.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="using.html" title="Using Reticulum on Your System"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="whatis.html" title="What is Reticulum?"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Reticulum Network Stack 0.3.3 beta documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Getting Started Fast</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started-fast">
+<h1>Getting Started Fast<a class="headerlink" href="#getting-started-fast" title="Permalink to this headline">¶</a></h1>
+<p>The best way to get started with the Reticulum Network Stack depends on what
+you want to do. This guide will outline sensible starting paths for different
+scenarios.</p>
+<div class="section" id="try-using-a-reticulum-based-program">
+<h2>Try Using a Reticulum-based Program<a class="headerlink" href="#try-using-a-reticulum-based-program" title="Permalink to this headline">¶</a></h2>
+<p>If you simply want to try using a program built with Reticulum, you can take
+a look at <a class="reference external" href="https://github.com/markqvist/nomadnet">Nomad Network</a>, which
+provides a complete encrypted communications suite built with Reticulum.</p>
+<a class="reference external image-reference" href="_images/nomadnet_3.png"><img alt="_images/nomadnet_3.png" src="_images/nomadnet_3.png" /></a>
+<p><a class="reference external" href="https://github.com/markqvist/nomadnet">Nomad Network</a> is a user-facing client
+for the messaging and information-sharing protocol
+<a class="reference external" href="https://github.com/markqvist/lxmf">LXMF</a>, another project built with Reticulum.</p>
+<p>You can install Nomad Network via pip:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install ...</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="n">nomadnet</span>
+
+<span class="c1"># ... and run</span>
+<span class="n">nomadnet</span>
+</pre></div>
+</div>
+<p><strong>Please Note</strong>: If this is the very first time you use pip to install a program
+on your system, you might need to reboot your system for your program to become
+available. If you get a “command not found” error or similar when running the
+program, reboot your system and try again.</p>
+</div>
+<div class="section" id="using-the-included-utilities">
+<h2>Using the Included Utilities<a class="headerlink" href="#using-the-included-utilities" title="Permalink to this headline">¶</a></h2>
+<p>Reticulum comes with a range of included utilities that make it easier to
+manage your network, check connectivity and make Reticulum available to other
+programs on your system.</p>
+<p>You can use <code class="docutils literal notranslate"><span class="pre">rnsd</span></code> to run Reticulum as a background or foreground service,
+and the <code class="docutils literal notranslate"><span class="pre">rnstatus</span></code>, <code class="docutils literal notranslate"><span class="pre">rnpath</span></code> and <code class="docutils literal notranslate"><span class="pre">rnprobe</span></code> utilities to view and query
+network status and connectivity.</p>
+<p>To learn more about these utility programs, have a look at the
+<a class="reference internal" href="using.html#using-main"><span class="std std-ref">Using Reticulum on Your System</span></a> chapter of this manual.</p>
+</div>
+<div class="section" id="creating-a-network-with-reticulum">
+<h2>Creating a Network With Reticulum<a class="headerlink" href="#creating-a-network-with-reticulum" title="Permalink to this headline">¶</a></h2>
+<p>To create a network, you will need to specify one or more <em>interfaces</em> for
+Reticulum to use. This is done in the Reticulum configuration file, which by
+default is located at <code class="docutils literal notranslate"><span class="pre">~/.reticulum/config</span></code>. You can edit this file by hand,
+or use the interactive <code class="docutils literal notranslate"><span class="pre">rnsconfig</span></code> utility.</p>
+<p>When Reticulum is started for the first time, it will create a default
+configuration file, with one active interface. This default interface uses
+your existing ethernet network (if there is one), and only allows you to
+communicate with other Reticulum peers within your local broadcast domain.</p>
+<p>To communicate further, you will have to add one or more interfaces. The default
+configuration includes a number of examples, ranging from using TCP over the
+internet, to LoRa and Packet Radio interfaces.</p>
+<p>Possibly, the examples in the config file are enough to get you started. If
+you want more information, you can read the <a class="reference internal" href="networks.html#networks-main"><span class="std std-ref">Building Networks</span></a>
+and <a class="reference internal" href="interfaces.html#interfaces-main"><span class="std std-ref">Interfaces</span></a> chapters of this manual.</p>
+</div>
+<div class="section" id="develop-a-program-with-reticulum">
+<h2>Develop a Program with Reticulum<a class="headerlink" href="#develop-a-program-with-reticulum" title="Permalink to this headline">¶</a></h2>
+<p>If you want to develop programs that use Reticulum, the easiest way to get
+started is to install the latest release of Reticulum via pip:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">rns</span>
+</pre></div>
+</div>
+<p>The above command will install Reticulum and dependencies, and you will be
+ready to import and use RNS in your own programs. The next step will most
+likely be to look at some <a class="reference internal" href="examples.html#examples-main"><span class="std std-ref">Example Programs</span></a>.</p>
+<p>For extended functionality, you can install optional dependencies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">pyserial</span> <span class="n">netifaces</span>
+</pre></div>
+</div>
+<p>Further information can be found in the <a class="reference internal" href="reference.html#api-main"><span class="std std-ref">API Reference</span></a>.</p>
+</div>
+<div class="section" id="participate-in-reticulum-development">
+<h2>Participate in Reticulum Development<a class="headerlink" href="#participate-in-reticulum-development" title="Permalink to this headline">¶</a></h2>
+<p>If you want to participate in the development of Reticulum and associated
+utilities, you’ll want to get the latest source from GitHub. In that case,
+don’t use pip, but try this recipe:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install dependencies</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="n">cryptography</span> <span class="n">pyserial</span> <span class="n">netifaces</span>
+
+<span class="c1"># Clone repository</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">markqvist</span><span class="o">/</span><span class="n">Reticulum</span><span class="o">.</span><span class="n">git</span>
+
+<span class="c1"># Move into Reticulum folder and symlink library to examples folder</span>
+<span class="n">cd</span> <span class="n">Reticulum</span>
+<span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">../</span><span class="n">RNS</span> <span class="o">./</span><span class="n">Examples</span><span class="o">/</span>
+
+<span class="c1"># Run an example</span>
+<span class="n">python3</span> <span class="n">Examples</span><span class="o">/</span><span class="n">Echo</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">s</span>
+
+<span class="c1"># Unless you&#39;ve manually created a config file, Reticulum will do so now,</span>
+<span class="c1"># and immediately exit. Make any necessary changes to the file:</span>
+<span class="n">nano</span> <span class="o">~/.</span><span class="n">reticulum</span><span class="o">/</span><span class="n">config</span>
+
+<span class="c1"># ... and launch the example again.</span>
+<span class="n">python3</span> <span class="n">Examples</span><span class="o">/</span><span class="n">Echo</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">s</span>
+
+<span class="c1"># You can now repeat the process on another computer,</span>
+<span class="c1"># and run the same example with -h to get command line options.</span>
+<span class="n">python3</span> <span class="n">Examples</span><span class="o">/</span><span class="n">Echo</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">h</span>
+
+<span class="c1"># Run the example in client mode to &quot;ping&quot; the server.</span>
+<span class="c1"># Replace the hash below with the actual destination hash of your server.</span>
+<span class="n">python3</span> <span class="n">Examples</span><span class="o">/</span><span class="n">Echo</span><span class="o">.</span><span class="n">py</span> <span class="mf">3e12</span><span class="n">fc71692f8ec47bc5</span>
+
+<span class="c1"># Have a look at another example</span>
+<span class="n">python3</span> <span class="n">Examples</span><span class="o">/</span><span class="n">Filetransfer</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">h</span>
+</pre></div>
+</div>
+<p>When you have experimented with the basic examples, it’s time to go read the
+<a class="reference internal" href="understanding.html#understanding-main"><span class="std std-ref">Understanding Reticulum</span></a> chapter.</p>
+</div>
+<div class="section" id="reticulum-on-arm64">
+<h2>Reticulum on ARM64<a class="headerlink" href="#reticulum-on-arm64" title="Permalink to this headline">¶</a></h2>
+<p>On some architectures, including ARM64, not all dependencies have precompiled
+binaries. On such systems, you will need to install <code class="docutils literal notranslate"><span class="pre">python3-dev</span></code> before
+installing Reticulum or programs that depend on Reticulum.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Python and development packages</span>
+<span class="n">sudo</span> <span class="n">apt</span> <span class="n">update</span>
+<span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">python3</span> <span class="n">python3</span><span class="o">-</span><span class="n">pip</span> <span class="n">python3</span><span class="o">-</span><span class="n">dev</span>
+
+<span class="c1"># Install Reticulum</span>
+<span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">rns</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reticulum-on-android">
+<h2>Reticulum on Android<a class="headerlink" href="#reticulum-on-android" title="Permalink to this headline">¶</a></h2>
+<p>Reticulum can be used on Android in different ways. The easiest way to get
+started is using the <a class="reference external" href="https://termux.com/">Termux app</a>, at the time of writing
+available on <a class="reference external" href="https://f-droid.org">F-droid</a>.</p>
+<p>Termux is a terminal emulator and Linux environment for Android based devices,
+which includes the ability to use many different programs and libraries,
+including Reticulum.</p>
+<p>Since the Python cryptography.io module does not offer pre-built wheels for
+Android, the standard one-line install of Reticulum does not work on Android,
+and a few extra commands are required.</p>
+<p>From within Termux, execute the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># First, make sure indexes and packages are up to date.</span>
+<span class="n">pkg</span> <span class="n">update</span>
+<span class="n">pkg</span> <span class="n">upgrade</span>
+
+<span class="c1"># Then install dependencies for the cryptography library.</span>
+<span class="n">pkg</span> <span class="n">install</span> <span class="n">python</span> <span class="n">build</span><span class="o">-</span><span class="n">essential</span> <span class="n">openssl</span> <span class="n">libffi</span> <span class="n">rust</span>
+
+<span class="c1"># Make sure pip is up to date, and install the wheel module.</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="n">wheel</span> <span class="n">pip</span> <span class="o">--</span><span class="n">upgrade</span>
+
+<span class="c1"># To allow the installer to build the cryptography module,</span>
+<span class="c1"># we need to let it know what platform we are compiling for:</span>
+<span class="n">export</span> <span class="n">CARGO_BUILD_TARGET</span><span class="o">=</span><span class="s2">&quot;aarch64-linux-android&quot;</span>
+
+<span class="c1"># Start the install process for the cryptography module.</span>
+<span class="c1"># Depending on your device, this can take several minutes,</span>
+<span class="c1"># since the module must be compiled locally on your device.</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="n">cryptography</span>
+
+<span class="c1"># If the above installation succeeds, you can now install</span>
+<span class="c1"># Reticulum and any related software</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="n">rns</span>
+</pre></div>
+</div>
+<p>It is also possible to include Reticulum in apps compiled and distributed as
+Android APKs. A detailed tutorial and example source code will be included
+here at a later point.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting Started Fast</a><ul>
+<li><a class="reference internal" href="#try-using-a-reticulum-based-program">Try Using a Reticulum-based Program</a></li>
+<li><a class="reference internal" href="#using-the-included-utilities">Using the Included Utilities</a></li>
+<li><a class="reference internal" href="#creating-a-network-with-reticulum">Creating a Network With Reticulum</a></li>
+<li><a class="reference internal" href="#develop-a-program-with-reticulum">Develop a Program with Reticulum</a></li>
+<li><a class="reference internal" href="#participate-in-reticulum-development">Participate in Reticulum Development</a></li>
+<li><a class="reference internal" href="#reticulum-on-arm64">Reticulum on ARM64</a></li>
+<li><a class="reference internal" href="#reticulum-on-android">Reticulum on Android</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="whatis.html"
+                        title="previous chapter">What is Reticulum?</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="using.html"
+                        title="next chapter">Using Reticulum on Your System</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/gettingstartedfast.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="using.html" title="Using Reticulum on Your System"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="whatis.html" title="What is Reticulum?"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Reticulum Network Stack 0.3.3 beta documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Getting Started Fast</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Mark Qvist.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.1.
+    </div>
+  </body>
+</html>

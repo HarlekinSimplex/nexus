@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>What is Reticulum? &#8212; Reticulum Network Stack 0.3.3 beta documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting Started Fast" href="gettingstartedfast.html" />
+    <link rel="prev" title="Reticulum Network Stack Manual" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="gettingstartedfast.html" title="Getting Started Fast"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Reticulum Network Stack Manual"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Reticulum Network Stack 0.3.3 beta documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">What is Reticulum?</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="what-is-reticulum">
+<h1>What is Reticulum?<a class="headerlink" href="#what-is-reticulum" title="Permalink to this headline">¶</a></h1>
+<p>Reticulum is a cryptography-based networking stack for wide-area networks built on readily available hardware, that can operate even with very high latency and extremely low bandwidth.</p>
+<p>Reticulum allows you to build very wide-area networks with off-the-shelf tools, and offers end-to-end encryption, autoconfiguring cryptographically backed multi-hop transport, efficient addressing, unforgeable packet acknowledgements and more.</p>
+<p>Reticulum is a complete networking stack, and does not need IP or higher layers, although it is easy to utilise IP (with TCP or UDP) as the underlying carrier for Reticulum. It is therefore trivial to tunnel Reticulum over the Internet or private IP networks. Reticulum is built directly on cryptographic principles, allowing resilience and stable functionality in open and trustless networks.</p>
+<p>No kernel modules or drivers are required. Reticulum runs completely in userland, and can run on practically any system that runs Python 3. Reticulum runs well even on small single-board computers like the Pi Zero.</p>
+<div class="section" id="current-status">
+<h2>Current Status<a class="headerlink" href="#current-status" title="Permalink to this headline">¶</a></h2>
+<p>Reticulum should currently be considered beta software. All core protocol features are implemented and functioning, but additions will probably occur as real-world use is explored. There will be bugs. The API and wire-format can be considered relatively stable at the moment, but could change if warranted.</p>
+</div>
+<div class="section" id="what-does-reticulum-offer">
+<h2>What does Reticulum Offer?<a class="headerlink" href="#what-does-reticulum-offer" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Coordination-less globally unique adressing and identification</p></li>
+<li><p>Fully self-configuring multi-hop routing</p></li>
+<li><p>Complete initiator anonymity, communicate without revealing your identity</p></li>
+<li><p>Asymmetric X25519 encryption and Ed25519 signatures as a basis for all communication</p></li>
+<li><p>Forward Secrecy with ephemereal Elliptic Curve Diffie-Hellman keys on Curve25519</p></li>
+<li><p>Reticulum uses the <a class="reference external" href="https://github.com/fernet/spec/blob/master/Spec.md">Fernet</a> specification for on-the-wire / over-the-air encryption</p>
+<ul>
+<li><p>All keys are ephemeral and derived from an ECDH key exchange on Curve25519</p></li>
+<li><p>AES-128 in CBC mode with PKCS7 padding</p></li>
+<li><p>HMAC using SHA256 for authentication</p></li>
+<li><p>IVs are generated through os.urandom()</p></li>
+</ul>
+</li>
+<li><p>Unforgeable packet delivery confirmations</p></li>
+<li><p>A variety of supported interface types</p></li>
+<li><p>An intuitive and developer-friendly API</p></li>
+<li><p>Reliable and efficient transfer of arbritrary amounts of data</p>
+<ul>
+<li><p>Reticulum can handle a few bytes of data or files of many gigabytes</p></li>
+<li><p>Sequencing, transfer coordination and checksumming is automatic</p></li>
+<li><p>The API is very easy to use, and provides transfer progress</p></li>
+</ul>
+</li>
+<li><p>Efficient link establishment</p>
+<ul>
+<li><p>Total bandwidth cost of setting up a link is only 3 packets, totalling 237 bytes</p></li>
+<li><p>Low cost of keeping links open at only 0.62 bits per second</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="where-can-reticulum-be-used">
+<h2>Where can Reticulum be Used?<a class="headerlink" href="#where-can-reticulum-be-used" title="Permalink to this headline">¶</a></h2>
+<p>Over practically any medium that can support at least a half-duplex channel
+with 500 bits per second throughput, and an MTU of 500 bytes. Data radios,
+modems, LoRa radios, serial lines, AX.25 TNCs, amateur radio digital modes,
+ad-hoc WiFi, free-space optical links and similar systems are all examples
+of the types of interfaces Reticulum was designed for.</p>
+<p>An open-source LoRa-based interface called <a class="reference external" href="https://unsigned.io/rnode">RNode</a>
+has been designed specifically for use with Reticulum. It is possible to build
+yourself, or it can be purchased as a complete transceiver that just needs a
+USB connection to the host.</p>
+<p>Reticulum can also be encapsulated over existing IP networks, so there’s
+nothing stopping you from using it over wired ethernet or your local WiFi
+network, where it’ll work just as well. In fact, one of the strengths of
+Reticulum is how easily it allows you to connect different mediums into a
+self-configuring, resilient and encrypted mesh.</p>
+<p>As an example, it’s possible to set up a Raspberry Pi connected to both a
+LoRa radio, a packet radio TNC and a WiFi network. Once the interfaces are
+configured, Reticulum will take care of the rest, and any device on the WiFi
+network can communicate with nodes on the LoRa and packet radio sides of the
+network, and vice versa.</p>
+</div>
+<div class="section" id="interface-types-and-devices">
+<h2>Interface Types and Devices<a class="headerlink" href="#interface-types-and-devices" title="Permalink to this headline">¶</a></h2>
+<p>Reticulum implements a range of generalised interface types that covers most of the communications hardware that Reticulum can run over. If your hardware is not supported, it’s relatively simple to implement an interface class. Currently, the following interfaces are supported:</p>
+<ul class="simple">
+<li><p>Any ethernet device</p></li>
+<li><p>LoRa using <a class="reference external" href="https://unsigned.io/rnode">RNode</a></p></li>
+<li><p>Packet Radio TNCs, such as <a class="reference external" href="https://unsigned.io/openmodem">OpenModem</a></p></li>
+<li><p>Any device with a serial port</p></li>
+<li><p>TCP over IP networks</p></li>
+<li><p>UDP over IP networks</p></li>
+</ul>
+<p>For a full list and more details, see the <a class="reference internal" href="interfaces.html#interfaces-main"><span class="std std-ref">Supported Interfaces</span></a> chapter.</p>
+</div>
+<div class="section" id="caveat-emptor">
+<h2>Caveat Emptor<a class="headerlink" href="#caveat-emptor" title="Permalink to this headline">¶</a></h2>
+<p>Reticulum is an experimental networking stack, and should be considered as such. While it has been built with cryptography best-practices very foremost in mind, it has not been externally security audited, and there could very well be privacy-breaking bugs. To be considered secure, Reticulum needs a thourough security review by independt cryptographers and security researchers. If you want to help out, or help sponsor an audit, please do get in touch.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">What is Reticulum?</a><ul>
+<li><a class="reference internal" href="#current-status">Current Status</a></li>
+<li><a class="reference internal" href="#what-does-reticulum-offer">What does Reticulum Offer?</a></li>
+<li><a class="reference internal" href="#where-can-reticulum-be-used">Where can Reticulum be Used?</a></li>
+<li><a class="reference internal" href="#interface-types-and-devices">Interface Types and Devices</a></li>
+<li><a class="reference internal" href="#caveat-emptor">Caveat Emptor</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Reticulum Network Stack Manual</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="gettingstartedfast.html"
+                        title="next chapter">Getting Started Fast</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/whatis.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="gettingstartedfast.html" title="Getting Started Fast"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Reticulum Network Stack Manual"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Reticulum Network Stack 0.3.3 beta documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">What is Reticulum?</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Mark Qvist.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.1.
+    </div>
+  </body>
+</html>
