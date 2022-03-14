@@ -48,8 +48,9 @@ def program_setup(configpath, group=None, key=None):
 
         # With that we can generate a random key to be used
         # group_destination.create_keys()
-    else:
-        group_destination.load_private_key(key)
+
+    # Load the key into destination
+    group_destination.load_private_key(key)
 
     # Log the actually used group key to the console
     print("Symmetric key for group <" + group + "> is <" + str(group_destination.get_private_key()) + ">")
