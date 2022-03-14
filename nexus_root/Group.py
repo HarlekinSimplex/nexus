@@ -38,7 +38,10 @@ def program_setup(configpath, group=None, key=None):
     )
 
     # Just a 'public' key for debug purpose or to use form public but encrypted broadcasts with a known key
-    key = b'jC\xac\xcb\x04jaig\xd0\xda\x13Au\x95\xb1c=id\xc7\x10\xad\xf6(\xf0?\x8e\xf9d<9'
+    #    key = b'jC\xac\xcb\x04jaig\xd0\xda\x13Au\x95\xb1c=id\xc7\x10\xad\xf6(\xf0?\x8e\xf9d<9'
+    #    key = b'12345678901234567890123456789012'
+    #    key = b'TheQuickBrownFoxJumpsOverTheLazy'
+    key = b'ReticulumWasDevelopedByMarkQvist'
 
     # If the user did not set a key we create a new key. and
     # Otherwise, we use the provided key
