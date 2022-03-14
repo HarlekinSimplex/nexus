@@ -62,7 +62,7 @@
   #   6: Debug logging
   #   7: Extreme logging
   
-  loglevel = 7
+  loglevel = 4
 
 
 # The interfaces section defines the physical and virtual
