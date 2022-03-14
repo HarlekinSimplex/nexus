@@ -37,16 +37,17 @@ def program_setup(configpath, group=None, key=None):
         group
     )
 
-    # Just a 'public' key for debug purpose or to use form public but encrypted broadcasts with a known key
-    #    key = b'jC\xac\xcb\x04jaig\xd0\xda\x13Au\x95\xb1c=id\xc7\x10\xad\xf6(\xf0?\x8e\xf9d<9'
-    #    key = b'12345678901234567890123456789012'
-    #    key = b'TheQuickBrownFoxJumpsOverTheLazy'
-    key = b'ReticulumWasDevelopedByMarkQvist'
-
-    # If the user did not set a key we create a new key. and
+    # If the user did not set a key we use default one.
     # Otherwise, we use the provided key
     if key is None:
-        group_destination.create_keys()
+        # Just a 'public' key for debug purpose or to use form public but encrypted broadcasts with a known key
+        #    key = b'jC\xac\xcb\x04jaig\xd0\xda\x13Au\x95\xb1c=id\xc7\x10\xad\xf6(\xf0?\x8e\xf9d<9'
+        #    key = b'12345678901234567890123456789012'
+        #    key = b'TheQuickBrownFoxJumpsOverTheLazy'
+        key = b'ReticulumWasDevelopedByMarkQvist'
+
+        # With that we can generate a random key to be used
+        # group_destination.create_keys()
     else:
         group_destination.load_private_key(key)
 
@@ -65,7 +66,7 @@ def program_setup(configpath, group=None, key=None):
 def packet_callback(data, packet):
     # Simply print out the received data
     print("")
-    print("Received data: " + data.decode("utf-8") + "\r\n> ", end="")
+    print("Received Group data: " + data.decode("utf-8") + "\r\n> ", end="")
     sys.stdout.flush()
 
 
@@ -87,7 +88,9 @@ def groupLoop(destination):
         if entered != "":
             data = entered.encode("utf-8")
             packet = RNS.Packet(destination, data)
-            packet.send()
+
+            if not packet.send():
+                print("Error at sending package")
 
 
 #######################################################
@@ -140,7 +143,7 @@ if __name__ == "__main__":
             grouparg = None
 
         if args.key:
-            keyarg = args.key
+            keyarg = bytes(args.key, 'utf-8')
         else:
             keyarg = None
 
