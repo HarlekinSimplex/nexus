@@ -29,7 +29,7 @@ def program_setup(configpath, group=None, key=None):
     # We create a PLAIN destination. This is an unencrypted endpoint
     # that anyone can listen to and send information to.
     group_destination = RNS.Destination(
-        None,
+        RNS.Identity(),   # None,
         RNS.Destination.IN,
         RNS.Destination.GROUP,
         APP_NAME,
@@ -51,6 +51,9 @@ def program_setup(configpath, group=None, key=None):
 
     # Load the key into destination
     group_destination.load_private_key(key)
+
+    # Announce destination
+    group_destination.announce()
 
     # Log the actually used group key to the console
     print("Symmetric key for group <" + group + "> is <" + str(group_destination.get_private_key()) + ">")
