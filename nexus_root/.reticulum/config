@@ -29,8 +29,8 @@
   # user, and should generally be turned on. This directive
   # is optional and can be removed for brevity.
   
-  share_instance = No
-#  share_instance = Yes
+#  share_instance = No
+  share_instance = Yes
   
   
   # If you want to run multiple *different* shared instances
@@ -39,8 +39,8 @@
   # below, and again, these options can be left out if you
   # don't need them.
   
-#  shared_instance_port = 37428
-#  instance_control_port = 37429
+  shared_instance_port = 37428
+  instance_control_port = 37429
   
   
   # You can configure Reticulum to panic and forcibly close
@@ -50,7 +50,6 @@
   # This behaviour is disabled by default.
   
   panic_on_interface_error = No
-
 
 [logging]
   # Valid log levels are 0 through 7:
@@ -91,5 +90,9 @@
     interface_enabled = True
     outgoing = True
     target_host = reticulum.deltamatrix.org
+# Test Node 1: 4251
+# Test Node 2: 4252
+# Test Node 3: 4253
+# DeltaMatrix: 4980
     target_port = 4980
 
