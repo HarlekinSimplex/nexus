@@ -1,7 +1,7 @@
-##########################################################
-# This RNS example demonstrates broadcasting unencrypted #
-# information to any listening destinations.             #
-##########################################################
+###########################################################
+# This RNS example demonstrates usage off Group encrypted #
+# communication                                           #
+###########################################################
 
 import sys
 import argparse
@@ -15,36 +15,48 @@ APP_NAME = "example_utilities"
 
 
 # This initialisation is executed when the program is started
-def program_setup(configpath, channel=None):
+def program_setup(configpath, group=None, key=None):
     # We must first initialise Reticulum
     reticulum = RNS.Reticulum(configpath)
 
-    # If the user did not select a "channel" we use
-    # a default one called "public_information".
-    # This "channel" is added to the destination name-
-    # space, so the user can select different broadcast
-    # channels.
-    if channel is None:
-        channel = "public_information"
+    # If the user did not select a "group" we use
+    # a default one called "demo_group".
+    # This "group" is added to the destination name-
+    # space, so the user can select different groups.
+    if group is None:
+        group = "demo_group"
 
     # We create a PLAIN destination. This is an unencrypted endpoint
     # that anyone can listen to and send information to.
-    broadcast_destination = RNS.Destination(
+    group_destination = RNS.Destination(
         None,
         RNS.Destination.IN,
-        RNS.Destination.PLAIN,
+        RNS.Destination.GROUP,
         APP_NAME,
-        "broadcast",
-        channel
+        "group",
+        group
     )
+
+    # Just a 'public' key for debug purpose or to use form public but encrypted broadcasts with a known key
+    key = b'jC\xac\xcb\x04jaig\xd0\xda\x13Au\x95\xb1c=id\xc7\x10\xad\xf6(\xf0?\x8e\xf9d<9'
+
+    # If the user did not set a key we create a new key. and
+    # Otherwise, we use the provided key
+    if key is None:
+        group_destination.create_keys()
+    else:
+        group_destination.load_private_key(key)
+
+    # Log the actually used group key to the console
+    print("Symmetric key for group <" + group + "> is <" + str(group_destination.get_private_key()) + ">")
 
     # We specify a callback that will get called every time
     # the destination receives data.
-    broadcast_destination.set_packet_callback(packet_callback)
+    group_destination.set_packet_callback(packet_callback)
 
     # Everything's ready!
     # Let's hand over control to the main loop
-    broadcastLoop(broadcast_destination)
+    groupLoop(group_destination)
 
 
 def packet_callback(data, packet):
@@ -54,12 +66,12 @@ def packet_callback(data, packet):
     sys.stdout.flush()
 
 
-def broadcastLoop(destination):
+def groupLoop(destination):
     # Let the user know that everything is ready
     RNS.log(
-        "Broadcast example " +
+        "Group example " +
         RNS.prettyhexrep(destination.hash) +
-        " running, enter text and hit enter to broadcast (Ctrl-C to quit)"
+        " running, enter text and hit enter to send to group (Ctrl-C to quit)"
     )
 
     # We enter a loop that runs until the users exits.
@@ -85,7 +97,7 @@ def broadcastLoop(destination):
 if __name__ == "__main__":
     try:
         parser = argparse.ArgumentParser(
-            description="Reticulum example demonstrating sending and receiving broadcasts"
+            description="Reticulum example demonstrating sending to and receiving from a group"
         )
 
         parser.add_argument(
@@ -97,10 +109,18 @@ if __name__ == "__main__":
         )
 
         parser.add_argument(
-            "--channel",
+            "--group",
             action="store",
             default=None,
-            help="broadcast channel name",
+            help="group name",
+            type=str
+        )
+
+        parser.add_argument(
+            "--key",
+            action="store",
+            default=None,
+            help="group symmetric key",
             type=str
         )
 
@@ -111,12 +131,17 @@ if __name__ == "__main__":
         else:
             configarg = None
 
-        if args.channel:
-            channelarg = args.channel
+        if args.group:
+            grouparg = args.group
         else:
-            channelarg = None
+            grouparg = None
 
-        program_setup(configarg, channelarg)
+        if args.key:
+            keyarg = args.key
+        else:
+            keyarg = None
+
+        program_setup(configarg, grouparg, keyarg)
 
     except KeyboardInterrupt:
         print("")
