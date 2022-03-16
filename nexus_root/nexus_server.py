@@ -158,7 +158,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             MESSAGE_STORE.pop(0)
 
         RNS.log(
-            "Message received via HTTP POST: <"+message+">"
+            "Message received via HTTP POST: <"+ str(message) + ">"
         )
 
         for element in SERVER_IDENTITIES:
