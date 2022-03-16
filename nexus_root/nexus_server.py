@@ -1,3 +1,9 @@
+##########################################################################################
+#
+# Nexus Message Server
+#
+#
+
 import sys
 import argparse
 import RNS
@@ -25,6 +31,7 @@ APP_NAME = "nexus"
 NEXUS_SERVER_ADDRESS = ('', 4281)
 NEXUS_SERVER_ASPECT = "deltamatrix"
 NEXUS_SERVER_IDENTITY = None
+NEXUS_SERVER_TIMEOUT = 5
 
 
 def initialize_server(configpath, server_port=None, server_apspect=None):
@@ -32,19 +39,27 @@ def initialize_server(configpath, server_port=None, server_apspect=None):
     global NEXUS_SERVER_ASPECT
     global NEXUS_SERVER_IDENTITY
 
+    # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
 
+    # Set default server port if not specified otherwise
     if server_port is not None:
         NEXUS_SERVER_ADDRESS = ('', int(server_port))
 
+    # Set default nexus aspect if not specified otherwise
+    # Announcement with that aspects are considered as message subscriptions
     if server_apspect is not None:
         NEXUS_SERVER_ASPECT = server_apspect
 
+    # Log actually used parameters
     RNS.log(
-        "Server Parameter --port:"+str(NEXUS_SERVER_ADDRESS[1])+" --aspect:"+NEXUS_SERVER_ASPECT
+        "Server Parameter --port:" + str(NEXUS_SERVER_ADDRESS[1]) + " --aspect:" + NEXUS_SERVER_ASPECT
     )
 
+    # Create the identify of this server
+    # Each time the server starts a new identity with new keys is created
     NEXUS_SERVER_IDENTITY = RNS.Identity()
+    # Create and register this server as a Reticulum target so that other nexus server can distribute message hereto
     server_destination = RNS.Destination(
         NEXUS_SERVER_IDENTITY,
         RNS.Destination.IN,
@@ -52,23 +67,38 @@ def initialize_server(configpath, server_port=None, server_apspect=None):
         APP_NAME,
         NEXUS_SERVER_ASPECT
     )
+
+    # Register a handler to process all incoming announcements with the aspect of this nexus server
     announce_handler = AnnounceHandler(
         aspect_filter=APP_NAME + '.' + NEXUS_SERVER_ASPECT
     )
     RNS.Transport.register_announce_handler(announce_handler)
+
+    # Register a call back function to process all incoming data packages (aka messages)
     server_destination.set_packet_callback(packet_callback)
-    server_destination.announce(app_data=(APP_NAME+'.'+NEXUS_SERVER_ASPECT).encode("utf-8"))
-    run_server()
+
+    # Announce this server to the network
+    # All other nexus server with the same aspect will register this server as a distribution target
+    server_destination.announce(app_data=(APP_NAME + '.' + NEXUS_SERVER_ASPECT).encode("utf-8"))
+
+    # Launch HTTP GET/POST processing
+    # This is a endless loop
+    # Termination by ctrl-c or like process termination
+    launch_http_server()
 
 
-def run_server():
+def launch_http_server():
     global NEXUS_SERVER_ASPECT
     global NEXUS_SERVER_ADDRESS
 
+    # Create multithreading http server with given address and port to listen for json app interaction
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
+    # Log launch with aspect and address/port used
     RNS.log(
         "serving Nexus aspect <" + NEXUS_SERVER_ASPECT + "> at %s:%d" % NEXUS_SERVER_ADDRESS
     )
+    # Invoke server loop
+    # (infinite)
     httpd.serve_forever()
 
 
@@ -88,30 +118,36 @@ class AnnounceHandler:
     def received_announce(self, destination_hash, announced_identity, app_data):
         global SERVER_IDENTITIES
 
+        # Log that we received an announcement matching our aspect filter criteria
         RNS.log(
             "Received an announce from " +
             RNS.prettyhexrep(destination_hash)
         )
-
         RNS.log(
             "The announce contained the following app data: " +
             app_data.decode("utf-8")
         )
 
+        # Get dict key and timestamp for distribution identity registration
         dict_key = announced_identity.get_public_key()
         dict_time = int(time.time())
 
+        # Add announced nexus distribution target identity to distribution dict
         SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity)
 
+        # Log list of last heard durations
+        # Actually I have no clue how ti generate a proper human readable server name from that id
+        # However since reticulum can obviously - I don't care actually
         for element in SERVER_IDENTITIES:
             timestamp = SERVER_IDENTITIES[element][0]
             RNS.log(
-                "Registered Server last heard: "+str(int(time.time())-timestamp)+"sec"
+                "Registered Server last heard: " + str(int(time.time()) - timestamp) + "sec"
             )
 
+
 def packet_callback(data, packet):
-    # Simply print out the received data
-#    message_data = data.decode("utf-8")
+    # Reconstruct original python object
+    # In this case it was a python dictioanry containing the json message
     message = pickle.loads(data)
 
     # append the JSON message map to the message store at last position
@@ -121,12 +157,13 @@ def packet_callback(data, packet):
     if length > MESSAGE_BUFFER_SIZE:
         # If limit is exceeded just drop first (oldest) element of list
         MESSAGE_STORE.pop(0)
-
+    # Log message received by distribution event
     RNS.log(
         "Message received via Nexus Multicast: " + str(message)
     )
-
+    # clean up
     sys.stdout.flush()
+
 
 class ServerRequestHandler(BaseHTTPRequestHandler):
 
@@ -170,30 +207,43 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         if length > MESSAGE_BUFFER_SIZE:
             # If limit is exceeded just drop first (oldest) element of list
             MESSAGE_STORE.pop(0)
-
+        # Log message received event
         RNS.log(
-            "Message received via HTTP POST: "+ str(message)
+            "Message received via HTTP POST: " + str(message)
         )
 
+        # Loop through all registered distribution targets
+        # and remove all targets that have not announced them self within given timeout period
         for element in SERVER_IDENTITIES:
+            # Get time stamp from target dict
             timestamp = SERVER_IDENTITIES[element][0]
-            announced_server = SERVER_IDENTITIES[element][1]
-
-            remote_server = RNS.Destination(
-                announced_server,
-                RNS.Destination.OUT,
-                RNS.Destination.SINGLE,
-                APP_NAME,
-                NEXUS_SERVER_ASPECT
-            )
-
-#            message = '{"id":4711,"msg":"Hello from:'+str(NEXUS_SERVER_IDENTITY.get_public_key())+'"}'
-            RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
-
-        RNS.log(
-            "Message distributed to "+str(len(SERVER_IDENTITIES))+" destinations"
-        )
-
+            # Get actual time from system
+            actual_time = int(time.time())
+            # Check if target has not expired yet
+            if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
+                # Get target identity from target dict
+                announced_server = SERVER_IDENTITIES[element][1]
+                # Create destination
+                remote_server = RNS.Destination(
+                    announced_server,
+                    RNS.Destination.OUT,
+                    RNS.Destination.SINGLE,
+                    APP_NAME,
+                    NEXUS_SERVER_ASPECT
+                )
+                # Send message to destination
+                RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
+                # Log that we send something
+                RNS.log(
+                    "Message distributed to " + str(len(SERVER_IDENTITIES)) + " destinations"
+                )
+            else:
+                # Remove expired target identity from distribution list
+                SERVER_IDENTITIES.pop(element)
+                # Log that we did so
+                RNS.log(
+                    "Distribution identity removed"
+                )
 
         # DEBUG: Log actual message store to console
         if DEBUG:
