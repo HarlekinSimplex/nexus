@@ -103,7 +103,8 @@ class AnnounceHandler:
             NEXUS_SERVER_ASPECT
         )
 
-        RNS.Packet(remote_server, '{"id":4711, "msg":"Hello World"}', create_receipt=False).send()
+        message = '{"id":4711,"msg":"Hello World"}'
+        RNS.Packet(remote_server, message.encode('utf-8'), create_receipt=False).send()
 
 
 def packet_callback(data, packet):
