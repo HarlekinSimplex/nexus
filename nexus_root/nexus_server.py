@@ -103,7 +103,7 @@ class AnnounceHandler:
             NEXUS_SERVER_ASPECT
         )
 
-        message = '{"id":4711,"msg":"Hello from:'+NEXUS_SERVER_IDENTITY+'"}'
+        message = '{"id":4711,"msg":"Hello from:'+NEXUS_SERVER_IDENTITY.get_public_key().decode("utf-8")+'"}'
         RNS.Packet(remote_server, message.encode('utf-8'), create_receipt=False).send()
 
 
