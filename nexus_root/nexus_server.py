@@ -23,11 +23,13 @@ DEBUG = False
 APP_NAME = "nexus"
 NEXUS_SERVER_ADDRESS = ('', 4281)
 NEXUS_SERVER_ASPECT = "deltamatrix"
+NEXUS_SERVER_IDENTITY = None
 
 
 def initialize_server(configpath, server_port=None, server_apspect=None):
     global NEXUS_SERVER_ADDRESS
     global NEXUS_SERVER_ASPECT
+    global NEXUS_SERVER_IDENTITY
 
     RNS.Reticulum(configpath)
 
@@ -37,27 +39,24 @@ def initialize_server(configpath, server_port=None, server_apspect=None):
     if server_apspect is not None:
         NEXUS_SERVER_ASPECT = server_apspect
 
-    print("Server Parameter --port:"+str(NEXUS_SERVER_ADDRESS[1])+" --aspect:"+NEXUS_SERVER_ASPECT)
+    RNS.log(
+        "Server Parameter --port:"+str(NEXUS_SERVER_ADDRESS[1])+" --aspect:"+NEXUS_SERVER_ASPECT
+    )
 
-    server_identity = RNS.Identity()
-
+    NEXUS_SERVER_IDENTITY = RNS.Identity()
     server_destination = RNS.Destination(
-        server_identity,
+        NEXUS_SERVER_IDENTITY,
         RNS.Destination.IN,
         RNS.Destination.SINGLE,
         APP_NAME,
         NEXUS_SERVER_ASPECT
     )
-
     announce_handler = AnnounceHandler(
         aspect_filter=APP_NAME + '.' + NEXUS_SERVER_ASPECT
     )
     RNS.Transport.register_announce_handler(announce_handler)
-
     server_destination.set_packet_callback(packet_callback)
-
     server_destination.announce(app_data=(APP_NAME+'.'+NEXUS_SERVER_ASPECT).encode("utf-8"))
-
     run_server()
 
 
@@ -66,7 +65,9 @@ def run_server():
     global NEXUS_SERVER_ADDRESS
 
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
-    print("serving Nexus aspect <" + NEXUS_SERVER_ASPECT + "> at %s:%d" % NEXUS_SERVER_ADDRESS)
+    RNS.log(
+        "serving Nexus aspect <" + NEXUS_SERVER_ASPECT + "> at %s:%d" % NEXUS_SERVER_ADDRESS
+    )
     httpd.serve_forever()
 
 
@@ -93,6 +94,16 @@ class AnnounceHandler:
             "The announce contained the following app data: " +
             app_data.decode("utf-8")
         )
+
+        remote_server = RNS.Destination(
+            announced_identity,
+            RNS.Destination.OUT,
+            RNS.Destination.SINGLE,
+            APP_NAME,
+            NEXUS_SERVER_ASPECT
+        )
+
+        RNS.Packet(remote_server, '{"id":4711, "msg":"Hello World"}', create_receipt=False).send()
 
 
 def packet_callback(data, packet):
