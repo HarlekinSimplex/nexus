@@ -56,7 +56,7 @@ def initialize_server(configpath, server_port=None, server_apspect=None):
 
     server_destination.set_packet_callback(packet_callback)
 
-    server_destination.announce()
+    server_destination.announce(app_data=(APP_NAME+'.'+NEXUS_SERVER_ASPECT).encode("utf-8"))
 
     run_server()
 
