@@ -4,6 +4,7 @@ import RNS
 from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 from http import HTTPStatus
 import json
+import pickle
 import time
 
 # Sample message store
@@ -110,10 +111,11 @@ class AnnounceHandler:
 
 def packet_callback(data, packet):
     # Simply print out the received data
-    message = data.decode("utf-8")
+#    message_data = data.decode("utf-8")
+    message = pickle.load(data)
 
     # append the JSON message map to the message store at last position
-    MESSAGE_STORE.append(json.load(message))
+    MESSAGE_STORE.append(message)
     # Check store size if defined limit is reached
     length = len(MESSAGE_STORE)
     if length > MESSAGE_BUFFER_SIZE:
@@ -186,7 +188,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             )
 
 #            message = '{"id":4711,"msg":"Hello from:'+str(NEXUS_SERVER_IDENTITY.get_public_key())+'"}'
-            RNS.Packet(remote_server, str(message).encode('utf-8'), create_receipt=False).send()
+            RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
 
 
         # DEBUG: Log actual message store to console
