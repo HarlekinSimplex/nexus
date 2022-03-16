@@ -110,9 +110,21 @@ class AnnounceHandler:
 
 def packet_callback(data, packet):
     # Simply print out the received data
-    print("Received data: " + data.decode("utf-8"))
-    sys.stdout.flush()
+    message = data.decode("utf-8")
 
+    # append the JSON message map to the message store at last position
+    MESSAGE_STORE.append(message)
+    # Check store size if defined limit is reached
+    length = len(MESSAGE_STORE)
+    if length > MESSAGE_BUFFER_SIZE:
+        # If limit is exceeded just drop first (oldest) element of list
+        MESSAGE_STORE.pop(0)
+
+    RNS.log(
+        "Message received via Nexus Multicast: " + str(message)
+    )
+
+    sys.stdout.flush()
 
 class ServerRequestHandler(BaseHTTPRequestHandler):
 
