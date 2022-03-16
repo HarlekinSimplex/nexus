@@ -190,6 +190,10 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 #            message = '{"id":4711,"msg":"Hello from:'+str(NEXUS_SERVER_IDENTITY.get_public_key())+'"}'
             RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
 
+        RNS.log(
+            "Message distributed to "+str(len(SERVER_IDENTITIES))+" destinations"
+        )
+
 
         # DEBUG: Log actual message store to console
         if DEBUG:
