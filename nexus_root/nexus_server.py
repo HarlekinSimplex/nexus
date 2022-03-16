@@ -37,6 +37,8 @@ def initialize_server(configpath, server_port=None, server_apspect=None):
     if server_apspect is not None:
         NEXUS_SERVER_ASPECT = server_apspect
 
+    print("Server Parameter --port:"+str(NEXUS_SERVER_ADDRESS[1])+" --aspect:"+NEXUS_SERVER_ASPECT)
+
     server_identity = RNS.Identity()
 
     server_destination = RNS.Destination(
@@ -54,10 +56,14 @@ def initialize_server(configpath, server_port=None, server_apspect=None):
 
     server_destination.set_packet_callback(packet_callback)
 
+    server_destination.announce()
+
     run_server()
 
 
 def run_server():
+    global NEXUS_SERVER_ASPECT
+    global NEXUS_SERVER_ADDRESS
 
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
     print("serving Nexus aspect <" + NEXUS_SERVER_ASPECT + "> at %s:%d" % NEXUS_SERVER_ADDRESS)
