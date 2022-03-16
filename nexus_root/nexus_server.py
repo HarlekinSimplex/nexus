@@ -207,6 +207,8 @@ def packet_callback(data, packet):
             "Message is first message and will be appended " +
             str(message)
         )
+        # Append the JSON message map to the message store at last position
+        MESSAGE_STORE.append(message)
         # Distribute message to all registered nexus servers
         distribute_message(message)
     else:
@@ -258,7 +260,7 @@ def packet_callback(data, packet):
                 RNS.log(
                     "Message is most recent an will be appended to timeline): " + str(message)
                 )
-                # append the JSON message map to the message store at last position
+                # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
                 # Distribute message to all registered nexus servers
                 distribute_message(message)
@@ -268,7 +270,7 @@ def packet_callback(data, packet):
     # Lets check store size if defined limit is reached now
     length = len(MESSAGE_STORE)
     if length > MESSAGE_BUFFER_SIZE:
-        # Log message append
+        # Log message pop
         RNS.log(
             "Maximum Message count exceeded. Oldest message is dropped now. " + str(MESSAGE_STORE[0])
         )
