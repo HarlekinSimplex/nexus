@@ -113,7 +113,7 @@ def packet_callback(data, packet):
     message = data.decode("utf-8")
 
     # append the JSON message map to the message store at last position
-    MESSAGE_STORE.append(message)
+    MESSAGE_STORE.append(json.load(message))
     # Check store size if defined limit is reached
     length = len(MESSAGE_STORE)
     if length > MESSAGE_BUFFER_SIZE:
@@ -121,7 +121,7 @@ def packet_callback(data, packet):
         MESSAGE_STORE.pop(0)
 
     RNS.log(
-        "Message received via Nexus Multicast: " + str(message)
+        "Message received via Nexus Multicast: " + message
     )
 
     sys.stdout.flush()
