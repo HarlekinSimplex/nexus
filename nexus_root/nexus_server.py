@@ -14,8 +14,8 @@ import time
 #    {'time': '2022-03-01 23:52:53', 'msg': 'Static Test Message #3', 'id': 1646175173000},
 # ]
 
-messageStore = [
-]
+MESSAGE_STORE = []
+SERVER_IDENTITIES = {}
 
 MESSAGE_BUFFER_SIZE = 20
 DEBUG = False
@@ -85,6 +85,8 @@ class AnnounceHandler:
     # configured aspect filter. Filters must be specific,
     # and cannot use wildcards.
     def received_announce(self, destination_hash, announced_identity, app_data):
+        global SERVER_IDENTITIES
+
         RNS.log(
             "Received an announce from " +
             RNS.prettyhexrep(destination_hash)
@@ -95,17 +97,16 @@ class AnnounceHandler:
             app_data.decode("utf-8")
         )
 
-        remote_server = RNS.Destination(
-            announced_identity,
-            RNS.Destination.OUT,
-            RNS.Destination.SINGLE,
-            APP_NAME,
-            NEXUS_SERVER_ASPECT
-        )
+        dict_key = announced_identity.get_public_key()
+        dict_time = int(time.time())
 
-        message = '{"id":4711,"msg":"Hello from:'+str(NEXUS_SERVER_IDENTITY.get_public_key())+'"}'
-        RNS.Packet(remote_server, message.encode('utf-8'), create_receipt=False).send()
+        SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity)
 
+        for element in SERVER_IDENTITIES:
+            timestamp = SERVER_IDENTITIES[element][0]
+            RNS.log(
+                "Registered Server last heard: "+str(int(time.time())-timestamp)+"sec"
+            )
 
 def packet_callback(data, packet):
     # Simply print out the received data
@@ -127,7 +128,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._set_headers()
-        self.wfile.write(json.dumps(messageStore).encode('utf-8'))
+        self.wfile.write(json.dumps(MESSAGE_STORE).encode('utf-8'))
 
     def do_POST(self):
         # ToDo: Need to implement more features:
@@ -149,18 +150,36 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         #            messageStore.pop(len(messageStore))
 
         # append the JSON message map to the message store at last position
-        messageStore.append(message)
+        MESSAGE_STORE.append(message)
         # Check store size if defined limit is reached
-        length = len(messageStore)
+        length = len(MESSAGE_STORE)
         if length > MESSAGE_BUFFER_SIZE:
             # If limit is exceeded just drop first (oldest) element of list
-            messageStore.pop(0)
+            MESSAGE_STORE.pop(0)
 
-        print(message)
+        RNS.log(
+            "Message received via HTTP POST: <"+message+">"
+        )
+
+        for element in SERVER_IDENTITIES:
+            timestamp = SERVER_IDENTITIES[element][0]
+            announced_server = SERVER_IDENTITIES[element][1]
+
+            remote_server = RNS.Destination(
+                announced_server,
+                RNS.Destination.OUT,
+                RNS.Destination.SINGLE,
+                APP_NAME,
+                NEXUS_SERVER_ASPECT
+            )
+
+#            message = '{"id":4711,"msg":"Hello from:'+str(NEXUS_SERVER_IDENTITY.get_public_key())+'"}'
+            RNS.Packet(remote_server, message.encode('utf-8'), create_receipt=False).send()
+
 
         # DEBUG: Log actual message store to console
         if DEBUG:
-            for s in messageStore:
+            for s in MESSAGE_STORE:
                 print(s)
 
         # Build and return JSON success response
