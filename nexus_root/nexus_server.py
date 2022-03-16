@@ -258,7 +258,7 @@ def packet_callback(data, packet):
             if i == message_store_size-1:
                 # Log message append
                 RNS.log(
-                    "Message is most recent an will be appended to timeline): " + str(message)
+                    "Message is most recent and will be appended to timeline): " + str(message)
                 )
                 # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
