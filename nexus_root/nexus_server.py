@@ -112,7 +112,7 @@ class AnnounceHandler:
 def packet_callback(data, packet):
     # Simply print out the received data
 #    message_data = data.decode("utf-8")
-    message = pickle.load(data)
+    message = pickle.loads(data)
 
     # append the JSON message map to the message store at last position
     MESSAGE_STORE.append(message)
@@ -123,7 +123,7 @@ def packet_callback(data, packet):
         MESSAGE_STORE.pop(0)
 
     RNS.log(
-        "Message received via Nexus Multicast: " + message
+        "Message received via Nexus Multicast: " + str(message)
     )
 
     sys.stdout.flush()
