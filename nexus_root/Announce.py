@@ -100,7 +100,6 @@ def announceLoop(destination_1, destination_2):
 
         # Randomly select a noble gas
         noble_gas = noble_gases[random.randint(0,len(noble_gases)-1)]
-
         # Send the announce including the app data
         destination_2.announce(app_data=noble_gas.encode("utf-8"))
         RNS.log(
@@ -108,6 +107,7 @@ def announceLoop(destination_1, destination_2):
             RNS.prettyhexrep(destination_2.hash)+
             " ("+destination_2.name+")"
         )
+
 
 # We will need to define an announce handler class that
 # Reticulum can message when an announce arrives.

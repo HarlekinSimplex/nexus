@@ -62,6 +62,21 @@ def broadcastLoop(destination):
         " running, enter text and hit enter to broadcast (Ctrl-C to quit)"
     )
 
+    destination_2 = RNS.Destination(
+        RNS.Identity(),
+        RNS.Destination.IN,
+        RNS.Destination.SINGLE,
+        APP_NAME,
+        "announcesample",
+        "fruits"
+    )
+    destination_2.set_proof_strategy(RNS.Destination.PROVE_ALL)
+    announce_handler = ExampleAnnounceHandler(
+        aspect_filter="example_utilities.announcesample.fruits"
+    )
+    RNS.Transport.register_announce_handler(announce_handler)
+
+
     # We enter a loop that runs until the users exits.
     # If the user hits enter, we will send the information
     # that the user entered into the prompt.
@@ -73,6 +88,40 @@ def broadcastLoop(destination):
             data = entered.encode("utf-8")
             packet = RNS.Packet(destination, data)
             packet.send()
+
+            destination_2.announce(app_data=data)
+            RNS.log(
+                "Sent announce from "+
+                RNS.prettyhexrep(destination_2.hash)+
+                " ("+destination_2.name+")"
+            )
+
+
+# We will need to define an announce handler class that
+# Reticulum can message when an announce arrives.
+class ExampleAnnounceHandler:
+    # The initialisation method takes the optional
+    # aspect_filter argument. If aspect_filter is set to
+    # None, all announces will be passed to the instance.
+    # If only some announces are wanted, it can be set to
+    # an aspect string.
+    def __init__(self, aspect_filter=None):
+        self.aspect_filter = aspect_filter
+
+    # This method will be called by Reticulums Transport
+    # system when an announce arrives that matches the
+    # configured aspect filter. Filters must be specific,
+    # and cannot use wildcards.
+    def received_announce(self, destination_hash, announced_identity, app_data):
+        RNS.log(
+            "Received an announce from "+
+            RNS.prettyhexrep(destination_hash)
+        )
+
+        RNS.log(
+            "The announce contained the following app data: "+
+            app_data.decode("utf-8")
+        )
 
 
 #######################################################
