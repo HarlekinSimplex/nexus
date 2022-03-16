@@ -201,58 +201,68 @@ def packet_callback(data, packet):
     # Get actual number of messages in the buffer
     message_store_size = len(MESSAGE_STORE)
 
-    # loop through all messages and check if we have to store and distribute it
-    for i in range(0, message_store_size):
-        # Check if we already have that message at the actual buffer position
-        if message_id == MESSAGE_STORE[i][MESSAGE_JSON_ID]:
-            # Timestamp did match now check if message does too
-            if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
-                # Log that we have that one already
-                RNS.log(
-                    "Message storing and distribution not necessary 'cause message already in buffer) " +
-                    str(message)
-                )
-                break
-            # Message has same time stamp but differs
-            else:
+    if message_store_size == 0:
+        # First message arrived event
+        RNS.log(
+            "Message is first message and will be appended " +
+            str(message)
+        )
+        # Distribute message to all registered nexus servers
+        distribute_message(message)
+    else:
+        # At least one message is already there and need to be checked for insertion and distribution
+        # loop through all messages and check if we have to store and distribute it
+        for i in range(0, message_store_size):
+            # Check if we already have that message at the actual buffer position
+            if message_id == MESSAGE_STORE[i][MESSAGE_JSON_ID]:
+                # Timestamp did match now check if message does too
+                if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
+                    # Log that we have that one already
+                    RNS.log(
+                        "Message storing and distribution not necessary 'cause message already in buffer) " +
+                        str(message)
+                    )
+                    break
+                # Message has same time stamp but differs
+                else:
+                    # Log message insertion with same timestamp
+                    RNS.log(
+                        "Message has a duplicate timestamp but differs (Message will be inserted in timeline): " +
+                        str(message)
+                    )
+                    # Insert it at the actual position
+                    MESSAGE_STORE.insert(i, message)
+                    # Distribute message to all registered nexus servers
+                    distribute_message(message)
+                    break
+            # Timestamps to not mach
+            # lets check if it is to be inserted here
+            elif message_id < MESSAGE_STORE[i][MESSAGE_JSON_ID]:
+                # Yes it is
                 # Log message insertion with same timestamp
                 RNS.log(
-                    "Message has a duplicate timestamp but differs (Message will be inserted in timeline): " +
-                    str(message)
+                    "Message will be inserted in timeline): " + str(message)
                 )
                 # Insert it at the actual position
                 MESSAGE_STORE.insert(i, message)
                 # Distribute message to all registered nexus servers
                 distribute_message(message)
                 break
-        # Timestamps to not mach
-        # lets check if it is to be inserted here
-        elif message_id < MESSAGE_STORE[i][MESSAGE_JSON_ID]:
-            # Yes it is
-            # Log message insertion with same timestamp
-            RNS.log(
-                "Message will be inserted in timeline): " + str(message)
-            )
-            # Insert it at the actual position
-            MESSAGE_STORE.insert(i, message)
-            # Distribute message to all registered nexus servers
-            distribute_message(message)
-            break
-        # Continue until we find the place to insert it, or
-        # we have checked the latest entry in the buffer (i=size-1)
-        # If we are there than we can append and distribute it
-        # After that has happened we terminate the loop as well
-        # The loop will never be terminated automatically
-        if i == message_store_size-1:
-            # Log message append
-            RNS.log(
-                "Message is most recent an will be appended to timeline): " + str(message)
-            )
-            # append the JSON message map to the message store at last position
-            MESSAGE_STORE.append(message)
-            # Distribute message to all registered nexus servers
-            distribute_message(message)
-            break
+            # Continue until we find the place to insert it, or
+            # we have checked the latest entry in the buffer (i=size-1)
+            # If we are there than we can append and distribute it
+            # After that has happened we terminate the loop as well
+            # The loop will never be terminated automatically
+            if i == message_store_size-1:
+                # Log message append
+                RNS.log(
+                    "Message is most recent an will be appended to timeline): " + str(message)
+                )
+                # append the JSON message map to the message store at last position
+                MESSAGE_STORE.append(message)
+                # Distribute message to all registered nexus servers
+                distribute_message(message)
+                break
 
     # No we are done with adding and distributing
     # Lets check store size if defined limit is reached now
