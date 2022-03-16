@@ -28,17 +28,20 @@ SERVER_IDENTITIES = {}
 MESSAGE_BUFFER_SIZE = 20
 DEBUG = False
 
+MESSAGE_JSON_TIME = "time"
+MESSAGE_JSON_MSG = "msg"
+MESSAGE_JSON_ID = "id"
+
 APP_NAME = "nexus"
 NEXUS_SERVER_ADDRESS = ('', 4281)
 NEXUS_SERVER_ASPECT = "deltamatrix"
 NEXUS_SERVER_DESTINATION = RNS.Destination
 NEXUS_SERVER_IDENTITY = RNS.Identity
 
-# NEXUS_SERVER_TIMEOUT = 3600  # 3600sec <> 12h ; After 12h expired distribution targets are removed
-# NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2  # Re announce after half the expiration time
-
-NEXUS_SERVER_TIMEOUT = 10
-NEXUS_SERVER_LONGPOLL = 600
+NEXUS_SERVER_TIMEOUT = 3600  # 3600sec <> 12h ; After 12h expired distribution targets are removed
+NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2  # Re-announce after half the expiration time
+# NEXUS_SERVER_TIMEOUT = 10
+# NEXUS_SERVER_LONGPOLL = 600
 
 
 def initialize_server(configpath, server_port=None, server_aspect=None):
@@ -184,17 +187,84 @@ def packet_callback(data, packet):
     # In this case it was a python dictionary containing the json message
     message = pickle.loads(data)
 
-    # append the JSON message map to the message store at last position
-    MESSAGE_STORE.append(message)
-    # Check store size if defined limit is reached
-    length = len(MESSAGE_STORE)
-    if length > MESSAGE_BUFFER_SIZE:
-        # If limit is exceeded just drop first (oldest) element of list
-        MESSAGE_STORE.pop(0)
     # Log message received by distribution event
     RNS.log(
         "Message received via Nexus Multicast: " + str(message)
     )
+
+    # If message is more recent than the oldest message in the buffer
+    # and has not arrived earlier than add/insert message at the correct position and
+    # distribute the message to all registered servers
+
+    # Get actual timestamp from message
+    message_id = message[MESSAGE_JSON_ID]
+    # Get actual number of messages in the buffer
+    message_store_size = len(MESSAGE_STORE)
+
+    # loop through all messages and check if we have to store and distribute it
+    for i in range(0, message_store_size):
+        # Check if we already have that message at the actual buffer position
+        if message_id == MESSAGE_STORE[i][MESSAGE_JSON_ID]:
+            # Timestamp did match now check if message does too
+            if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
+                # Log that we have that one already
+                RNS.log(
+                    "Message storing and distribution not necessary 'cause message already in buffer) " +
+                    str(message)
+                )
+                break
+            # Message has same time stamp but differs
+            else:
+                # Log message insertion with same timestamp
+                RNS.log(
+                    "Message has a duplicate timestamp but differs (Message will be inserted in timeline): " +
+                    str(message)
+                )
+                # Insert it at the actual position
+                MESSAGE_STORE.insert(i, message)
+                # Distribute message to all registered nexus servers
+                distribute_message(message)
+                break
+        # Timestamps to not mach
+        # lets check if it is to be inserted here
+        elif message_id < MESSAGE_STORE[i][MESSAGE_JSON_ID]:
+            # Yes it is
+            # Log message insertion with same timestamp
+            RNS.log(
+                "Message will be inserted in timeline): " + str(message)
+            )
+            # Insert it at the actual position
+            MESSAGE_STORE.insert(i, message)
+            # Distribute message to all registered nexus servers
+            distribute_message(message)
+            break
+        # Continue until we find the place to insert it, or
+        # we have checked the latest entry in the buffer (i=size-1)
+        # If we are there than we can append and distribute it
+        # After that has happened we terminate the loop as well
+        # The loop will never be terminated automatically
+        if i == message_store_size-1:
+            # Log message append
+            RNS.log(
+                "Message is most recent an will be appended to timeline): " + str(message)
+            )
+            # append the JSON message map to the message store at last position
+            MESSAGE_STORE.append(message)
+            # Distribute message to all registered nexus servers
+            distribute_message(message)
+            break
+
+    # No we are done with adding and distributing
+    # Lets check store size if defined limit is reached now
+    length = len(MESSAGE_STORE)
+    if length > MESSAGE_BUFFER_SIZE:
+        # Log message append
+        RNS.log(
+            "Maximum Message count exceeded. Oldest message is dropped now. " + str(MESSAGE_STORE[0])
+        )
+        # If limit is exceeded just drop first (oldest) element of list
+        MESSAGE_STORE.pop(0)
+
     # clean up
     sys.stdout.flush()
 
@@ -224,7 +294,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         length = int(self.headers.get('content-length'))
         message = json.loads(self.rfile.read(length))
         # Create a timestamp and add that to the message map
-        message['id'] = int(time.time() * 100000)
+        message[MESSAGE_JSON_ID] = int(time.time() * 100000)
 
         #        # append the JSON message map to the message store at first position
         #        messageStore.insert(0, message)
@@ -246,38 +316,8 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             "Message received via HTTP POST: " + str(message)
         )
 
-        # Loop through all registered distribution targets
-        # and remove all targets that have not announced them self within given timeout period
-        for element in SERVER_IDENTITIES.copy():
-            # Get time stamp from target dict
-            timestamp = SERVER_IDENTITIES[element][0]
-            # Get actual time from system
-            actual_time = int(time.time())
-            # Check if target has not expired yet
-            if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
-                # Get target identity from target dict
-                announced_server = SERVER_IDENTITIES[element][1]
-                # Create destination
-                remote_server = RNS.Destination(
-                    announced_server,
-                    RNS.Destination.OUT,
-                    RNS.Destination.SINGLE,
-                    APP_NAME,
-                    NEXUS_SERVER_ASPECT
-                )
-                # Send message to destination
-                RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
-                # Log that we send something
-                RNS.log(
-                    "Message distributed to " + str(len(SERVER_IDENTITIES)) + " destinations"
-                )
-            else:
-                # Remove expired target identity from distribution list
-                SERVER_IDENTITIES.pop(element)
-                # Log that we did so
-                RNS.log(
-                    "Distribution identity removed"
-                )
+        # Distribute message to all registered nexus server
+        distribute_message(message)
 
         # DEBUG: Log actual message store to console
         if DEBUG:
@@ -288,8 +328,6 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         self._set_headers()
         self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
 
-    # Send to reticulum
-
     def do_OPTIONS(self):
         # Send allow-origin header and clearance for GET and POST requests
         self.send_response(HTTPStatus.NO_CONTENT)
@@ -297,6 +335,44 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'GET, POST')
         self.send_header('Access-Control-Allow-Headers', 'content-type')
         self.end_headers()
+
+
+def distribute_message(message):
+    # Loop through all registered distribution targets
+    # and remove all targets that have not announced them self within given timeout period
+    # If one target is not expired send message to that target
+    for element in SERVER_IDENTITIES.copy():
+        # Get time stamp from target dict
+        timestamp = SERVER_IDENTITIES[element][0]
+        # Get actual time from system
+        actual_time = int(time.time())
+        # Check if target has not expired yet
+        if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
+            # Get target identity from target dict
+            announced_server = SERVER_IDENTITIES[element][1]
+            # Create destination
+            remote_server = RNS.Destination(
+                announced_server,
+                RNS.Destination.OUT,
+                RNS.Destination.SINGLE,
+                APP_NAME,
+                NEXUS_SERVER_ASPECT
+            )
+            # Send message to destination
+            RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
+            # Log that we send something
+        else:
+            # Remove expired target identity from distribution list
+            SERVER_IDENTITIES.pop(element)
+            # Log that we did so
+            RNS.log(
+                "Distribution identity removed"
+            )
+
+        # Log number of target message was distributed to
+        RNS.log(
+            "Message distributed to " + str(len(SERVER_IDENTITIES)) + " destinations"
+        )
 
 
 #######################################################
