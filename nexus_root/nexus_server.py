@@ -158,7 +158,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             MESSAGE_STORE.pop(0)
 
         RNS.log(
-            "Message received via HTTP POST: <"+ str(message) + ">"
+            "Message received via HTTP POST: "+ str(message)
         )
 
         for element in SERVER_IDENTITIES:
@@ -174,7 +174,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             )
 
 #            message = '{"id":4711,"msg":"Hello from:'+str(NEXUS_SERVER_IDENTITY.get_public_key())+'"}'
-            RNS.Packet(remote_server, message.encode('utf-8'), create_receipt=False).send()
+            RNS.Packet(remote_server, str(message).encode('utf-8'), create_receipt=False).send()
 
 
         # DEBUG: Log actual message store to console
