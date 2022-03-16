@@ -110,7 +110,7 @@ class AnnounceHandler:
 def packet_callback(data, packet):
     # Simply print out the received data
     print("")
-    print("Received data: " + data.decode("utf-8") + "\r\n> ", end="")
+    print("Received data: " + data.decode("utf-8"))
     sys.stdout.flush()
 
 
