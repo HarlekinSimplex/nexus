@@ -7,11 +7,12 @@
 import sys
 import argparse
 import RNS
-from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from http import HTTPStatus
 import json
 import pickle
 import time
+import threading
 
 # Sample message store
 #
@@ -30,14 +31,18 @@ DEBUG = False
 APP_NAME = "nexus"
 NEXUS_SERVER_ADDRESS = ('', 4281)
 NEXUS_SERVER_ASPECT = "deltamatrix"
-NEXUS_SERVER_IDENTITY = None
-NEXUS_SERVER_TIMEOUT = 5
+NEXUS_SERVER_DESTINATION = RNS.Destination
+NEXUS_SERVER_IDENTITY = RNS.Identity
+
+NEXUS_SERVER_TIMEOUT = 3600  # 3600sec <> 12h ; After 12h expired distribution targets are removed
+NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2  # Re announce after half the expiration time
 
 
-def initialize_server(configpath, server_port=None, server_apspect=None):
+def initialize_server(configpath, server_port=None, server_aspect=None):
     global NEXUS_SERVER_ADDRESS
     global NEXUS_SERVER_ASPECT
     global NEXUS_SERVER_IDENTITY
+    global NEXUS_SERVER_DESTINATION
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -48,19 +53,19 @@ def initialize_server(configpath, server_port=None, server_apspect=None):
 
     # Set default nexus aspect if not specified otherwise
     # Announcement with that aspects are considered as message subscriptions
-    if server_apspect is not None:
-        NEXUS_SERVER_ASPECT = server_apspect
+    if server_aspect is not None:
+        NEXUS_SERVER_ASPECT = server_aspect
 
     # Log actually used parameters
     RNS.log(
         "Server Parameter --port:" + str(NEXUS_SERVER_ADDRESS[1]) + " --aspect:" + NEXUS_SERVER_ASPECT
     )
 
-    # Create the identify of this server
+    # Create the identity of this server
     # Each time the server starts a new identity with new keys is created
     NEXUS_SERVER_IDENTITY = RNS.Identity()
     # Create and register this server as a Reticulum target so that other nexus server can distribute message hereto
-    server_destination = RNS.Destination(
+    NEXUS_SERVER_DESTINATION = RNS.Destination(
         NEXUS_SERVER_IDENTITY,
         RNS.Destination.IN,
         RNS.Destination.SINGLE,
@@ -75,16 +80,38 @@ def initialize_server(configpath, server_port=None, server_apspect=None):
     RNS.Transport.register_announce_handler(announce_handler)
 
     # Register a call back function to process all incoming data packages (aka messages)
-    server_destination.set_packet_callback(packet_callback)
+    NEXUS_SERVER_DESTINATION.set_packet_callback(packet_callback)
 
     # Announce this server to the network
     # All other nexus server with the same aspect will register this server as a distribution target
-    server_destination.announce(app_data=(APP_NAME + '.' + NEXUS_SERVER_ASPECT).encode("utf-8"))
+    # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
+    announce_server()
+
+    t = threading.Timer(30.0, announce_server)
+    t.start()  # after 30 seconds, "hello, world" will be printed
 
     # Launch HTTP GET/POST processing
-    # This is a endless loop
+    # This is an endless loop
     # Termination by ctrl-c or like process termination
     launch_http_server()
+
+
+def announce_server():
+    global NEXUS_SERVER_DESTINATION
+    global NEXUS_SERVER_ASPECT
+    global APP_NAME
+    global NEXUS_SERVER_LONGPOLL
+
+    # Announce this server to the network
+    # All other nexus server with the same aspect will register this server as a distribution target
+    NEXUS_SERVER_DESTINATION.announce(
+        app_data=(
+                APP_NAME + '.' + NEXUS_SERVER_ASPECT
+        ).encode("utf-8")
+    )
+
+    # Start timer to re announce this server in due time as specified
+    threading.Timer(NEXUS_SERVER_LONGPOLL, announce_server).start()
 
 
 def launch_http_server():
@@ -136,7 +163,7 @@ class AnnounceHandler:
         SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity)
 
         # Log list of last heard durations
-        # Actually I have no clue how ti generate a proper human readable server name from that id
+        # Actually I have no clue how ti generate a proper human-readable server name from that id
         # However since reticulum can obviously - I don't care actually
         for element in SERVER_IDENTITIES:
             timestamp = SERVER_IDENTITIES[element][0]
@@ -147,7 +174,7 @@ class AnnounceHandler:
 
 def packet_callback(data, packet):
     # Reconstruct original python object
-    # In this case it was a python dictioanry containing the json message
+    # In this case it was a python dictionary containing the json message
     message = pickle.loads(data)
 
     # append the JSON message map to the message store at last position
@@ -214,7 +241,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
         # Loop through all registered distribution targets
         # and remove all targets that have not announced them self within given timeout period
-        for element in SERVER_IDENTITIES:
+        for element in SERVER_IDENTITIES.copy():
             # Get time stamp from target dict
             timestamp = SERVER_IDENTITIES[element][0]
             # Get actual time from system
