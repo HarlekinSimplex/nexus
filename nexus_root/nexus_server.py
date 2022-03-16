@@ -34,9 +34,11 @@ NEXUS_SERVER_ASPECT = "deltamatrix"
 NEXUS_SERVER_DESTINATION = RNS.Destination
 NEXUS_SERVER_IDENTITY = RNS.Identity
 
-NEXUS_SERVER_TIMEOUT = 3600  # 3600sec <> 12h ; After 12h expired distribution targets are removed
-NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2  # Re announce after half the expiration time
+# NEXUS_SERVER_TIMEOUT = 3600  # 3600sec <> 12h ; After 12h expired distribution targets are removed
+# NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2  # Re announce after half the expiration time
 
+NEXUS_SERVER_TIMEOUT = 20
+NEXUS_SERVER_LONGPOLL = 60
 
 def initialize_server(configpath, server_port=None, server_aspect=None):
     global NEXUS_SERVER_ADDRESS
@@ -108,6 +110,10 @@ def announce_server():
         app_data=(
                 APP_NAME + '.' + NEXUS_SERVER_ASPECT
         ).encode("utf-8")
+    )
+    # Log announcement / long poll announcement
+    RNS.log(
+        "Server announce sent with app_data "+ APP_NAME + '.' + NEXUS_SERVER_ASPECT
     )
 
     # Start timer to re announce this server in due time as specified
