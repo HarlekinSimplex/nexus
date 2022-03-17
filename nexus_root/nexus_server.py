@@ -66,12 +66,18 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
     # Set default nexus aspect if not specified otherwise
     # Announcement with that aspects are considered as message subscriptions
     if server_aspect is not None:
+        # Set server aspect
         NEXUS_SERVER_ASPECT = server_aspect
+        # Set default of role to new aspect as well
+        NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]=server_aspect
 
     # Role configuration of the server
     # Announcement with that aspects are considered as message subscriptions
     if server_role is not None:
+        # Overwrite role with specified role
         NEXUS_SERVER_ROLE = json.loads(server_role)
+        # Replace default or set aspect specification with cluster given in role parameter
+        NEXUS_SERVER_ASPECT = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
 
     # Log actually used parameters
     RNS.log(
