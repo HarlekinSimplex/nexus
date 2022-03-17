@@ -148,7 +148,7 @@ def launch_http_server():
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
     # Log launch with aspect and address/port used
     RNS.log(
-        "serving Nexus aspect <" + NEXUS_SERVER_ASPECT + "> at %s:%d" % NEXUS_SERVER_ADDRESS
+        "serving Nexus aspect '" + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS
     )
     # Invoke server loop
     # (infinite)
@@ -199,7 +199,7 @@ class AnnounceHandler:
             timestamp = SERVER_IDENTITIES[element][0]
             destination = RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
             RNS.log(
-                "Registered Server <" + destination + "> last heard " + str(int(time.time()) - timestamp) + "sec ago."
+                "Registered Server " + destination + " last heard " + str(int(time.time()) - timestamp) + "sec ago."
             )
 
 
@@ -395,12 +395,12 @@ def distribute_message(message):
             RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
             # Log that we send something t this destination
             RNS.log(
-                "Message sent to destination <" + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + ">"
+                "Message sent to destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
             )
         else:
             # Log that we removed the destination
             RNS.log(
-                "Distribution identity of destination <" + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + "> removed"
+                "Distribution identity of destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
             )
             # Remove expired target identity from distribution list
             SERVER_IDENTITIES.pop(element)
