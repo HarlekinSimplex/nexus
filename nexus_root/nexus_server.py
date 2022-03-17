@@ -33,10 +33,11 @@ MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
 ROLE_JSON_CLUSTER = "cluster"
 ROLE_JSON_GATEWAY = "gate"
+DEFAULT_CLUSTER = "hesse"
 DEFAULT_GATEWAY = "none"
 
 APP_NAME = "nexus"
-NEXUS_SERVER_ASPECT = "hesse"
+NEXUS_SERVER_ASPECT = "prod"
 NEXUS_SERVER_ADDRESS = ('', 4281)
 
 NEXUS_SERVER_TIMEOUT = 3600  # 3600sec <> 12h ; After 12h expired distribution targets are removed
@@ -44,7 +45,7 @@ NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2  # Re-announce after half the e
 # NEXUS_SERVER_TIMEOUT = 10
 # NEXUS_SERVER_LONGPOLL = 600
 
-NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: NEXUS_SERVER_ASPECT, ROLE_JSON_GATEWAY: DEFAULT_GATEWAY}
+NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER, ROLE_JSON_GATEWAY: DEFAULT_GATEWAY}
 NEXUS_SERVER_DESTINATION = RNS.Destination
 NEXUS_SERVER_IDENTITY = RNS.Identity
 
@@ -64,24 +65,23 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
         NEXUS_SERVER_ADDRESS = ('', int(server_port))
 
     # Set default nexus aspect if not specified otherwise
-    # Announcement with that aspects are considered as message subscriptions
+    # Announcement with that aspects are evaluated for possible automatic subscription
     if server_aspect is not None:
-        # Set server aspect
+        # Overwrite default aspect
         NEXUS_SERVER_ASPECT = server_aspect
-        # Set default of role to new aspect as well
-        NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER] = server_aspect
 
     # Role configuration of the server
-    # Announcement with that aspects are considered as message subscriptions
+    # Announcement with similar cluster oder gateway names are considered as message subscriptions
     if server_role is not None:
-        # Overwrite role with specified role
+        # Overwrite default role with specified role
         NEXUS_SERVER_ROLE = json.loads(server_role)
-        # Replace default or set aspect specification with cluster given in role parameter
-        NEXUS_SERVER_ASPECT = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
 
     # Log actually used parameters
     RNS.log(
-        "Server Parameter --port=" + str(NEXUS_SERVER_ADDRESS[1]) + " --aspect=" + NEXUS_SERVER_ASPECT
+        "Server configuration set up:" +
+        " port=" + str(NEXUS_SERVER_ADDRESS[1]) +
+        " aspect=" + NEXUS_SERVER_ASPECT +
+        " role=" + str(NEXUS_SERVER_ROLE)
     )
 
     # Create the identity of this server
