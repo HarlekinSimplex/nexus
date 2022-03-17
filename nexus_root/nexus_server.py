@@ -176,9 +176,13 @@ class AnnounceHandler:
             "Received an announce from " +
             RNS.prettyhexrep(destination_hash)
         )
+
+        # Recreate nexus role dict from received app data
+        announced_role = pickle.loads(app_data)
+        # Log role
         RNS.log(
-            "The announce contained the following app data: " +
-            app_data.decode("utf-8")
+            "The announce contained the following nexus role dict: " +
+            str(announced_role)
         )
 
         # Get dict key and timestamp for distribution identity registration
