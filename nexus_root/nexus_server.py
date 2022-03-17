@@ -198,13 +198,18 @@ class AnnounceHandler:
         # Add announced nexus distribution target to distribution dict if it has the same cluster or gateway name.
         # This is to enable that servers of the actual cluster are subscribed for distribution as well as serves
         # that announce themselves with a secondary cluster aka gateway cluster name.
-        #
+
         # Check if we have cluster match
-        link_flag1 = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER] == announced_role[ROLE_JSON_CLUSTER]
+        # with check if key is at both maps
+        link_flag1 = (ROLE_JSON_CLUSTER in NEXUS_SERVER_ROLE and ROLE_JSON_CLUSTER in announced_role)
+        if link_flag1:
+            link_flag1 = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER] == announced_role[ROLE_JSON_CLUSTER]
         # Check if we have gateway match
+        # with check if key is at both maps
         link_flag2 = (ROLE_JSON_GATEWAY in NEXUS_SERVER_ROLE and ROLE_JSON_GATEWAY in announced_role)
         if link_flag2:
             link_flag2 = NEXUS_SERVER_ROLE[ROLE_JSON_GATEWAY] == announced_role[ROLE_JSON_GATEWAY]
+
         # If we had a cluster or gateway match subscribe announced target
         if link_flag1 or link_flag2:
             # Register destination as valid distribution target
