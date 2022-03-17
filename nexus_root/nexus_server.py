@@ -82,8 +82,11 @@ def initialize_server(configpath, server_port=None, server_aspect=None):
     NEXUS_SERVER_DESTINATION.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
     # Register a handler to process all incoming announcements with the aspect of this nexus server
+#    announce_handler = AnnounceHandler(
+#        aspect_filter=APP_NAME + '.' + NEXUS_SERVER_ASPECT
+#    )
     announce_handler = AnnounceHandler(
-        aspect_filter=APP_NAME + '.' + NEXUS_SERVER_ASPECT
+        aspect_filter=APP_NAME
     )
     RNS.Transport.register_announce_handler(announce_handler)
 
@@ -119,8 +122,7 @@ def announce_server():
     )
     # Log announcement / long poll announcement
     RNS.log(
-    #   "Server announce sent with app_data " + APP_NAME + '.' + NEXUS_SERVER_ASPECT
-        "Server announce sent with app_data " + APP_NAME
+        "Server announce sent with app_data " + APP_NAME + '.' + NEXUS_SERVER_ASPECT
     )
 
     # Start timer to re announce this server in due time as specified
