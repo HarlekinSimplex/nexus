@@ -221,6 +221,12 @@ class AnnounceHandler:
                 RNS.log(
                     "Registered Server " + destination + " last heard " + last_heard + "sec ago."
                 )
+        else:
+            # Announce should be ignored since it belongs to a different cluster and we are not eligible to
+            # link with that cluster as gateway too
+            RNS.log(
+                "Announced Nexus target was ignored"
+            )
 
 
 def packet_callback(data, packet):
