@@ -197,7 +197,7 @@ class AnnounceHandler:
         # However since reticulum can obviously - I don't care actually
         for element in SERVER_IDENTITIES:
             timestamp = SERVER_IDENTITIES[element][0]
-            destination = SERVER_IDENTITIES[element][2]
+            destination = str(SERVER_IDENTITIES[element][2])
             RNS.log(
                 "Registered Server <" + destination + "> last heard: " + str(int(time.time()) - timestamp) + "sec"
             )
@@ -395,12 +395,12 @@ def distribute_message(message):
             RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
             # Log that we send something t this destination
             RNS.log(
-                "Message sent to destination <" + SERVER_IDENTITIES[element][2] + ">"
+                "Message sent to destination <" + str(SERVER_IDENTITIES[element][2]) + ">"
             )
         else:
             # Log that we removed the destination
             RNS.log(
-                "Distribution identity of destination <" + SERVER_IDENTITIES[element][2] + "> removed"
+                "Distribution identity of destination <" + str(SERVER_IDENTITIES[element][2]) + "> removed"
             )
             # Remove expired target identity from distribution list
             SERVER_IDENTITIES.pop(element)
