@@ -119,7 +119,8 @@ def announce_server():
     )
     # Log announcement / long poll announcement
     RNS.log(
-        "Server announce sent with app_data " + APP_NAME + '.' + NEXUS_SERVER_ASPECT
+    #   "Server announce sent with app_data " + APP_NAME + '.' + NEXUS_SERVER_ASPECT
+        "Server announce sent with app_data " + APP_NAME
     )
 
     # Start timer to re announce this server in due time as specified
