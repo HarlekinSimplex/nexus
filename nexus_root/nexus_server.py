@@ -69,7 +69,7 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
         # Set server aspect
         NEXUS_SERVER_ASPECT = server_aspect
         # Set default of role to new aspect as well
-        NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]=server_aspect
+        NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER] = server_aspect
 
     # Role configuration of the server
     # Announcement with that aspects are considered as message subscriptions
@@ -225,10 +225,10 @@ class AnnounceHandler:
 
                 # If actual ist still valid log it
                 RNS.log(
-                    "Registered Server " + destination + " last heard " + last_heard + "sec ago."
+                    "Registered Server " + destination + " last heard " + str(last_heard) + "sec ago."
                 )
         else:
-            # Announce should be ignored since it belongs to a different cluster and we are not eligible to
+            # Announce should be ignored since it belongs to a different cluster, and we are not eligible to
             # link with that cluster as gateway too
             RNS.log(
                 "Announced Nexus target was ignored"
