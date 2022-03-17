@@ -76,7 +76,7 @@ def initialize_server(configpath, server_port=None, server_aspect=None):
         RNS.Destination.IN,
         RNS.Destination.SINGLE,
         APP_NAME,
-        NEXUS_SERVER_ASPECT
+        NEXUS_SERVER_ASPECT, "test01", "test02"
     )
     # Approve all packages received (no handler necessary)
     NEXUS_SERVER_DESTINATION.set_proof_strategy(RNS.Destination.PROVE_ALL)
