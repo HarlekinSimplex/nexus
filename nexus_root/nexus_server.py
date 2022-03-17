@@ -78,6 +78,8 @@ def initialize_server(configpath, server_port=None, server_aspect=None):
         APP_NAME,
         NEXUS_SERVER_ASPECT
     )
+    # Approve all packages received (no handler necessary)
+    NEXUS_SERVER_DESTINATION.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
     # Register a handler to process all incoming announcements with the aspect of this nexus server
     announce_handler = AnnounceHandler(
