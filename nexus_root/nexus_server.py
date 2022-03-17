@@ -31,24 +31,30 @@ DEBUG = False
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
+ROLE_JSON_CLUSTER = "c"
+ROLE_JSON_GATEWAY = "g"
+DEFAULT_CLUSTER = "root"
 
 APP_NAME = "nexus"
+NEXUS_SERVER_ASPECT = "prod"
 NEXUS_SERVER_ADDRESS = ('', 4281)
-NEXUS_SERVER_ASPECT = "deltamatrix"
-NEXUS_SERVER_DESTINATION = RNS.Destination
-NEXUS_SERVER_IDENTITY = RNS.Identity
 
 NEXUS_SERVER_TIMEOUT = 3600  # 3600sec <> 12h ; After 12h expired distribution targets are removed
 NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2  # Re-announce after half the expiration time
 # NEXUS_SERVER_TIMEOUT = 10
 # NEXUS_SERVER_LONGPOLL = 600
 
+NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER}
+NEXUS_SERVER_DESTINATION = RNS.Destination
+NEXUS_SERVER_IDENTITY = RNS.Identity
 
-def initialize_server(configpath, server_port=None, server_aspect=None):
+
+def initialize_server(configpath, server_port=None, server_aspect=None, server_role=None):
     global NEXUS_SERVER_ADDRESS
     global NEXUS_SERVER_ASPECT
     global NEXUS_SERVER_IDENTITY
     global NEXUS_SERVER_DESTINATION
+    global NEXUS_SERVER_ROLE
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -58,13 +64,23 @@ def initialize_server(configpath, server_port=None, server_aspect=None):
         NEXUS_SERVER_ADDRESS = ('', int(server_port))
 
     # Set default nexus aspect if not specified otherwise
-    # Announcement with that aspects are considered as message subscriptions
+    # Announcement with that aspects are evaluated for possible automatic subscription
     if server_aspect is not None:
+        # Overwrite default aspect
         NEXUS_SERVER_ASPECT = server_aspect
+
+    # Role configuration of the server
+    # Announcement with similar cluster oder gateway names are considered as message subscriptions
+    if server_role is not None:
+        # Overwrite default role with specified role
+        NEXUS_SERVER_ROLE = json.loads(server_role)
 
     # Log actually used parameters
     RNS.log(
-        "Server Parameter --port:" + str(NEXUS_SERVER_ADDRESS[1]) + " --aspect:" + NEXUS_SERVER_ASPECT
+        "Server configuration set up:" +
+        " port=" + str(NEXUS_SERVER_ADDRESS[1]) +
+        " aspect=" + NEXUS_SERVER_ASPECT +
+        " role=" + str(NEXUS_SERVER_ROLE)
     )
 
     # Create the identity of this server
@@ -81,10 +97,11 @@ def initialize_server(configpath, server_port=None, server_aspect=None):
     # Approve all packages received (no handler necessary)
     NEXUS_SERVER_DESTINATION.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
-    # Register a handler to process all incoming announcements with the aspect of this nexus server
+    # Create a handler to process all incoming announcements with the aspect of this nexus server
     announce_handler = AnnounceHandler(
         aspect_filter=APP_NAME + '.' + NEXUS_SERVER_ASPECT
     )
+    # Register the handler with the reticulum transport layer
     RNS.Transport.register_announce_handler(announce_handler)
 
     # Register a call back function to process all incoming data packages (aka messages)
@@ -109,17 +126,18 @@ def announce_server():
     global NEXUS_SERVER_ASPECT
     global APP_NAME
     global NEXUS_SERVER_LONGPOLL
+    global NEXUS_SERVER_ROLE
 
     # Announce this server to the network
     # All other nexus server with the same aspect will register this server as a distribution target
     NEXUS_SERVER_DESTINATION.announce(
-        app_data=(
-                APP_NAME + '.' + NEXUS_SERVER_ASPECT
-        ).encode("utf-8")
+        #   app_data=(APP_NAME + '.').encode("utf-8") + pickle.dumps(NEXUS_SERVER_ROLE)
+        app_data=pickle.dumps(NEXUS_SERVER_ROLE)
     )
     # Log announcement / long poll announcement
     RNS.log(
-        "Server announce sent with app_data " + APP_NAME + '.' + NEXUS_SERVER_ASPECT
+        #   "Server announce sent with app_data " + APP_NAME + '.' + str(NEXUS_SERVER_ROLE)
+        "Server announce sent with app_data: " + str(NEXUS_SERVER_ROLE)
     )
 
     # Start timer to re announce this server in due time as specified
@@ -134,7 +152,7 @@ def launch_http_server():
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
     # Log launch with aspect and address/port used
     RNS.log(
-        "serving Nexus aspect <" + NEXUS_SERVER_ASPECT + "> at %s:%d" % NEXUS_SERVER_ADDRESS
+        "serving Nexus aspect '" + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS
     )
     # Invoke server loop
     # (infinite)
@@ -142,6 +160,8 @@ def launch_http_server():
 
 
 class AnnounceHandler:
+    global NEXUS_SERVER_ROLE
+
     # The initialisation method takes the optional
     # aspect_filter argument. If aspect_filter is set to
     # None, all announces will be passed to the instance.
@@ -162,25 +182,69 @@ class AnnounceHandler:
             "Received an announce from " +
             RNS.prettyhexrep(destination_hash)
         )
+
+        # Recreate nexus role dict from received app data
+        announced_role = pickle.loads(app_data)
+        # Log role
         RNS.log(
-            "The announce contained the following app data: " +
-            app_data.decode("utf-8")
+            "The announce contained the following nexus role dict: " +
+            str(announced_role)
         )
 
         # Get dict key and timestamp for distribution identity registration
         dict_key = announced_identity.get_public_key()
         dict_time = int(time.time())
 
-        # Add announced nexus distribution target identity to distribution dict
-        SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity)
+        # Add announced nexus distribution target to distribution dict if it has the same cluster or gateway name.
+        # This is to enable that servers of the actual cluster are subscribed for distribution as well as serves
+        # that announce themselves with a secondary cluster aka gateway cluster name.
 
-        # Log list of last heard durations
-        # Actually I have no clue how ti generate a proper human-readable server name from that id
-        # However since reticulum can obviously - I don't care actually
-        for element in SERVER_IDENTITIES:
-            timestamp = SERVER_IDENTITIES[element][0]
+        # Check if we have cluster match
+        # with check if key is at both maps
+        link_flag1 = (ROLE_JSON_CLUSTER in NEXUS_SERVER_ROLE and ROLE_JSON_CLUSTER in announced_role)
+        if link_flag1:
+            link_flag1 = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER] == announced_role[ROLE_JSON_CLUSTER]
+        # Check if we have gateway match
+        # with check if key is at both maps
+        link_flag2 = (ROLE_JSON_GATEWAY in NEXUS_SERVER_ROLE and ROLE_JSON_GATEWAY in announced_role)
+        if link_flag2:
+            link_flag2 = NEXUS_SERVER_ROLE[ROLE_JSON_GATEWAY] == announced_role[ROLE_JSON_GATEWAY]
+
+        # If we had a cluster or gateway match subscribe announced target
+        if link_flag1 or link_flag2:
+            # Register destination as valid distribution target
+            SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
+            # If actual is still valid log it
             RNS.log(
-                "Registered Server last heard: " + str(int(time.time()) - timestamp) + "sec"
+                "Announced nexus server " + RNS.prettyhexrep(destination_hash) + " was added to the distribution list"
+            )
+            # Log list of severs with seconds it was last heard
+            for element in SERVER_IDENTITIES.copy():
+                # Get timestamp and destination hash from dict
+                timestamp = SERVER_IDENTITIES[element][0]
+                destination = RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+                # Calculate seconds since last announce
+                last_heard = int(time.time()) - timestamp
+
+                # If destination is expired remove it from dict
+                # (This check and cleanup is done at the distribution function as well)
+                if last_heard >= NEXUS_SERVER_TIMEOUT:
+                    # Log that we removed the destination
+                    RNS.log(
+                        "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
+                    )
+                    # Actually remove destination from dict
+                    SERVER_IDENTITIES.pop(element)
+
+                # If actual is still valid log it
+                RNS.log(
+                    "Registered Server " + destination + " last heard " + str(last_heard) + "sec ago."
+                )
+        else:
+            # Announce should be ignored since it belongs to a different cluster, and we are not eligible to
+            # link with that cluster as gateway too
+            RNS.log(
+                "Announced Nexus target was ignored"
             )
 
 
@@ -257,7 +321,7 @@ def packet_callback(data, packet):
             # If we are there than we can append and distribute it
             # After that has happened we terminate the loop as well
             # The loop will never be terminated automatically
-            if i == message_store_size-1:
+            if i == message_store_size - 1:
                 # Log message append
                 RNS.log(
                     "Message is most recent and will be appended to timeline): " + str(message)
@@ -374,14 +438,17 @@ def distribute_message(message):
             )
             # Send message to destination
             RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
-            # Log that we send something
+            # Log that we send something t this destination
+            RNS.log(
+                "Message sent to destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+            )
         else:
+            # Log that we removed the destination
+            RNS.log(
+                "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
+            )
             # Remove expired target identity from distribution list
             SERVER_IDENTITIES.pop(element)
-            # Log that we did so
-            RNS.log(
-                "Distribution identity removed"
-            )
 
         # Log number of target message was distributed to
         RNS.log(
@@ -419,6 +486,14 @@ if __name__ == "__main__":
             "--aspect",
             action="store",
             default=None,
+            help="reticulum aspect to configer nexus server aspect",
+            type=str
+        )
+
+        parser.add_argument(
+            "--role",
+            action="store",
+            default=None,
             help="reticulum aspect to configer server replication topology",
             type=str
         )
@@ -440,7 +515,12 @@ if __name__ == "__main__":
         else:
             aspect_para = None
 
-        initialize_server(config_para, port_para, aspect_para)
+        if params.role:
+            role_para = params.role
+        else:
+            role_para = None
+
+        initialize_server(config_para, port_para, aspect_para, role_para)
 
     except KeyboardInterrupt:
         print("")
