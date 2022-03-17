@@ -31,24 +31,31 @@ DEBUG = False
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
+ROLE_JSON_CLUSTER = "cluster"
+ROLE_JSON_GATEWAY = "gate"
+DEFAULT_CLUSTER = "hesse"
+DEFAULT_GATEWAY = "link"
 
 APP_NAME = "nexus"
-NEXUS_SERVER_ADDRESS = ('', 4281)
 NEXUS_SERVER_ASPECT = "deltamatrix"
-NEXUS_SERVER_DESTINATION = RNS.Destination
-NEXUS_SERVER_IDENTITY = RNS.Identity
+NEXUS_SERVER_ADDRESS = ('', 4281)
 
 NEXUS_SERVER_TIMEOUT = 3600  # 3600sec <> 12h ; After 12h expired distribution targets are removed
 NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2  # Re-announce after half the expiration time
 # NEXUS_SERVER_TIMEOUT = 10
 # NEXUS_SERVER_LONGPOLL = 600
 
+NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER, ROLE_JSON_GATEWAY: DEFAULT_GATEWAY}
+NEXUS_SERVER_DESTINATION = RNS.Destination
+NEXUS_SERVER_IDENTITY = RNS.Identity
 
-def initialize_server(configpath, server_port=None, server_aspect=None):
+
+def initialize_server(configpath, server_port=None, server_aspect=None, server_role=None):
     global NEXUS_SERVER_ADDRESS
     global NEXUS_SERVER_ASPECT
     global NEXUS_SERVER_IDENTITY
     global NEXUS_SERVER_DESTINATION
+    global NEXUS_SERVER_ROLE
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -61,6 +68,11 @@ def initialize_server(configpath, server_port=None, server_aspect=None):
     # Announcement with that aspects are considered as message subscriptions
     if server_aspect is not None:
         NEXUS_SERVER_ASPECT = server_aspect
+
+    # Role configuration of the server
+    # Announcement with that aspects are considered as message subscriptions
+    if server_role is not None:
+        NEXUS_SERVER_ROLE = json.loads(server_role)
 
     # Log actually used parameters
     RNS.log(
@@ -76,18 +88,16 @@ def initialize_server(configpath, server_port=None, server_aspect=None):
         RNS.Destination.IN,
         RNS.Destination.SINGLE,
         APP_NAME,
-        NEXUS_SERVER_ASPECT, "test01", "test02"
+        NEXUS_SERVER_ASPECT
     )
     # Approve all packages received (no handler necessary)
     NEXUS_SERVER_DESTINATION.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
-    # Register a handler to process all incoming announcements with the aspect of this nexus server
-#    announce_handler = AnnounceHandler(
-#        aspect_filter=APP_NAME + '.' + NEXUS_SERVER_ASPECT
-#    )
+    # Create a handler to process all incoming announcements with the aspect of this nexus server
     announce_handler = AnnounceHandler(
-        aspect_filter=APP_NAME
+        aspect_filter=APP_NAME + '.' + NEXUS_SERVER_ASPECT
     )
+    # Register the handler with the reticulum transport layer
     RNS.Transport.register_announce_handler(announce_handler)
 
     # Register a call back function to process all incoming data packages (aka messages)
@@ -112,17 +122,18 @@ def announce_server():
     global NEXUS_SERVER_ASPECT
     global APP_NAME
     global NEXUS_SERVER_LONGPOLL
+    global NEXUS_SERVER_ROLE
 
     # Announce this server to the network
     # All other nexus server with the same aspect will register this server as a distribution target
     NEXUS_SERVER_DESTINATION.announce(
         app_data=(
-                APP_NAME + '.' + NEXUS_SERVER_ASPECT
-        ).encode("utf-8")
+                         APP_NAME + '.'
+                 ).encode("utf-8") + pickle.dumps(NEXUS_SERVER_ROLE)
     )
     # Log announcement / long poll announcement
     RNS.log(
-        "Server announce sent with app_data " + APP_NAME + '.' + NEXUS_SERVER_ASPECT
+        "Server announce sent with app_data " + APP_NAME + '.' + str(NEXUS_SERVER_ROLE)
     )
 
     # Start timer to re announce this server in due time as specified
@@ -260,7 +271,7 @@ def packet_callback(data, packet):
             # If we are there than we can append and distribute it
             # After that has happened we terminate the loop as well
             # The loop will never be terminated automatically
-            if i == message_store_size-1:
+            if i == message_store_size - 1:
                 # Log message append
                 RNS.log(
                     "Message is most recent and will be appended to timeline): " + str(message)
@@ -422,6 +433,14 @@ if __name__ == "__main__":
             "--aspect",
             action="store",
             default=None,
+            help="reticulum aspect to configer nexus server aspect",
+            type=str
+        )
+
+        parser.add_argument(
+            "--role",
+            action="store",
+            default=None,
             help="reticulum aspect to configer server replication topology",
             type=str
         )
@@ -443,7 +462,12 @@ if __name__ == "__main__":
         else:
             aspect_para = None
 
-        initialize_server(config_para, port_para, aspect_para)
+        if params.role:
+            role_para = params.role
+        else:
+            role_para = None
+
+        initialize_server(config_para, port_para, aspect_para, role_para)
 
     except KeyboardInterrupt:
         print("")
