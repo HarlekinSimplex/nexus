@@ -33,11 +33,10 @@ MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
 ROLE_JSON_CLUSTER = "cluster"
 ROLE_JSON_GATEWAY = "gate"
-DEFAULT_CLUSTER = "hesse"
-DEFAULT_GATEWAY = "link"
+DEFAULT_GATEWAY = "none"
 
 APP_NAME = "nexus"
-NEXUS_SERVER_ASPECT = "deltamatrix"
+NEXUS_SERVER_ASPECT = "hesse"
 NEXUS_SERVER_ADDRESS = ('', 4281)
 
 NEXUS_SERVER_TIMEOUT = 3600  # 3600sec <> 12h ; After 12h expired distribution targets are removed
@@ -45,7 +44,7 @@ NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2  # Re-announce after half the e
 # NEXUS_SERVER_TIMEOUT = 10
 # NEXUS_SERVER_LONGPOLL = 600
 
-NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER, ROLE_JSON_GATEWAY: DEFAULT_GATEWAY}
+NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: NEXUS_SERVER_ASPECT, ROLE_JSON_GATEWAY: DEFAULT_GATEWAY}
 NEXUS_SERVER_DESTINATION = RNS.Destination
 NEXUS_SERVER_IDENTITY = RNS.Identity
 
@@ -76,7 +75,7 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
 
     # Log actually used parameters
     RNS.log(
-        "Server Parameter --port:" + str(NEXUS_SERVER_ADDRESS[1]) + " --aspect:" + NEXUS_SERVER_ASPECT
+        "Server Parameter --port=" + str(NEXUS_SERVER_ADDRESS[1]) + " --aspect=" + NEXUS_SERVER_ASPECT
     )
 
     # Create the identity of this server
@@ -133,7 +132,7 @@ def announce_server():
     # Log announcement / long poll announcement
     RNS.log(
         #   "Server announce sent with app_data " + APP_NAME + '.' + str(NEXUS_SERVER_ROLE)
-        "Server announce sent with app_data: "+ str(NEXUS_SERVER_ROLE)
+        "Server announce sent with app_data: " + str(NEXUS_SERVER_ROLE)
     )
 
     # Start timer to re announce this server in due time as specified
@@ -156,6 +155,8 @@ def launch_http_server():
 
 
 class AnnounceHandler:
+    global NEXUS_SERVER_ROLE
+
     # The initialisation method takes the optional
     # aspect_filter argument. If aspect_filter is set to
     # None, all announces will be passed to the instance.
@@ -189,18 +190,37 @@ class AnnounceHandler:
         dict_key = announced_identity.get_public_key()
         dict_time = int(time.time())
 
-        # Add announced nexus distribution target identity to distribution dict
-        SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
+        # Add announced nexus distribution target to distribution dict if it has the same cluster or gateway name.
+        # This is to enable that servers of the actual cluster are subscribed for distribution as well as serves
+        # that announce themselves with a secondary cluster aka gateway cluster name.
+        if (
+                NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER] == announced_role[ROLE_JSON_CLUSTER] or
+                NEXUS_SERVER_ROLE[ROLE_JSON_GATEWAY] == announced_role[ROLE_JSON_GATEWAY]
+        ):
+            # Register destination as valid distribution target
+            SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
+            # Log list of severs with seconds it was last heard
+            for element in SERVER_IDENTITIES.copy():
+                # Get timestamp and destination hash from dict
+                timestamp = SERVER_IDENTITIES[element][0]
+                destination = RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+                # Calculate seconds since last announce
+                last_heard = int(time.time()) - timestamp
 
-        # Log list of last heard durations
-        # Actually I have no clue how ti generate a proper human-readable server name from that id
-        # However since reticulum can obviously - I don't care actually
-        for element in SERVER_IDENTITIES:
-            timestamp = SERVER_IDENTITIES[element][0]
-            destination = RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
-            RNS.log(
-                "Registered Server " + destination + " last heard " + str(int(time.time()) - timestamp) + "sec ago."
-            )
+                # If destination is expired remove it from dict
+                # (This check and cleanup is done at the distribution function as well)
+                if last_heard >= NEXUS_SERVER_TIMEOUT:
+                    # Log that we removed the destination
+                    RNS.log(
+                        "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
+                    )
+                    # Actually remove destination from dict
+                    SERVER_IDENTITIES.pop(element)
+
+                # If actual ist still valid log it
+                RNS.log(
+                    "Registered Server " + destination + " last heard " + last_heard + "sec ago."
+                )
 
 
 def packet_callback(data, packet):
@@ -400,7 +420,7 @@ def distribute_message(message):
         else:
             # Log that we removed the destination
             RNS.log(
-                "Distribution identity of destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
+                "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
             )
             # Remove expired target identity from distribution list
             SERVER_IDENTITIES.pop(element)
