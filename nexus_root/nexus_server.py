@@ -127,13 +127,13 @@ def announce_server():
     # Announce this server to the network
     # All other nexus server with the same aspect will register this server as a distribution target
     NEXUS_SERVER_DESTINATION.announce(
-        app_data=(
-                         APP_NAME + '.'
-                 ).encode("utf-8") + pickle.dumps(NEXUS_SERVER_ROLE)
+        #   app_data=(APP_NAME + '.').encode("utf-8") + pickle.dumps(NEXUS_SERVER_ROLE)
+        app_data=pickle.dumps(NEXUS_SERVER_ROLE)
     )
     # Log announcement / long poll announcement
     RNS.log(
-        "Server announce sent with app_data " + APP_NAME + '.' + str(NEXUS_SERVER_ROLE)
+        #   "Server announce sent with app_data " + APP_NAME + '.' + str(NEXUS_SERVER_ROLE)
+        "Server announce sent with app_data: "+ str(NEXUS_SERVER_ROLE)
     )
 
     # Start timer to re announce this server in due time as specified
@@ -195,7 +195,7 @@ class AnnounceHandler:
             timestamp = SERVER_IDENTITIES[element][0]
             destination = SERVER_IDENTITIES[element][2]
             RNS.log(
-                "Registered Server <"+destination+"> last heard: " + str(int(time.time()) - timestamp) + "sec"
+                "Registered Server <" + destination + "> last heard: " + str(int(time.time()) - timestamp) + "sec"
             )
 
 
@@ -391,12 +391,12 @@ def distribute_message(message):
             RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
             # Log that we send something t this destination
             RNS.log(
-                "Message sent to destination <"+SERVER_IDENTITIES[element][2]+">"
+                "Message sent to destination <" + SERVER_IDENTITIES[element][2] + ">"
             )
         else:
             # Log that we removed the destination
             RNS.log(
-                "Distribution identity of destination <"+SERVER_IDENTITIES[element][2]+"> removed"
+                "Distribution identity of destination <" + SERVER_IDENTITIES[element][2] + "> removed"
             )
             # Remove expired target identity from distribution list
             SERVER_IDENTITIES.pop(element)
