@@ -214,6 +214,10 @@ class AnnounceHandler:
         if link_flag1 or link_flag2:
             # Register destination as valid distribution target
             SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
+            # If actual is still valid log it
+            RNS.log(
+                "Announced nexus server " + RNS.prettyhexrep(destination_hash) + " was added to the distribution list"
+            )
             # Log list of severs with seconds it was last heard
             for element in SERVER_IDENTITIES.copy():
                 # Get timestamp and destination hash from dict
@@ -232,7 +236,7 @@ class AnnounceHandler:
                     # Actually remove destination from dict
                     SERVER_IDENTITIES.pop(element)
 
-                # If actual ist still valid log it
+                # If actual is still valid log it
                 RNS.log(
                     "Registered Server " + destination + " last heard " + str(last_heard) + "sec ago."
                 )
