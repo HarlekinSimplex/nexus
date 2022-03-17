@@ -186,15 +186,16 @@ class AnnounceHandler:
         dict_time = int(time.time())
 
         # Add announced nexus distribution target identity to distribution dict
-        SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity)
+        SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
 
         # Log list of last heard durations
         # Actually I have no clue how ti generate a proper human-readable server name from that id
         # However since reticulum can obviously - I don't care actually
         for element in SERVER_IDENTITIES:
             timestamp = SERVER_IDENTITIES[element][0]
+            destination = SERVER_IDENTITIES[element][2]
             RNS.log(
-                "Registered Server last heard: " + str(int(time.time()) - timestamp) + "sec"
+                "Registered Server <"+destination+"> last heard: " + str(int(time.time()) - timestamp) + "sec"
             )
 
 
@@ -388,14 +389,17 @@ def distribute_message(message):
             )
             # Send message to destination
             RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
-            # Log that we send something
+            # Log that we send something t this destination
+            RNS.log(
+                "Message sent to destination <"+SERVER_IDENTITIES[element][2]+">"
+            )
         else:
+            # Log that we removed the destination
+            RNS.log(
+                "Distribution identity of destination <"+SERVER_IDENTITIES[element][2]+"> removed"
+            )
             # Remove expired target identity from distribution list
             SERVER_IDENTITIES.pop(element)
-            # Log that we did so
-            RNS.log(
-                "Distribution identity removed"
-            )
 
         # Log number of target message was distributed to
         RNS.log(
