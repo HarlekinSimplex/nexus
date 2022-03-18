@@ -267,9 +267,9 @@ def launch_http_server():
 #
 # Role configuration example of four redundant but daisy-chained nexus servers (less traffic than with a cluster):
 # Role of Server #1: {"c":"Cluster_A"}
-# Role of Server #2: {"c":"Cluster_A","g":"Cluster_B"}
-# Role of Server #3: {"c":"Cluster_B","g":"Cluster_C"}
-# Role of Server #4: {"c":"Cluster_C"}
+# Role of Server #2: {"c":"Cluster_A","g":"GateWayAB"}
+# Role of Server #3: {"c":"Cluster_B","g":"GateWayAB"}
+# Role of Server #4: {"c":"Cluster_B"}
 #
 # Role configuration example for two redundant and connected nexus server clusters consisting of three servers each and
 # having one of those servers acting as a forwarding gateway to the other cluster:
