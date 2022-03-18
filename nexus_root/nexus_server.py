@@ -654,10 +654,10 @@ def distribute_message(message):
                 # Remove expired target identity from distribution list
                 SERVER_IDENTITIES.pop(element)
 
-            # Log number of target message was distributed to
-            RNS.log(
-                "Message distributed to " + str(len(SERVER_IDENTITIES)) + " destinations"
-            )
+    # Log number of targets message was distributed to
+    RNS.log(
+        "Message distributed to " + str(len(SERVER_IDENTITIES)) + " destinations"
+    )
 
 
 #######################################################
