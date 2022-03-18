@@ -153,6 +153,11 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
     announce_handler = AnnounceHandler(
         aspect_filter=APP_NAME + '.' + NEXUS_SERVER_ASPECT
     )
+    # Log announce filter
+    RNS.log(
+        "Announce filter set to: " + APP_NAME + '.' + NEXUS_SERVER_ASPECT
+    )
+
     # Register the handler with the reticulum transport layer
     RNS.Transport.register_announce_handler(announce_handler)
 
@@ -213,7 +218,7 @@ def launch_http_server():
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
     # Log launch with aspect and address/port used
     RNS.log(
-        "serving Nexus aspect '" + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS
+        "serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS
     )
     # Invoke server loop
     # (infinite)
