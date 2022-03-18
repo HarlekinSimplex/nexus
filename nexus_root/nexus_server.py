@@ -17,7 +17,7 @@ import threading
 #
 
 # Trigger some Debug only related log entries
-DEBUG = True
+DEBUG = False
 
 # This are the data stores used by the server
 # ToDo: Implement data persistence on restart
@@ -580,11 +580,6 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
                 "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
                 " exceeded. Oldest message is dropped now"
             )
-
-        # DEBUG: Log actual messages stored to console
-        if DEBUG:
-            for s in MESSAGE_STORE:
-                print(s)
 
         # Build and return JSON success response
         self._set_headers()
