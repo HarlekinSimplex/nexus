@@ -74,12 +74,8 @@ NEXUS_SERVER_ADDRESS = ('', 4281)
 # 3600sec <> 12h ; After 12h expired distribution targets are removed
 NEXUS_SERVER_TIMEOUT = 3600
 # Re-announce after half the expiration time
-NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2
-
-# Some useful constants for debugging purpose
-if DEBUG:
-    NEXUS_SERVER_TIMEOUT = 60
-    NEXUS_SERVER_LONGPOLL = 10
+# NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2
+NEXUS_SERVER_LONGPOLL = 15
 
 # Global Reticulum Instances to be used by server functions
 # The reticulum target of this server
@@ -615,42 +611,38 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # While we iterate through the list all already expired targets are dropped from the list.
 # Same expiration management is done during announcement processing.
 #
-# Parameters:
-#   origin_hash:  Optional hash of message origin to suppress backpropagation to the origin of message
-#                 (Used by the packet_handler during handling of message distribution)
-#
-def distribute_message(message, origin_hash=None):
+def distribute_message(message):
     # Loop through all registered distribution targets
     # and remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
     for element in SERVER_IDENTITIES.copy():
         # Get time stamp from target dict
         timestamp = SERVER_IDENTITIES[element][0]
-        # Get destination hash from target dict
-        destination_hash = SERVER_IDENTITIES[element][2]
 
-        # Check if actual destination equals origin of message
-        # If so skip distribution back to origin
-        if destination_hash == origin_hash:
-            # Log that we send something t this destination
+        # Get target identity from target dict
+        announced_server = SERVER_IDENTITIES[element][1]
+        # Create destination
+        remote_server = RNS.Destination(
+            announced_server,
+            RNS.Destination.OUT,
+            RNS.Destination.SINGLE,
+            APP_NAME,
+            NEXUS_SERVER_ASPECT
+        )
+
+        # If origin of message to distribute equals target suppress distributing it
+        # Back propagation suppression
+        if message[MESSAGE_JSON_ORIGIN] == str(remote_server):
+            # Log message received by distribution event
             RNS.log(
-                "Backpropagation to origin " + RNS.prettyhexrep(destination_hash) + " suppressed"
+                "Message distribution is suppressed because massage origin equals destination " +
+                str(remote_server)
             )
         else:
             # Get actual time from system
             actual_time = int(time.time())
             # Check if target has not expired yet
             if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
-                # Get target identity from target dict
-                announced_server = SERVER_IDENTITIES[element][1]
-                # Create destination
-                remote_server = RNS.Destination(
-                    announced_server,
-                    RNS.Destination.OUT,
-                    RNS.Destination.SINGLE,
-                    APP_NAME,
-                    NEXUS_SERVER_ASPECT
-                )
                 # Send message to destination
                 RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
                 # Log that we send something t this destination
