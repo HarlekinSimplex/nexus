@@ -216,7 +216,8 @@ class AnnounceHandler:
             SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
             # If actual is still valid log it
             RNS.log(
-                "Announced nexus server " + RNS.prettyhexrep(destination_hash) + " was added to the distribution list"
+                "The availability of the announced nexus server " + RNS.prettyhexrep(destination_hash) +
+                " was updated at the distribution list"
             )
             # Log list of severs with seconds it was last heard
             for element in SERVER_IDENTITIES.copy():
