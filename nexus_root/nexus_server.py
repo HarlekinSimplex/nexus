@@ -47,6 +47,7 @@ SERVER_IDENTITIES = {}
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
+MESSAGE_JSON_ORIGIN = "origin"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # Role Example: {"c": "ClusterName", "g": "GatewayName"}
@@ -401,6 +402,15 @@ def packet_callback(data, _packet):
         "Message received via Nexus Multicast: " + str(message)
     )
 
+    # If incoming message originated from this server suppress distributing it again
+    # Back propagation suppression
+    if message[MESSAGE_JSON_ORIGIN] == str(NEXUS_SERVER_DESTINATION):
+        # Log message received by distribution event
+        RNS.log(
+            "Message distribution is suppressed because origin was this server."
+        )
+        exit()
+
     # If message is more recent than the oldest message in the buffer
     # and has not arrived earlier than add/insert message at the correct position and
     # distribute the message to all registered servers
@@ -548,9 +558,11 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # and append that string to the message store
         length = int(self.headers.get('content-length'))
         message = json.loads(self.rfile.read(length))
+
         # Create a timestamp and add that to the message map
         message[MESSAGE_JSON_ID] = int(time.time() * 100000)
-
+        # Add these servers' destination hash as origin to the message
+        message[MESSAGE_JSON_ORIGIN] = str(NEXUS_SERVER_DESTINATION)
         # Log message received event
         RNS.log(
             "Message received via HTTP POST: " + str(message)
