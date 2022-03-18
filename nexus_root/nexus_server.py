@@ -398,8 +398,8 @@ def packet_callback(data, _packet):
         "Message received via Nexus Multicast: " + str(message)
     )
 
-    # If incoming message originated from this server suppress distributing it again
     # Back propagation suppression
+    # If incoming message originated from this server suppress distributing it again
     if message[MESSAGE_JSON_ORIGIN] == str(NEXUS_SERVER_DESTINATION):
         # Log message received by distribution event
         RNS.log(
@@ -616,22 +616,18 @@ def distribute_message(message):
     # and remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
     for element in SERVER_IDENTITIES.copy():
-        # Get time stamp from target dict
-        timestamp = SERVER_IDENTITIES[element][0]
-
         # Get target identity from target dict
-        announced_server = SERVER_IDENTITIES[element][1]
-        # Create destination
+        # and create distribution destination
         remote_server = RNS.Destination(
-            announced_server,
+            SERVER_IDENTITIES[element][1],
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
             APP_NAME,
             NEXUS_SERVER_ASPECT
         )
 
-        # If origin of message to distribute equals target suppress distributing it
         # Back propagation suppression
+        # If origin of message to distribute equals target suppress distributing it
         if message[MESSAGE_JSON_ORIGIN] == str(remote_server):
             # Log message received by distribution event
             RNS.log(
@@ -639,6 +635,8 @@ def distribute_message(message):
                 str(remote_server)
             )
         else:
+            # Get time stamp from target dict
+            timestamp = SERVER_IDENTITIES[element][0]
             # Get actual time from system
             actual_time = int(time.time())
             # Check if target has not expired yet
