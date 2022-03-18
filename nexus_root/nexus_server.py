@@ -17,7 +17,7 @@ import threading
 #
 
 # Trigger some Debug only related log entries
-DEBUG = False
+DEBUG = True
 
 # This are the data stores used by the server
 # ToDo: Implement data persistence on restart
@@ -78,8 +78,8 @@ NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2
 
 # Some useful constants for debugging purpose
 if DEBUG:
-    NEXUS_SERVER_TIMEOUT = 10
-    NEXUS_SERVER_LONGPOLL = 600
+    NEXUS_SERVER_TIMEOUT = 60
+    NEXUS_SERVER_LONGPOLL = 10
 
 # Global Reticulum Instances to be used by server functions
 # The reticulum target of this server
