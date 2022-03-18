@@ -157,13 +157,12 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
     # Register a call back function to process all incoming data packages (aka messages)
     NEXUS_SERVER_DESTINATION.set_packet_callback(packet_callback)
 
-    # Announce this server to the network
+    # Start timer to announce this server after 3 sec
     # All other nexus server with the same aspect will register this server as a distribution target
     # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
-    announce_server()
-
-    t = threading.Timer(30.0, announce_server)
-    t.start()  # after 30 seconds, "hello, world" will be printed
+    # Using a 3sec delay is useful while debugging oder development since dev servers need to be listening prior
+    # announcements may link them to a testing cluster or like subscription topology
+    threading.Timer(3, announce_server).start()
 
     # Launch HTTP GET/POST processing
     # This is an endless loop
