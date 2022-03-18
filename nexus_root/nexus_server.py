@@ -419,8 +419,7 @@ def packet_callback(data, _packet):
     if message_store_size == 0:
         # First message arrived event
         RNS.log(
-            "Message is first message and will be appended " +
-            str(message)
+            "Message is first message in the buffer"
         )
         # Append the JSON message map to the message store at last position
         MESSAGE_STORE.append(message)
@@ -436,16 +435,14 @@ def packet_callback(data, _packet):
                 if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
                     # Log that we have that one already
                     RNS.log(
-                        "Message storing and distribution not necessary 'cause message already in buffer) " +
-                        str(message)
+                        "Message storing and distribution not necessary because message is already in the buffer"
                     )
                     break
                 # Message has same time stamp but differs
                 else:
                     # Log message insertion with same timestamp
                     RNS.log(
-                        "Message has a duplicate timestamp but differs (Message will be inserted in timeline): " +
-                        str(message)
+                        "Message has a duplicate timestamp but differs (Message will be inserted in timeline)"
                     )
                     # Insert it at the actual position
                     MESSAGE_STORE.insert(i, message)
@@ -458,7 +455,7 @@ def packet_callback(data, _packet):
                 # Yes it is
                 # Log message insertion with same timestamp
                 RNS.log(
-                    "Message will be inserted in timeline): " + str(message)
+                    "Message will be inserted in timeline"
                 )
                 # Insert it at the actual position
                 MESSAGE_STORE.insert(i, message)
@@ -473,7 +470,7 @@ def packet_callback(data, _packet):
             if i == message_store_size - 1:
                 # Log message append
                 RNS.log(
-                    "Message is most recent and will be appended to timeline): " + str(message)
+                    "Message is most recent and will be appended to timeline"
                 )
                 # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
@@ -487,7 +484,8 @@ def packet_callback(data, _packet):
     if length > MESSAGE_BUFFER_SIZE:
         # Log message pop
         RNS.log(
-            "Maximum message count exceeded. Oldest message is dropped now. " + str(MESSAGE_STORE[0])
+            "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
+            " exceeded. Oldest message is dropped now"
         )
         # If limit is exceeded just drop first (oldest) element of list
         MESSAGE_STORE.pop(0)
@@ -579,9 +577,8 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             MESSAGE_STORE.pop(0)
             # Log Message drop because of buffer overflow
             RNS.log(
-                "Oldest message in buffer was dropped because of buffer limit of " +
-                str(MESSAGE_BUFFER_SIZE) +
-                " was reached."
+                "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
+                " exceeded. Oldest message is dropped now"
             )
 
         # DEBUG: Log actual messages stored to console
@@ -631,8 +628,7 @@ def distribute_message(message):
         if message[MESSAGE_JSON_ORIGIN] == str(remote_server):
             # Log message received by distribution event
             RNS.log(
-                "Distribution to " +
-                str(remote_server) +
+                "Distribution to " + str(remote_server) +
                 " was suppressed because message originated from that server"
             )
         else:
