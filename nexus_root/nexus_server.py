@@ -629,8 +629,9 @@ def distribute_message(message):
         if message[MESSAGE_JSON_ORIGIN] == str(remote_server):
             # Log message received by distribution event
             RNS.log(
-                "Message distribution is suppressed because massage origin equals destination " +
-                str(remote_server)
+                "Distribution to " +
+                str(remote_server) +
+                " was suppressed because message originated from that server"
             )
         else:
             # Get time stamp from target dict
