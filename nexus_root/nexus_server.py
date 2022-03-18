@@ -641,7 +641,7 @@ def distribute_message(message):
             if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
                 # Send message to destination
                 RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
-                # Log that we send something t this destination
+                # Log that we send something to this destination
                 RNS.log(
                     "Message sent to destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
                 )
@@ -652,11 +652,6 @@ def distribute_message(message):
                 )
                 # Remove expired target identity from distribution list
                 SERVER_IDENTITIES.pop(element)
-
-    # Log number of targets message was distributed to
-    RNS.log(
-        "Message distributed to " + str(len(SERVER_IDENTITIES)) + " destinations"
-    )
 
 
 #######################################################
