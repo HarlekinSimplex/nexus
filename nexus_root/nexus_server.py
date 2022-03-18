@@ -347,8 +347,8 @@ class AnnounceHandler:
             SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
             # If actual is still valid log it
             RNS.log(
-                "The availability of the announced nexus server " + RNS.prettyhexrep(destination_hash) +
-                " was updated at the distribution list"
+                "Subscription for " + RNS.prettyhexrep(destination_hash) +
+                " was added/updated"
             )
             # Log list of severs with seconds it was last heard
             for element in SERVER_IDENTITIES.copy():
@@ -557,7 +557,9 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         )
 
         # Distribute message to all registered nexus server
-        # Logging of this si done by the distribution function
+        # Logging of this is done by the distribution function
+        # Suppression of back propagation not necessary, since POST creates a new message
+        # that needs to be sent to all active distribution targets
         distribute_message(message)
 
         # Append the JSON message map to the message store at last (most recent) position
@@ -601,45 +603,60 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # While we iterate through the list all already expired targets are dropped from the list.
 # Same expiration management is done during announcement processing.
 #
-def distribute_message(message):
+# Parameters:
+#   origin_hash:  Optional hash of message origin to suppress backpropagation to the origin of message
+#                 (Used by the packet_handler during handling of message distribution)
+#
+def distribute_message(message, origin_hash=None):
     # Loop through all registered distribution targets
     # and remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
     for element in SERVER_IDENTITIES.copy():
         # Get time stamp from target dict
         timestamp = SERVER_IDENTITIES[element][0]
-        # Get actual time from system
-        actual_time = int(time.time())
-        # Check if target has not expired yet
-        if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
-            # Get target identity from target dict
-            announced_server = SERVER_IDENTITIES[element][1]
-            # Create destination
-            remote_server = RNS.Destination(
-                announced_server,
-                RNS.Destination.OUT,
-                RNS.Destination.SINGLE,
-                APP_NAME,
-                NEXUS_SERVER_ASPECT
-            )
-            # Send message to destination
-            RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
+        # Get destination hash from target dict
+        destination_hash = SERVER_IDENTITIES[element][2]
+
+        # Check if actual destination equals origin of message
+        # If so skip distribution back to origin
+        if destination_hash == origin_hash:
             # Log that we send something t this destination
             RNS.log(
-                "Message sent to destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+                "Backpropagation to origin " + RNS.prettyhexrep(destination_hash) + " suppressed"
             )
         else:
-            # Log that we removed the destination
-            RNS.log(
-                "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
-            )
-            # Remove expired target identity from distribution list
-            SERVER_IDENTITIES.pop(element)
+            # Get actual time from system
+            actual_time = int(time.time())
+            # Check if target has not expired yet
+            if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
+                # Get target identity from target dict
+                announced_server = SERVER_IDENTITIES[element][1]
+                # Create destination
+                remote_server = RNS.Destination(
+                    announced_server,
+                    RNS.Destination.OUT,
+                    RNS.Destination.SINGLE,
+                    APP_NAME,
+                    NEXUS_SERVER_ASPECT
+                )
+                # Send message to destination
+                RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
+                # Log that we send something t this destination
+                RNS.log(
+                    "Message sent to destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+                )
+            else:
+                # Log that we removed the destination
+                RNS.log(
+                    "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
+                )
+                # Remove expired target identity from distribution list
+                SERVER_IDENTITIES.pop(element)
 
-        # Log number of target message was distributed to
-        RNS.log(
-            "Message distributed to " + str(len(SERVER_IDENTITIES)) + " destinations"
-        )
+            # Log number of target message was distributed to
+            RNS.log(
+                "Message distributed to " + str(len(SERVER_IDENTITIES)) + " destinations"
+            )
 
 
 #######################################################
