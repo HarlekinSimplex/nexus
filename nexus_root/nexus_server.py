@@ -1,5 +1,6 @@
 ##########################################################################################
 # Nexus Message Server
+# Version 1.0.0
 #
 
 import sys
@@ -47,6 +48,7 @@ SERVER_IDENTITIES = {}
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
+MESSAGE_JSON_ORIGIN = "origin"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # Role Example: {"c": "ClusterName", "g": "GatewayName"}
@@ -74,11 +76,8 @@ NEXUS_SERVER_ADDRESS = ('', 4281)
 NEXUS_SERVER_TIMEOUT = 3600
 # Re-announce after half the expiration time
 NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2
-
-# Some useful constants for debugging purpose
-if DEBUG:
-    NEXUS_SERVER_TIMEOUT = 10
-    NEXUS_SERVER_LONGPOLL = 600
+# Delay of initial announcement of this server to the network
+INITIAL_ANNOUNCEMENT_DELAY = 5
 
 # Global Reticulum Instances to be used by server functions
 # The reticulum target of this server
@@ -160,13 +159,12 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
     # Register a call back function to process all incoming data packages (aka messages)
     NEXUS_SERVER_DESTINATION.set_packet_callback(packet_callback)
 
-    # Announce this server to the network
+    # Start timer to announce this server after 3 sec
     # All other nexus server with the same aspect will register this server as a distribution target
     # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
-    announce_server()
-
-    t = threading.Timer(30.0, announce_server)
-    t.start()  # after 30 seconds, "hello, world" will be printed
+    # Using a 3sec delay is useful while debugging oder development since dev servers need to be listening prior
+    # announcements may link them to a testing cluster or like subscription topology
+    threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server).start()
 
     # Launch HTTP GET/POST processing
     # This is an endless loop
@@ -347,8 +345,8 @@ class AnnounceHandler:
             SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
             # If actual is still valid log it
             RNS.log(
-                "The availability of the announced nexus server " + RNS.prettyhexrep(destination_hash) +
-                " was updated at the distribution list"
+                "Subscription for " + RNS.prettyhexrep(destination_hash) +
+                " was added/updated"
             )
             # Log list of severs with seconds it was last heard
             for element in SERVER_IDENTITIES.copy():
@@ -401,6 +399,15 @@ def packet_callback(data, _packet):
         "Message received via Nexus Multicast: " + str(message)
     )
 
+    # Back propagation suppression
+    # If incoming message originated from this server suppress distributing it again
+    if message[MESSAGE_JSON_ORIGIN] == str(NEXUS_SERVER_DESTINATION):
+        # Log message received by distribution event
+        RNS.log(
+            "Message distribution is suppressed because origin was this server."
+        )
+        exit()
+
     # If message is more recent than the oldest message in the buffer
     # and has not arrived earlier than add/insert message at the correct position and
     # distribute the message to all registered servers
@@ -413,8 +420,7 @@ def packet_callback(data, _packet):
     if message_store_size == 0:
         # First message arrived event
         RNS.log(
-            "Message is first message and will be appended " +
-            str(message)
+            "Message is first message in the buffer"
         )
         # Append the JSON message map to the message store at last position
         MESSAGE_STORE.append(message)
@@ -430,16 +436,14 @@ def packet_callback(data, _packet):
                 if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
                     # Log that we have that one already
                     RNS.log(
-                        "Message storing and distribution not necessary 'cause message already in buffer) " +
-                        str(message)
+                        "Message storing and distribution not necessary because message is already in the buffer"
                     )
                     break
                 # Message has same time stamp but differs
                 else:
                     # Log message insertion with same timestamp
                     RNS.log(
-                        "Message has a duplicate timestamp but differs (Message will be inserted in timeline): " +
-                        str(message)
+                        "Message has a duplicate timestamp but differs (Message will be inserted in timeline)"
                     )
                     # Insert it at the actual position
                     MESSAGE_STORE.insert(i, message)
@@ -452,7 +456,7 @@ def packet_callback(data, _packet):
                 # Yes it is
                 # Log message insertion with same timestamp
                 RNS.log(
-                    "Message will be inserted in timeline): " + str(message)
+                    "Message will be inserted in timeline"
                 )
                 # Insert it at the actual position
                 MESSAGE_STORE.insert(i, message)
@@ -467,7 +471,7 @@ def packet_callback(data, _packet):
             if i == message_store_size - 1:
                 # Log message append
                 RNS.log(
-                    "Message is most recent and will be appended to timeline): " + str(message)
+                    "Message is most recent and will be appended to timeline"
                 )
                 # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
@@ -481,7 +485,8 @@ def packet_callback(data, _packet):
     if length > MESSAGE_BUFFER_SIZE:
         # Log message pop
         RNS.log(
-            "Maximum message count exceeded. Oldest message is dropped now. " + str(MESSAGE_STORE[0])
+            "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
+            " exceeded. Oldest message is dropped now"
         )
         # If limit is exceeded just drop first (oldest) element of list
         MESSAGE_STORE.pop(0)
@@ -548,16 +553,20 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # and append that string to the message store
         length = int(self.headers.get('content-length'))
         message = json.loads(self.rfile.read(length))
+
         # Create a timestamp and add that to the message map
         message[MESSAGE_JSON_ID] = int(time.time() * 100000)
-
+        # Add these servers' destination hash as origin to the message
+        message[MESSAGE_JSON_ORIGIN] = str(NEXUS_SERVER_DESTINATION)
         # Log message received event
         RNS.log(
             "Message received via HTTP POST: " + str(message)
         )
 
         # Distribute message to all registered nexus server
-        # Logging of this si done by the distribution function
+        # Logging of this is done by the distribution function
+        # Suppression of back propagation not necessary, since POST creates a new message
+        # that needs to be sent to all active distribution targets
         distribute_message(message)
 
         # Append the JSON message map to the message store at last (most recent) position
@@ -569,15 +578,9 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             MESSAGE_STORE.pop(0)
             # Log Message drop because of buffer overflow
             RNS.log(
-                "Oldest message in buffer was dropped because of buffer limit of " +
-                str(MESSAGE_BUFFER_SIZE) +
-                " was reached."
+                "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
+                " exceeded. Oldest message is dropped now"
             )
-
-        # DEBUG: Log actual messages stored to console
-        if DEBUG:
-            for s in MESSAGE_STORE:
-                print(s)
 
         # Build and return JSON success response
         self._set_headers()
@@ -606,40 +609,44 @@ def distribute_message(message):
     # and remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
     for element in SERVER_IDENTITIES.copy():
-        # Get time stamp from target dict
-        timestamp = SERVER_IDENTITIES[element][0]
-        # Get actual time from system
-        actual_time = int(time.time())
-        # Check if target has not expired yet
-        if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
-            # Get target identity from target dict
-            announced_server = SERVER_IDENTITIES[element][1]
-            # Create destination
-            remote_server = RNS.Destination(
-                announced_server,
-                RNS.Destination.OUT,
-                RNS.Destination.SINGLE,
-                APP_NAME,
-                NEXUS_SERVER_ASPECT
-            )
-            # Send message to destination
-            RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
-            # Log that we send something t this destination
+        # Get target identity from target dict
+        # and create distribution destination
+        remote_server = RNS.Destination(
+            SERVER_IDENTITIES[element][1],
+            RNS.Destination.OUT,
+            RNS.Destination.SINGLE,
+            APP_NAME,
+            NEXUS_SERVER_ASPECT
+        )
+
+        # Back propagation suppression
+        # If origin of message to distribute equals target suppress distributing it
+        if message[MESSAGE_JSON_ORIGIN] == str(remote_server):
+            # Log message received by distribution event
             RNS.log(
-                "Message sent to destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+                "Distribution to " + str(remote_server) +
+                " was suppressed because message originated from that server"
             )
         else:
-            # Log that we removed the destination
-            RNS.log(
-                "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
-            )
-            # Remove expired target identity from distribution list
-            SERVER_IDENTITIES.pop(element)
-
-        # Log number of target message was distributed to
-        RNS.log(
-            "Message distributed to " + str(len(SERVER_IDENTITIES)) + " destinations"
-        )
+            # Get time stamp from target dict
+            timestamp = SERVER_IDENTITIES[element][0]
+            # Get actual time from system
+            actual_time = int(time.time())
+            # Check if target has not expired yet
+            if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
+                # Send message to destination
+                RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
+                # Log that we send something to this destination
+                RNS.log(
+                    "Message sent to destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+                )
+            else:
+                # Log that we removed the destination
+                RNS.log(
+                    "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
+                )
+                # Remove expired target identity from distribution list
+                SERVER_IDENTITIES.pop(element)
 
 
 #######################################################
