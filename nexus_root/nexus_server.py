@@ -1,7 +1,5 @@
 ##########################################################################################
-#
 # Nexus Message Server
-#
 #
 
 import sys
@@ -14,41 +12,96 @@ import pickle
 import time
 import threading
 
-# Sample message store
+##########################################################################################
+# Global variables
 #
-# messageStore = [
-#    {'time': '2022-03-01 23:48:39', 'msg': 'Static Test Message #1', 'id': 1646174919000},
-#    {'time': '2022-03-01 23:52:51', 'msg': 'Static Test Message #2', 'id': 1646175171000},
-#    {'time': '2022-03-01 23:52:53', 'msg': 'Static Test Message #3', 'id': 1646175173000},
-# ]
 
-MESSAGE_STORE = []
-SERVER_IDENTITIES = {}
-
-MESSAGE_BUFFER_SIZE = 20
+# Trigger some Debug only related log entries
 DEBUG = False
 
+# This are the data stores used by the server
+# ToDo: Implement data persistence on restart
+#           ORM
+#           Persistence Layer for
+#              SQLLight
+#              PostgresQL
+#
+# Message buffer used for actually server messages
+MESSAGE_STORE = []
+# Number of messages hold (Size of message buffer)
+MESSAGE_BUFFER_SIZE = 20
+
+# List of subscribed reticulum identities and their target hashes and public keys to distribute messages to
+# Entries are a lists (int, RNS.Identity ,bytes) containing a time stamp, the announced reticulum identity object and
+# the destination hash.
+# These lists are stored in the map by using the public key of the identity as map key.
+# This key ist used to insert new entries as well as updating already existing entries (time stamp) to prevent
+# subscription timeouts during announce and paket processing.
+SERVER_IDENTITIES = {}
+
+# Json labels used
+# Message format used with client app
+# Message Examples:
+# {"id": Integer, "time": "String", "msg": "MessageBody"}
+# {'id': 1646174919000. 'time': '2022-03-01 23:48:39', 'msg': 'Test Message #1'}
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
+
+# Server to server protokoll used for automatic subscription (Cluster and Gateway)
+# Role Example: {"c": "ClusterName", "g": "GatewayName"}
 ROLE_JSON_CLUSTER = "c"
 ROLE_JSON_GATEWAY = "g"
-DEFAULT_CLUSTER = "root"
 
+# Some Server default values used to announce nexus servers to reticulum
 APP_NAME = "nexus"
-NEXUS_SERVER_ASPECT = "prod"
+NEXUS_SERVER_ASPECT = "server"
+
+# Default server cluster that is announced to be subscribed to
+# This one can be used to run not connected server names by just giving all servers different cluster names
+# These servers can later be interconnected by using gateway names (see server role)
+DEFAULT_CLUSTER = "root"
+# The server role has two parts. 'cluster' and 'gateway'. By default, only cluster is used and preset by the global
+# variable above. # If gateway is set as well other nexus server can auto subscribe by announcing the same cluster
+# or same gateway name with their json role specification.
+NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER}
+
+# Some Server default values used to announce server to reticulum
 NEXUS_SERVER_ADDRESS = ('', 4281)
 
-NEXUS_SERVER_TIMEOUT = 3600  # 3600sec <> 12h ; After 12h expired distribution targets are removed
-NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2  # Re-announce after half the expiration time
-# NEXUS_SERVER_TIMEOUT = 10
-# NEXUS_SERVER_LONGPOLL = 600
+# Timeout constants for automatic subscription handling
+# 3600sec <> 12h ; After 12h expired distribution targets are removed
+NEXUS_SERVER_TIMEOUT = 3600
+# Re-announce after half the expiration time
+NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2
 
-NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER}
+# Some useful constants for debugging purpose
+if DEBUG:
+    NEXUS_SERVER_TIMEOUT = 10
+    NEXUS_SERVER_LONGPOLL = 600
+
+# Global Reticulum Instances to be used by server functions
+# The reticulum target of this server
 NEXUS_SERVER_DESTINATION = RNS.Destination
+# The identity use by this server
 NEXUS_SERVER_IDENTITY = RNS.Identity
 
 
+##########################################################################################
+# Initialize Nexus Server
+# Parameters:
+#   configpath<str>:        Alternate config path to be used for initialization of reticulum
+#   server_port<str>:       HTTP port to listen for POST/GET client app requests
+#   server_aspect<str>:     Reticulum target aspect to filter announces along with app name like
+#                           <app_name>.<server_aspect>
+#   server_role<jsonStr>:   Nexus Server role specification to specify automatic subscription handling
+#                           e.g. {"c":"cluster","g":"gateway"}
+#
+# The parameters are parsed by __main__ and then passed to this function.
+# Example call with all parameters given with their actual default values:
+#
+# python3 nexus_server.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
+#
 def initialize_server(configpath, server_port=None, server_aspect=None, server_role=None):
     global NEXUS_SERVER_ADDRESS
     global NEXUS_SERVER_ASPECT
@@ -121,6 +174,12 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
     launch_http_server()
 
 
+##########################################################################################
+# Announce the server to the reticulum network
+#
+# Calling this function will start a timer that will call this function again after the
+# specified re-announce period.
+#
 def announce_server():
     global NEXUS_SERVER_DESTINATION
     global NEXUS_SERVER_ASPECT
@@ -132,12 +191,12 @@ def announce_server():
     # All other nexus server with the same aspect will register this server as a distribution target
     # noinspection PyArgumentList
     NEXUS_SERVER_DESTINATION.announce(
-        #   app_data=(APP_NAME + '.').encode("utf-8") + pickle.dumps(NEXUS_SERVER_ROLE)
+        # Serialize the nexus server role dict to bytes and set it as app_date to the announcement
         app_data=pickle.dumps(NEXUS_SERVER_ROLE)
     )
     # Log announcement / long poll announcement
     RNS.log(
-        #   "Server announce sent with app_data " + APP_NAME + '.' + str(NEXUS_SERVER_ROLE)
+        # Log entry does not use bytes but a string representation
         "Server announce sent with app_data: " + str(NEXUS_SERVER_ROLE)
     )
 
@@ -145,6 +204,9 @@ def announce_server():
     threading.Timer(NEXUS_SERVER_LONGPOLL, announce_server).start()
 
 
+##########################################################################################
+# Start up of the threaded HTTP server to handle client json GET/POST requests
+#
 def launch_http_server():
     global NEXUS_SERVER_ASPECT
     global NEXUS_SERVER_ADDRESS
@@ -160,6 +222,73 @@ def launch_http_server():
     httpd.serve_forever()
 
 
+##########################################################################################
+# Reticulum handler class to process received announces
+#
+# This handler will be called as soon as an announcement of another nexus server was received.
+# Nexus servers are recognized by setting their app_name and aspect to the same values.
+# The app data received with the announcement is considered as a serialized json map containing the role
+# specification of the remote server having twi parts:
+#
+# - Cluster specification
+# - Gateway specification
+#
+# A nexus server can automatically connect with other nexus server using the same cluster name effectively forming an
+# n:m redundant server cluster that exchange and mirror all messages received within the cluster.
+# This is simply achieved by specifying the same cluster name inside the nexus server role that is appended to the
+# reticulum target announcement.
+# Using e.g. {"c":"MyCluster"} as the nexus server role of 3 distinct servers anywhere at the reticulum network will
+# trigger an automatic subscription and message forwarding mechanism that provides for having new messages mirrored
+# to all serves in that cluster.
+# Nexus servers using different cluster name will not automatically subscribe to each other thus being standalone
+# servers or separate clusters.
+#
+# The Gateway names specified at the server role acts identical to the cluster name in a way that an automatic
+# subscription ist triggered if the received announcement contained a nexus server role with has a cluster name that
+# matches the cluster name of the actual server OR the gateway name matches the gateway name of the actual server.
+# This establishes a second layer to create automatic connections. These can be used to daisy chain nexus servers
+# without any redundancy or to connect one cluster to another cluster.
+#
+# Role configuration example for three separate standalone nexus servers:
+# Role of Server #1: {"c":"Server_A"}
+# Role of Server #2: {"c":"Server_B"}
+# Role of Server #3: {"c":"Server_C"}
+#
+# Role configuration example for a single redundant nexus server cluster consisting of three servers:
+# Role of Server #1: {"c":"Cluster_A"}
+# Role of Server #2: {"c":"Cluster_A"}
+# Role of Server #3: {"c":"Cluster_A"}
+#
+# Role configuration example for two redundant but not connected nexus server clusters consisting of three servers each:
+# Role of Server #1: {"c":"Cluster_A"}
+# Role of Server #2: {"c":"Cluster_A"}
+# Role of Server #3: {"c":"Cluster_A"}
+# Role of Server #4: {"c":"Cluster_B"}
+# Role of Server #5: {"c":"Cluster_B"}
+# Role of Server #6: {"c":"Cluster_B"}
+#
+# Role configuration example of four redundant but daisy-chained nexus servers (less traffic than with a cluster):
+# Role of Server #1: {"c":"Server_A","g":"Server_B"}
+# Role of Server #2: {"c":"Server_B","g":"Server_C"}
+# Role of Server #3: {"c":"Server_C","g":"Server_D"}
+# Role of Server #4: {"c":"Server_D","g":"Server_C"}
+#
+# Role configuration example for two redundant and connected nexus server clusters consisting of three servers each and
+# having one of those servers acting as a forwarding gateway to the other cluster:
+# Role of Server #1: {"c":"Cluster_A"}
+# Role of Server #2: {"c":"Cluster_A"}
+# Role of Server #3: {"c":"Cluster_A","g":"GateWayAB"}}
+# Role of Server #4: {"c":"Cluster_B","g":"GateWayAB"}}
+# Role of Server #5: {"c":"Cluster_B"}
+# Role of Server #6: {"c":"Cluster_B"}
+#
+# To have this automatic subscription mechanism available effectively provides for having a deterministic client server
+# network with automatic replication on top of the Reticulum mesh network.
+#
+# During announcement processing all expired distribution targets (cluster and gateway links) are dropped.
+# All linked nexus servers that have updated their availability by an re-announcement prior the expiration period will
+# be kept as valid distribution targets.
+#
 class AnnounceHandler:
     global NEXUS_SERVER_ROLE
 
@@ -251,6 +380,17 @@ class AnnounceHandler:
             )
 
 
+##########################################################################################
+# Reticulum callback to handle incoming data packets
+#
+# This function is called as soon as a data packet is received by this server target
+# Actually all packets are treated as messages.
+# ToDo: Implement server commands
+#           Digest message
+#           Remove message
+#           Get messages (since)
+#           Get last messages (number of messages)
+#
 def packet_callback(data, _packet):
     # Reconstruct original python object
     # In this case it was a python dictionary containing the json message
@@ -341,7 +481,7 @@ def packet_callback(data, _packet):
     if length > MESSAGE_BUFFER_SIZE:
         # Log message pop
         RNS.log(
-            "Maximum Message count exceeded. Oldest message is dropped now. " + str(MESSAGE_STORE[0])
+            "Maximum message count exceeded. Oldest message is dropped now. " + str(MESSAGE_STORE[0])
         )
         # If limit is exceeded just drop first (oldest) element of list
         MESSAGE_STORE.pop(0)
@@ -350,9 +490,35 @@ def packet_callback(data, _packet):
     sys.stdout.flush()
 
 
+##########################################################################################
+# HTTP request handler class to process received HTTP POST/GET app client requests
+#
+# The client app uses json requests to communicate with the server.
+# Actually this protocol is plain simple.
+#
+# To send a new message to the server the client issues a POST request without any URL parameters # to the root of the
+# with the message json past in the POST body.
+# During POST processing the message is amended by a timestamp that ist used by the server to uniquely identify each
+# message processed through message distribution and assurance of timeline accuracy. The message send from the client
+# may contain any number of map members the client may send. The answer to the GET request will deliver all message map
+# members originally sent from the clients as well as the amended server timestamp back to the client.
+# To get the entire content of the message buffer of the server, the client issues a GET request without any URL
+# parameters or body content. The answers from the server is a json list containing all messages as json maps.
+#
+# Example POST Body (Actual client v1.1.0 behaviour):
+# {'time': '2022-03-01 23:48:39', 'msg': 'Static Test Message #1'}
+#
+# Example GET Response:
+# [
+#    {'time': '2022-03-01 23:48:39', 'msg': 'Static Test Message #1', 'id': 1646174919000},
+#    {'time': '2022-03-01 23:52:51', 'msg': 'Static Test Message #2', 'id': 1646175171000},
+#    {'time': '2022-03-01 23:52:53', 'msg': 'Static Test Message #3', 'id': 1646175173000},
+# ]
+#
 class ServerRequestHandler(BaseHTTPRequestHandler):
 
     # Borrowing from https://gist.github.com/nitaku/10d0662536f37a087e1b
+    # Set headers of actual request
     def _set_headers(self):
         # Set response result code and data format
         self.send_response(HTTPStatus.OK)
@@ -362,13 +528,21 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
 
+    # Simple GET request handler without any URL parameters or request body processing
+    # The actual message buffer list is serialized as json string and encoded as bytes.
+    # After that it is sent back to the client as the GET request response.
     def do_GET(self):
         self._set_headers()
         self.wfile.write(json.dumps(MESSAGE_STORE).encode('utf-8'))
 
+    # Simple POST request handler without any URL parameters and the message to be digested as request body
+    # The actual message is decoded into a python map, amended by a timestamp and added to the message store.
+    # After that it is sent back to the client as the GET request response.
     def do_POST(self):
+        global MESSAGE_STORE
         # ToDo: Need to implement more features:
         #    ClearBuffer command
+        #    Delete Message command
         #
         # Get length of POST message, read those bytes and parse it as JSON string into a message
         # and append that string to the message store
@@ -377,30 +551,30 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Create a timestamp and add that to the message map
         message[MESSAGE_JSON_ID] = int(time.time() * 100000)
 
-        #        # append the JSON message map to the message store at first position
-        #        messageStore.insert(0, message)
-        #        # Check store size if defined limit is reached
-        #        length = len(messageStore)
-        #        if length > MESSAGE_BUFFER_SIZE:
-        #            # If limit is exceeded just drop first (oldest) element of list
-        #            messageStore.pop(len(messageStore))
-
-        # append the JSON message map to the message store at last position
-        MESSAGE_STORE.append(message)
-        # Check store size if defined limit is reached
-        length = len(MESSAGE_STORE)
-        if length > MESSAGE_BUFFER_SIZE:
-            # If limit is exceeded just drop first (oldest) element of list
-            MESSAGE_STORE.pop(0)
         # Log message received event
         RNS.log(
             "Message received via HTTP POST: " + str(message)
         )
 
         # Distribute message to all registered nexus server
+        # Logging of this si done by the distribution function
         distribute_message(message)
 
-        # DEBUG: Log actual message store to console
+        # Append the JSON message map to the message store at last (most recent) position
+        MESSAGE_STORE.append(message)
+        # Check store size if defined limit is reached
+        length = len(MESSAGE_STORE)
+        if length > MESSAGE_BUFFER_SIZE:
+            # If limit is exceeded just drop first (oldest) element of list
+            MESSAGE_STORE.pop(0)
+            # Log Message drop because of buffer overflow
+            RNS.log(
+                "Oldest message in buffer was dropped because of buffer limit of " +
+                str(MESSAGE_BUFFER_SIZE) +
+                " was reached."
+            )
+
+        # DEBUG: Log actual messages stored to console
         if DEBUG:
             for s in MESSAGE_STORE:
                 print(s)
@@ -409,6 +583,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         self._set_headers()
         self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
 
+    # Set request options
     def do_OPTIONS(self):
         # Send allow-origin header and clearance for GET and POST requests
         self.send_response(HTTPStatus.NO_CONTENT)
@@ -418,6 +593,14 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
 
+##########################################################################################
+# Message distribution to registered nexus serves
+#
+# The given message (json map) will be distributed to all linked nexus servers that have
+# updated their availability by a re-announcement prior the expiration period.
+# While we iterate through the list all already expired targets are dropped from the list.
+# Same expiration management is done during announcement processing.
+#
 def distribute_message(message):
     # Loop through all registered distribution targets
     # and remove all targets that have not announced them self within given timeout period
@@ -462,11 +645,12 @@ def distribute_message(message):
 #######################################################
 # Program Startup
 #
-
+# Default python entrypoint with processing the give commandline parameters
+#
 if __name__ == "__main__":
     try:
         parser = argparse.ArgumentParser(
-            description="Minimal Nexus Message Server"
+            description="Minimal Nexus Message Server with automatic cluster replication"
         )
 
         parser.add_argument(
@@ -501,8 +685,11 @@ if __name__ == "__main__":
             type=str
         )
 
+        # Parse passed commandline arguments as specified above
         params = parser.parse_args()
 
+        # Default handling of parameters is done in server initialization
+        # Here all parameters not specified are set to None
         if params.config:
             config_para = params.config
         else:
@@ -523,8 +710,10 @@ if __name__ == "__main__":
         else:
             role_para = None
 
+        # Call server initialization and startup reticulum and HTTP listeners
         initialize_server(config_para, port_para, aspect_para, role_para)
 
+    # Handle keyboard interrupt aka ctrl-C to exit server
     except KeyboardInterrupt:
         print("")
         exit()
