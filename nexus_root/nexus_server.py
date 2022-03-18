@@ -233,8 +233,8 @@ def launch_http_server():
 # - Cluster specification
 # - Gateway specification
 #
-# A nexus server can automatically connect with other nexus server using the same cluster name effectively forming an
-# n:m redundant server cluster that exchange and mirror all messages received within the cluster.
+# A nexus server can automatically connect with other nexus server using the same cluster name effectively forming
+# an n:m redundant server cluster that exchange and mirror all messages received within the cluster.
 # This is simply achieved by specifying the same cluster name inside the nexus server role that is appended to the
 # reticulum target announcement.
 # Using e.g. {"c":"MyCluster"} as the nexus server role of 3 distinct servers anywhere at the reticulum network will
