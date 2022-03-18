@@ -130,6 +130,7 @@ def announce_server():
 
     # Announce this server to the network
     # All other nexus server with the same aspect will register this server as a distribution target
+    # noinspection PyArgumentList
     NEXUS_SERVER_DESTINATION.announce(
         #   app_data=(APP_NAME + '.').encode("utf-8") + pickle.dumps(NEXUS_SERVER_ROLE)
         app_data=pickle.dumps(NEXUS_SERVER_ROLE)
@@ -174,7 +175,8 @@ class AnnounceHandler:
     # system when an announcement arrives that matches the
     # configured aspect filter. Filters must be specific,
     # and cannot use wildcards.
-    def received_announce(self, destination_hash, announced_identity, app_data):
+    @staticmethod
+    def received_announce(destination_hash, announced_identity, app_data):
         global SERVER_IDENTITIES
 
         # Log that we received an announcement matching our aspect filter criteria
@@ -249,7 +251,7 @@ class AnnounceHandler:
             )
 
 
-def packet_callback(data, packet):
+def packet_callback(data, _packet):
     # Reconstruct original python object
     # In this case it was a python dictionary containing the json message
     message = pickle.loads(data)
