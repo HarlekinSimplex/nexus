@@ -75,6 +75,8 @@ NEXUS_SERVER_ADDRESS = ('', 4281)
 NEXUS_SERVER_TIMEOUT = 3600
 # Re-announce after half the expiration time
 NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2
+# Delay of initial announcement of this server to the network
+INITIAL_ANNOUNCEMENT_DELAY = 5
 
 # Global Reticulum Instances to be used by server functions
 # The reticulum target of this server
@@ -161,7 +163,7 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
     # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
     # Using a 3sec delay is useful while debugging oder development since dev servers need to be listening prior
     # announcements may link them to a testing cluster or like subscription topology
-    threading.Timer(3, announce_server).start()
+    threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server).start()
 
     # Launch HTTP GET/POST processing
     # This is an endless loop
