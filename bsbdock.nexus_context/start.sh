@@ -3,4 +3,4 @@
 rnstatus
 
 # Launch Nexus Server
-/bsb/NexusServer.py
+/bsb/Nexus/NexusServer.py
