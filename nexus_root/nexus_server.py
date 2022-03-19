@@ -185,7 +185,10 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
     # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
     # Using a 3sec delay is useful while debugging oder development since dev servers need to be listening prior
     # announcements may link them to a testing cluster or like subscription topology
-    threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server).start()
+    t = threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server).start()
+    # Star as daemon so it terminates with main thread
+    t.daemon = True
+    t.start()
 
     # Launch HTTP GET/POST processing
     # This is an endless loop
