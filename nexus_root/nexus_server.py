@@ -3,6 +3,8 @@
 # Version 1.0.0
 #
 
+import signal
+import threading
 import sys
 import argparse
 import RNS
@@ -11,7 +13,6 @@ from http import HTTPStatus
 import json
 import pickle
 import time
-import threading
 
 ##########################################################################################
 # Global variables
@@ -693,7 +694,15 @@ def distribute_message(message):
 #
 # Default python entrypoint with processing the give commandline parameters
 #
+
+def signal_handler(_signal, _frame):
+    print("exiting")
+    sys.exit(0)
+
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
+
     try:
         parser = argparse.ArgumentParser(
             description="Minimal Nexus Message Server with automatic cluster replication"
@@ -774,5 +783,5 @@ if __name__ == "__main__":
 
     # Handle keyboard interrupt aka ctrl-C to exit server
     except KeyboardInterrupt:
-        print("")
+        print("Server terminated by ctrl-c")
         exit()
