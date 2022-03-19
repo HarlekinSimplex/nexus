@@ -138,7 +138,8 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
 
     # Log actually used parameters
     RNS.log(
-        "Server configuration set up:" +
+        "Server configuration:" +
+        " longpoll=" + str(NEXUS_SERVER_LONGPOLL) +
         " port=" + str(NEXUS_SERVER_ADDRESS[1]) +
         " aspect=" + NEXUS_SERVER_ASPECT +
         " role=" + str(NEXUS_SERVER_ROLE)
@@ -155,6 +156,11 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
         APP_NAME,
         NEXUS_SERVER_ASPECT
     )
+    # Log server address
+    RNS.log(
+        "Server address: " + str(NEXUS_SERVER_DESTINATION)
+    )
+
     # Approve all packages received (no handler necessary)
     NEXUS_SERVER_DESTINATION.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
@@ -722,6 +728,14 @@ if __name__ == "__main__":
             action="store",
             default=None,
             help="reticulum aspect to configer server replication topology",
+            type=str
+        )
+
+        parser.add_argument(
+            "--longpoll",
+            action="store",
+            default=None,
+            help="time in seconds between recurring announcements",
             type=str
         )
 
