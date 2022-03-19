@@ -648,7 +648,7 @@ def distribute_message(message):
             # Log message received by distribution event
             RNS.log(
                 "Distribution to " + str(remote_server) +
-                " was suppressed because message originated from that forwarder"
+                " was suppressed because message was forwarded from that forwarder"
             )
         else:
             # Get time stamp from target dict
