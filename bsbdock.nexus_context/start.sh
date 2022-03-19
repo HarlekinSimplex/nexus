@@ -1,3 +1,3 @@
-#!/bins/bash
+#!/bin/bash
 echo "Hello World"
 # rnstatus
