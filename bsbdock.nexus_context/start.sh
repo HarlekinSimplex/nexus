@@ -17,6 +17,8 @@ echo "# Nexus Server startup"
 echo "# -----------------------------------------------------------"
 # Launch Nexus Server with unbuffered logs (docker takes those logs)
 python3 -u /bsb/Nexus/NexusServer.py
+
+echo ""
 echo "# -----------------------------------------------------------"
 echo "# Nexus Server terminated"
 echo "# -----------------------------------------------------------"
