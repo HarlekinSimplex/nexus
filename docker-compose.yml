@@ -16,7 +16,7 @@ services:
       context: ${NEXUS_COMPOSE_HOME}/bsbdock.nexus_context
       dockerfile: ${NEXUS_DOCKERFILE}
     restart: unless-stopped
-    command: rnstatus
+#    command: rnstatus
     ports:
 # Port for the Reticulum Server API for Reticulum Client access if required
 #      - 4242:4242  / - 127.0.0.1:4242:4242
