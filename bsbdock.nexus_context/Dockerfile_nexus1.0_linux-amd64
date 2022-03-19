@@ -35,4 +35,4 @@ EXPOSE 4280
 EXPOSE 4281
 
 # Launch Nexus server on start
-CMD ["rnsd"]
+CMD [ "python3", "/root/nexus_server.py" ]
