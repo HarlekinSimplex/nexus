@@ -96,18 +96,20 @@ NEXUS_SERVER_IDENTITY = RNS.Identity
 #                           <app_name>.<server_aspect>
 #   server_role<jsonStr>:   Nexus Server role specification to specify automatic subscription handling
 #                           e.g. {"c":"cluster","g":"gateway"}
+#   long_poll<str>:         Period in sec between announcements of this server
 #
 # The parameters are parsed by __main__ and then passed to this function.
 # Example call with all parameters given with their actual default values:
 #
 # python3 nexus_server.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
 #
-def initialize_server(configpath, server_port=None, server_aspect=None, server_role=None):
+def initialize_server(configpath, server_port=None, server_aspect=None, server_role=None, long_poll=None):
     global NEXUS_SERVER_ADDRESS
     global NEXUS_SERVER_ASPECT
     global NEXUS_SERVER_IDENTITY
     global NEXUS_SERVER_DESTINATION
     global NEXUS_SERVER_ROLE
+    global NEXUS_SERVER_LONGPOLL
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -128,9 +130,16 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
         # Overwrite default role with specified role
         NEXUS_SERVER_ROLE = json.loads(server_role)
 
+    # Long poll configuration
+    # Announcement of this server is repeated after the specified seconds
+    if long_poll is not None:
+        # Overwrite default long poll default with specified role
+        NEXUS_SERVER_LONGPOLL = int(long_poll)
+
     # Log actually used parameters
     RNS.log(
-        "Server configuration set up:" +
+        "Server configuration:" +
+        " longpoll=" + str(NEXUS_SERVER_LONGPOLL) +
         " port=" + str(NEXUS_SERVER_ADDRESS[1]) +
         " aspect=" + NEXUS_SERVER_ASPECT +
         " role=" + str(NEXUS_SERVER_ROLE)
@@ -147,6 +156,11 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
         APP_NAME,
         NEXUS_SERVER_ASPECT
     )
+    # Log server address
+    RNS.log(
+        "Server address: " + str(NEXUS_SERVER_DESTINATION)
+    )
+
     # Approve all packages received (no handler necessary)
     NEXUS_SERVER_DESTINATION.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
@@ -717,6 +731,14 @@ if __name__ == "__main__":
             type=str
         )
 
+        parser.add_argument(
+            "--longpoll",
+            action="store",
+            default=None,
+            help="time in seconds between recurring announcements",
+            type=str
+        )
+
         # Parse passed commandline arguments as specified above
         params = parser.parse_args()
 
@@ -742,8 +764,13 @@ if __name__ == "__main__":
         else:
             role_para = None
 
+        if params.longpoll:
+            longpoll_para = params.longpoll
+        else:
+            longpoll_para = None
+
         # Call server initialization and startup reticulum and HTTP listeners
-        initialize_server(config_para, port_para, aspect_para, role_para)
+        initialize_server(config_para, port_para, aspect_para, role_para, longpoll_para)
 
     # Handle keyboard interrupt aka ctrl-C to exit server
     except KeyboardInterrupt:
