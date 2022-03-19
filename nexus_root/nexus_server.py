@@ -49,6 +49,7 @@ MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
 MESSAGE_JSON_ORIGIN = "origin"
+MESSAGE_JSON_VIA = "via"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # Role Example: {"c": "ClusterName", "g": "GatewayName"}
@@ -404,12 +405,20 @@ def packet_callback(data, _packet):
         "Message received via Nexus Multicast: " + str(message)
     )
 
-    # Back propagation suppression
+    # Back propagation to origin suppression
     # If incoming message originated from this server suppress distributing it again
     if message[MESSAGE_JSON_ORIGIN] == str(NEXUS_SERVER_DESTINATION):
         # Log message received by distribution event
         RNS.log(
             "Message distribution is suppressed because origin was this server."
+        )
+        exit()
+    # Back propagation to forwarder suppression
+    # If incoming message originated from this server suppress distributing it again
+    if message[MESSAGE_JSON_VIA] == str(NEXUS_SERVER_DESTINATION):
+        # Log message received by distribution event
+        RNS.log(
+            "Message distribution is suppressed because we received it from this server."
         )
         exit()
 
@@ -561,13 +570,14 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
         # Create a timestamp and add that to the message map
         message[MESSAGE_JSON_ID] = int(time.time() * 100000)
-        # Add these servers' destination hash as origin to the message
-        message[MESSAGE_JSON_ORIGIN] = str(NEXUS_SERVER_DESTINATION)
         # Log message received event
         RNS.log(
             "Message received via HTTP POST: " + str(message)
         )
 
+        # Set origin and via destination id into message to prevent back propagation
+        message[MESSAGE_JSON_ORIGIN] = str(NEXUS_SERVER_DESTINATION)
+        message[MESSAGE_JSON_VIA] = str(NEXUS_SERVER_DESTINATION)
         # Distribute message to all registered nexus server
         # Logging of this is done by the distribution function
         # Suppression of back propagation not necessary, since POST creates a new message
@@ -624,13 +634,21 @@ def distribute_message(message):
             NEXUS_SERVER_ASPECT
         )
 
-        # Back propagation suppression
+        # Back propagation to origin suppression
         # If origin of message to distribute equals target suppress distributing it
         if message[MESSAGE_JSON_ORIGIN] == str(remote_server):
             # Log message received by distribution event
             RNS.log(
                 "Distribution to " + str(remote_server) +
                 " was suppressed because message originated from that server"
+            )
+        # Back propagation to forwarder suppression
+        # If forwarder of message to distribute equals target suppress distributing it
+        elif message[MESSAGE_JSON_VIA] == str(remote_server):
+            # Log message received by distribution event
+            RNS.log(
+                "Distribution to " + str(remote_server) +
+                " was suppressed because message originated from that forwarder"
             )
         else:
             # Get time stamp from target dict
@@ -639,6 +657,8 @@ def distribute_message(message):
             actual_time = int(time.time())
             # Check if target has not expired yet
             if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
+                # Set new forwarder (VIA) id to message
+                message[MESSAGE_JSON_VIA] = str(NEXUS_SERVER_DESTINATION)
                 # Send message to destination
                 RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
                 # Log that we send something to this destination
