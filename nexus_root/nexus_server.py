@@ -220,7 +220,10 @@ def announce_server():
     )
 
     # Start timer to re announce this server in due time as specified
-    threading.Timer(NEXUS_SERVER_LONGPOLL, announce_server).start()
+    t = threading.Timer(NEXUS_SERVER_LONGPOLL, announce_server)
+    # Star as daemon so it terminates with main thread
+    t.daemon = True
+    t.start()
 
 
 ##########################################################################################
@@ -784,4 +787,4 @@ if __name__ == "__main__":
     # Handle keyboard interrupt aka ctrl-C to exit server
     except KeyboardInterrupt:
         print("Server terminated by ctrl-c")
-        exit()
+        sys.exit(0)
