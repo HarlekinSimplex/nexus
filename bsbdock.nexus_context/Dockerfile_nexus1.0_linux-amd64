@@ -10,20 +10,19 @@
 # How to run the reticulum stack as a service
 # docker run --rm --name nexus-prod_nexus -it bsbdock/nexus
 #
-# FROM debian:bookworm-slim
 FROM debian:bookworm
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 
-# Update base image if neccessary
+# Update base image if necessary
 RUN apt-get update
 RUN apt-get install tzdata
 
 # Install python and pip3
 RUN apt -y install python3-pip
 
-# Install Reticulum stack and NomadNet massenger application
+# Install Reticulum stack and NomadNet messenger application
 RUN pip3 install rns lxmf nomadnet
 
 # Install personal helper tools
@@ -36,4 +35,4 @@ EXPOSE 4280
 EXPOSE 4281
 
 # Launch Nexus server on start
-CMD ["rnsd"]
+CMD [ "python3", "/root/nexus_server.py" ]

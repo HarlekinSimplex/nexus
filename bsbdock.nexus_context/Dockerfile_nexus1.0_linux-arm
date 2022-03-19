@@ -2,7 +2,7 @@
 # bsbdock/reticulum Dockerfile
 #
 # How to build this container:
-# docker buildx build --no-cache --tag bsbdock/nexus -f Dockerfile_nexus1.0_linux-amd64 .
+# docker buildx build --no-cache --tag bsbdock/nexus -f Dockerfile_nexus1.0_linux-arm .
 #
 # How to invoke a shell into this container:
 # docker run -it bsbdock/nexus bash
@@ -16,7 +16,7 @@ FROM debian:bookworm
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 
-# Update base image if neccessary
+# Update base image if necessary
 RUN apt-get update
 RUN apt-get install tzdata
 
@@ -37,7 +37,7 @@ ENV PATH="/root/.cargo/bin:$PATH"
 # Build/Install cryptography
 RUN pip3 install cryptography
 
-# Install Reticulum stack and NomadNet massenger application
+# Install Reticulum stack and NomadNet messenger application
 RUN pip3 install rns lxmf nomadnet
 
 # Expose port for Reticulum server TCP Interface (disable as default) 
@@ -48,6 +48,5 @@ EXPOSE 4281
 
 RUN echo "export PATH=$PATH" > /etc/environment
 
-# Launch Nexus Server on start (todo)
-# Actually only the Reticulum stack
-CMD ["rnsd"]
+# Launch Nexus Server on start
+CMD [ "python3", "/root/nexus_server.py" ]
