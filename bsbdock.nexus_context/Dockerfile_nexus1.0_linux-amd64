@@ -2,7 +2,7 @@
 # bsbdock/reticulum Dockerfile
 #
 # How to build this container:
-# docker buildx build --no-cache --tag bsbdock/nexus -f Dockerfile_nexus1.0_linux-amd64 .
+# docker buildx build --no-cache --tag bsbdock/reticulum -f Dockerfile_reticulum2.1_linux-amd64 .
 #
 # How to invoke a shell into this container:
 # docker run -it bsbdock/nexus bash
@@ -35,4 +35,4 @@ EXPOSE 4280
 EXPOSE 4281
 
 # Launch Nexus server on start
-CMD [ "python3", "/root/nexus_server.py" ]
+CMD ["rnsd"]
