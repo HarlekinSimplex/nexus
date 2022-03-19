@@ -1,3 +1,3 @@
 #!/bin/bash
-echo "Hello World"
-# rnstatus
+rnstatus
+python3 /root/nexus_server.py
