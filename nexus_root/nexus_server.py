@@ -185,7 +185,7 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
     # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
     # Using a 3sec delay is useful while debugging oder development since dev servers need to be listening prior
     # announcements may link them to a testing cluster or like subscription topology
-    t = threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server).start()
+    t = threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server)
     # Star as daemon so it terminates with main thread
     t.daemon = True
     t.start()
@@ -224,7 +224,7 @@ def announce_server():
 
     # Start timer to re announce this server in due time as specified
     t = threading.Timer(NEXUS_SERVER_LONGPOLL, announce_server)
-    # Star as daemon so it terminates with main thread
+    # Start as daemon so it terminates with main thread
     t.daemon = True
     t.start()
 
