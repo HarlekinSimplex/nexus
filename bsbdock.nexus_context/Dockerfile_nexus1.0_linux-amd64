@@ -35,10 +35,16 @@ EXPOSE 4242
 EXPOSE 4280
 EXPOSE 4281
 
-# Pull in container start script an make it executable
+# Create workdir
 RUN mkdir /bsb
+
+# Pull in container start script an make it executable
 COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh
+
+# Pull in NexusServer script
+COPY ../Nexus/NexusServer.py /bsb
+RUN chmod ug+x /Nexus/NexusServer.py
 
 # Launch Nexus server on start
 CMD /bsb/start.sh

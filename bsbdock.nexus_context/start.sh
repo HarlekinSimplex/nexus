@@ -1,3 +1,6 @@
 #!/bin/bash
+# Log reticulum interface status
 rnstatus
-python3 /root/nexus_server.py
+
+# Launch Nexus Server
+/bsb/NexusServer.py

@@ -1,4 +1,6 @@
-##########################################################################################
+#!/usr/bin/env python3
+# ##########################################################################################
+#
 # Nexus Message Server
 # Version 1.0.0
 #
@@ -102,7 +104,7 @@ NEXUS_SERVER_IDENTITY = RNS.Identity
 # The parameters are parsed by __main__ and then passed to this function.
 # Example call with all parameters given with their actual default values:
 #
-# python3 nexus_server.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
+# python3 NexusServer.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
 #
 def initialize_server(configpath, server_port=None, server_aspect=None, server_role=None, long_poll=None):
     global NEXUS_SERVER_ADDRESS
