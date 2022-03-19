@@ -48,4 +48,4 @@ COPY Nexus /bsb/Nexus
 RUN chmod ug+x /bsb/Nexus/NexusServer.py
 
 # Launch Nexus server on start
-CMD /bsb/start.sh a b c
+CMD /bsb/start.sh
