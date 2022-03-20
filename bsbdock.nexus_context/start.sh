@@ -30,7 +30,7 @@ python3 -u /bsb/Nexus/NexusServer.py \
 ${NEXUS_CONFIG:+--config=NEXUS_CONFIG} \
 ${NEXUS_ASPECT:+--port=NEXUS_ASPECT} \
 ${NEXUS_ROLE:+--port=NEXUS_ROLE} \
-${NEXUS_LONGPOLL:+--port=NEXUS_LONGPOLL} \
+${NEXUS_LONGPOLL:+--port=NEXUS_LONGPOLL}
 
 echo ""
 echo "-------------------------------------------------------------"
