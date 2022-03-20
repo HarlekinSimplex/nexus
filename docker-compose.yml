@@ -27,6 +27,8 @@ services:
       - ${NEXUS_PORT_JSONAPI}:4281
 #    devices:
 #      - "/dev/ttyACM0:/dev/ttyACM0"
+    env_file:
+      - .env
     networks:
       reticulum-test_net:
         aliases:

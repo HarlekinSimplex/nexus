@@ -1,8 +1,12 @@
-##########################################################################################
+#!/usr/bin/env python3
+# ##########################################################################################
+#
 # Nexus Message Server
 # Version 1.0.0
 #
 
+import signal
+import threading
 import sys
 import argparse
 import RNS
@@ -11,7 +15,6 @@ from http import HTTPStatus
 import json
 import pickle
 import time
-import threading
 
 ##########################################################################################
 # Global variables
@@ -76,7 +79,7 @@ NEXUS_SERVER_ADDRESS = ('', 4281)
 # 3600sec <> 12h ; After 12h expired distribution targets are removed
 NEXUS_SERVER_TIMEOUT = 3600
 # Re-announce after half the expiration time
-NEXUS_SERVER_LONGPOLL = NEXUS_SERVER_TIMEOUT / 2
+NEXUS_SERVER_LONGPOLL = int(NEXUS_SERVER_TIMEOUT / 2)
 # Delay of initial announcement of this server to the network
 INITIAL_ANNOUNCEMENT_DELAY = 5
 
@@ -101,7 +104,7 @@ NEXUS_SERVER_IDENTITY = RNS.Identity
 # The parameters are parsed by __main__ and then passed to this function.
 # Example call with all parameters given with their actual default values:
 #
-# python3 nexus_server.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
+# python3 NexusServer.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
 #
 def initialize_server(configpath, server_port=None, server_aspect=None, server_role=None, long_poll=None):
     global NEXUS_SERVER_ADDRESS
@@ -184,7 +187,10 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
     # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
     # Using a 3sec delay is useful while debugging oder development since dev servers need to be listening prior
     # announcements may link them to a testing cluster or like subscription topology
-    threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server).start()
+    t = threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server)
+    # Star as daemon so it terminates with main thread
+    t.daemon = True
+    t.start()
 
     # Launch HTTP GET/POST processing
     # This is an endless loop
@@ -219,7 +225,10 @@ def announce_server():
     )
 
     # Start timer to re announce this server in due time as specified
-    threading.Timer(NEXUS_SERVER_LONGPOLL, announce_server).start()
+    t = threading.Timer(NEXUS_SERVER_LONGPOLL, announce_server)
+    # Start as daemon so it terminates with main thread
+    t.daemon = True
+    t.start()
 
 
 ##########################################################################################
@@ -693,7 +702,15 @@ def distribute_message(message):
 #
 # Default python entrypoint with processing the give commandline parameters
 #
+
+def signal_handler(_signal, _frame):
+    print("exiting")
+    sys.exit(0)
+
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
+
     try:
         parser = argparse.ArgumentParser(
             description="Minimal Nexus Message Server with automatic cluster replication"
@@ -774,5 +791,5 @@ if __name__ == "__main__":
 
     # Handle keyboard interrupt aka ctrl-C to exit server
     except KeyboardInterrupt:
-        print("")
-        exit()
+        print("Server terminated by ctrl-c")
+        sys.exit(0)

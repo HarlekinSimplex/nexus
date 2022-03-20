@@ -17,7 +17,7 @@ FROM balenalib/raspberry-pi-debian:latest
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 
-# Update base image if neccessary
+# Update base image if necessary
 RUN apt-get update
 RUN apt-get install tzdata
 
@@ -26,11 +26,11 @@ RUN apt-get install tzdata
 RUN apt install python3-pip
 #RUN pip3 install pyserial --upgrade
 
-# Install Reticulum stack and NomadNet massenger application
+# Install RNode config utility
 #RUN pip3 install rnodeconf
 #RUN apt install unzip
 
-# Install Reticulum stack and NomadNet massenger application
+# Install Reticulum stack and NomadNet messenger application
 RUN pip3 install nomadnet
 
 # Install personal helper tools
