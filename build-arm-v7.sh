@@ -9,4 +9,4 @@ cd ..
 
 cd ./bsbdock.reticulum_context
 docker build --tag bsbdock/reticulum:2.1_linux-arm-v7 -f Dockerfile_reticulum2.1_linux-arm-v7 .
-docker tag bsbdock/reticulum:1.0_linux-arm-v7 bsbdock/reticulum
+docker tag bsbdock/reticulum:2.1_linux-arm-v7 bsbdock/reticulum
