@@ -5,14 +5,15 @@ echo "# Welcome to Nexus Server"
 echo "# A minimal broadcast messaging server based on Reticulum"
 echo "#############################################################"
 
-echo $NEXUS_ROOT
-echo $NEXUS_ROOT_BIND
-echo $NEXUS_NETWORK
-echo $NEXUS_PORT_RNSAPI
-echo $NEXUS_PORT_WEB
-echo $NEXUS_PORT_JSONAPI
-
-echo
+echo ""
+echo "-------------------------------------------------------------"
+echo " Environment variables set
+echo "-------------------------------------------------------------"
+echo "NEXUS_CONFIG=$NEXUS_CONFIG"
+echo "NEXUS_PORT=$NEXUS_PORT"
+echo "NEXUS_ASPECT=$NEXUS_ASPECT"
+echo "NEXUS_ROLE=$NEXUS_ROLE"
+echo "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
 
 echo ""
 echo "-------------------------------------------------------------"
@@ -25,7 +26,11 @@ echo "-------------------------------------------------------------"
 echo " Nexus Server startup"
 echo "-------------------------------------------------------------"
 # Launch Nexus Server with unbuffered logs (docker takes those logs)
-python3 -u /bsb/Nexus/NexusServer.py $1 $2 $3 $4 $5
+python3 -u /bsb/Nexus/NexusServer.py \
+${NEXUS_CONFIG:+--config=NEXUS_CONFIG} \
+${NEXUS_ASPECT:+--port=NEXUS_ASPECT} \
+${NEXUS_ROLE:+--port=NEXUS_ROLE} \
+${NEXUS_LONGPOLL:+--port=NEXUS_LONGPOLL} \
 
 echo ""
 echo "-------------------------------------------------------------"
