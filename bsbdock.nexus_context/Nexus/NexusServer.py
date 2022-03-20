@@ -77,7 +77,7 @@ NEXUS_SERVER_ADDRESS = ('', 4281)
 
 # Timeout constants for automatic subscription handling
 # 3600sec <> 12h ; After 12h expired distribution targets are removed
-NEXUS_SERVER_TIMEOUT = 3600
+NEXUS_SERVER_TIMEOUT = 43200
 # Re-announce after half the expiration time
 NEXUS_SERVER_LONGPOLL = int(NEXUS_SERVER_TIMEOUT / 2)
 # Delay of initial announcement of this server to the network
