@@ -3,28 +3,36 @@ version: '3.5'
 #################################################
 # Reticulum Node
 #
-# docker exec -it nexus-broadcast_node01 bash
-# docker exec -it nexus-broadcast_node01 rnstatus
-# docker exec -it nexus-broadcast_node01 nomadnet
-# docker exec -it nexus-broadcast_node01 bash
+# docker exec -it nexus-server_node01 bash
+# docker exec -it nexus-server_node01 rnstatus
+# docker exec -it nexus-server_node01 nomadnet
 #
 services:
-  nexus-prod_nexus:
+  nexus-server_node01:
     container_name: ${NEXUS_CONTAINER}
+
+## If image can not be pulled from docker hub run one of the following commands
+## bash ./build-arm-v7.sh for building an arm architecture image (Raspberry)
+## bash ./build-amd64.sh for building an amd64 architecture image
     image: bsbdock/nexus
-    build:
-      context: ${NEXUS_COMPOSE_HOME}/bsbdock.nexus_context
-      dockerfile: ${NEXUS_DOCKERFILE}
+
+## Uncomment if you want to build the image automatically
+## Requires proper environment variable uncommented at file .env as well
+#    build:
+#      context: ${NEXUS_COMPOSE_HOME}/bsbdock.nexus_context
+#      dockerfile: ${NEXUS_DOCKERFILE}
+
     restart: unless-stopped
     ports:
-# Port for the Reticulum Server API for Reticulum Client access if required
-#      - 4242:4242  / - 127.0.0.1:4242:4242
+## Port for the reticulum server API for reticulum client access if required
+#     - 4242:4242  / - 127.0.0.1:4242:4242
       - ${NEXUS_PORT_RNSAPI}:4242
-# Port of the NExus Server web client and Mobile App TCP API
+## Port of the nexus server web client and mobile app TCP API
 #      - 4280:4280 / - 127.0.0.1:4280:4180
 #      - 4281:4281 / - 127.0.0.1:4281:4181
       - ${NEXUS_PORT_WEB}:4280
       - ${NEXUS_PORT_JSONAPI}:4281
+## Uncomment if you need the RNode LoRa usb interface mapped into the container
 #    devices:
 #      - "/dev/ttyACM0:/dev/ttyACM0"
     env_file:
@@ -44,7 +52,7 @@ services:
         max-file: "10"
 
 #################################################
-# Reticulum Networks
+# Reticulum Container Networks
 #
 networks:
   reticulum-test_net:
