@@ -100,19 +100,23 @@ NEXUS_SERVER_IDENTITY = RNS.Identity
 #   server_role<jsonStr>:   Nexus Server role specification to specify automatic subscription handling
 #                           e.g. {"c":"cluster","g":"gateway"}
 #   long_poll<str>:         Period in sec between announcements of this server
+#   time_out<str>:          Period in sec until distribution link expires in case it is not updated by an announcement
 #
 # The parameters are parsed by __main__ and then passed to this function.
 # Example call with all parameters given with their actual default values:
 #
 # python3 NexusServer.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
 #
-def initialize_server(configpath, server_port=None, server_aspect=None, server_role=None, long_poll=None):
+def initialize_server(
+        configpath, server_port=None, server_aspect=None, server_role=None, long_poll=None, time_out=None
+):
     global NEXUS_SERVER_ADDRESS
     global NEXUS_SERVER_ASPECT
     global NEXUS_SERVER_IDENTITY
     global NEXUS_SERVER_DESTINATION
     global NEXUS_SERVER_ROLE
     global NEXUS_SERVER_LONGPOLL
+    global NEXUS_SERVER_TIMEOUT
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -133,15 +137,24 @@ def initialize_server(configpath, server_port=None, server_aspect=None, server_r
         # Overwrite default role with specified role
         NEXUS_SERVER_ROLE = json.loads(server_role)
 
+    # Time out configuration
+    # Expiration of distribution link occurs after this many seconds without another announcement
+    if time_out is not None:
+        # Update long poll to its default value according the actual default configuration
+        NEXUS_SERVER_LONGPOLL = int(int(time_out)/(NEXUS_SERVER_TIMEOUT/NEXUS_SERVER_LONGPOLL))
+        # Overwrite default time out with specified value
+        NEXUS_SERVER_TIMEOUT = int(time_out)
+
     # Long poll configuration
     # Announcement of this server is repeated after the specified seconds
     if long_poll is not None:
-        # Overwrite default long poll default with specified role
+        # Overwrite default long poll default with specified value
         NEXUS_SERVER_LONGPOLL = int(long_poll)
 
     # Log actually used parameters
     RNS.log(
         "Server configuration:" +
+        " timeout=" + str(NEXUS_SERVER_TIMEOUT) +
         " longpoll=" + str(NEXUS_SERVER_LONGPOLL) +
         " port=" + str(NEXUS_SERVER_ADDRESS[1]) +
         " aspect=" + NEXUS_SERVER_ASPECT +
@@ -756,6 +769,14 @@ if __name__ == "__main__":
             type=str
         )
 
+        parser.add_argument(
+            "--timeout",
+            action="store",
+            default=None,
+            help="time in seconds until distribution registration expires",
+            type=str
+        )
+
         # Parse passed commandline arguments as specified above
         params = parser.parse_args()
 
@@ -786,8 +807,13 @@ if __name__ == "__main__":
         else:
             longpoll_para = None
 
+        if params.timeout:
+            timeout_para = params.timeout
+        else:
+            timeout_para = None
+
         # Call server initialization and startup reticulum and HTTP listeners
-        initialize_server(config_para, port_para, aspect_para, role_para, longpoll_para)
+        initialize_server(config_para, port_para, aspect_para, role_para, longpoll_para, timeout_para)
 
     # Handle keyboard interrupt aka ctrl-C to exit server
     except KeyboardInterrupt:
