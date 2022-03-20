@@ -4,7 +4,7 @@
 # How to build this container:
 # docker build --tag bsbdock/nexus -f Dockerfile_nexus1.0_linux-arm-v7 .
 # docker build --tag bsbdock/nexus:1.0_linux-arm-v7 -f Dockerfile_nexus1.0_linux-arm-v7 .
-# docker --push --tag bsbdock/nexus:1.0_linux-arm-v7
+# docker push bsbdock/nexus:1.0_linux-arm-v7
 #
 # How to invoke a shell into this container:
 # docker run -it bsbdock/nexus bash

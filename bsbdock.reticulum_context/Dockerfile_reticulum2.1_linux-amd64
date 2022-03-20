@@ -10,7 +10,7 @@
 # How to run the reticulum stack as a service
 # docker run --rm --name nexus-prod_nexus -it bsbdock/nexus
 #
-FROM debian:bookworm
+FROM python:3.9
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
