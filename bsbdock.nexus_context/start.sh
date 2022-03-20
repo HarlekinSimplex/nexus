@@ -17,8 +17,8 @@ echo "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
 echo ${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
 ${NEXUS_PORT:+--port=$NEXUS_PORT} \
 ${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
-${NEXUS_ROLE:+--role=NEXUS_ROLE} \
-${NEXUS_LONGPOLL:+--longpoll=NEXUS_LONGPOLL}
+${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
+${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL}
 echo ""
 echo "-------------------------------------------------------------"
 echo " Actual Reticulum interface configuration:"
