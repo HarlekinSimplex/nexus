@@ -7,7 +7,7 @@ echo "#############################################################"
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Environment variables set
+echo " Environment variables set"
 echo "-------------------------------------------------------------"
 echo "NEXUS_CONFIG=$NEXUS_CONFIG"
 echo "NEXUS_PORT=$NEXUS_PORT"
