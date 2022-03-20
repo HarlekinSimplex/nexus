@@ -1,19 +1,20 @@
 #!/bin/bash
 # Log reticulum interface status
 echo "#############################################################"
-echo "# Welcome to Nexus Server"
-echo "# A minimal broadcast messaging server based on Reticulum"
+echo "# Welcome to Nexus Server                                   #"
+echo "# A minimal broadcast messaging server based on Reticulum   #"
 echo "#############################################################"
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Environment variables set"
+echo " Environment variables set:"
 echo "-------------------------------------------------------------"
 echo "NEXUS_CONFIG=$NEXUS_CONFIG"
 echo "NEXUS_PORT=$NEXUS_PORT"
 echo "NEXUS_ASPECT=$NEXUS_ASPECT"
 echo "NEXUS_ROLE=$NEXUS_ROLE"
 echo "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
+echo ""
 echo "-------------------------------------------------------------"
 echo " Parameters passed to server startup:"
 echo "-------------------------------------------------------------"
