@@ -363,7 +363,8 @@ class AnnounceHandler:
         )
 
         # Get dict key and timestamp for distribution identity registration
-        dict_key = announced_identity.get_public_key()
+#        dict_key = announced_identity.get_public_key()
+        dict_key = destination_hash
         dict_time = int(time.time())
 
         # Add announced nexus distribution target to distribution dict if it has the same cluster or gateway name.
@@ -443,7 +444,7 @@ def packet_callback(data, _packet):
 
     # Back propagation to origin suppression
     # If incoming message originated from this server suppress distributing it again
-    if message[MESSAGE_JSON_ORIGIN] == str(NEXUS_SERVER_DESTINATION):
+    if message[MESSAGE_JSON_ORIGIN] == NEXUS_SERVER_DESTINATION.hexhash:
         # Log message received by distribution event
         RNS.log(
             "Message distribution is suppressed because origin was this server."
@@ -451,7 +452,7 @@ def packet_callback(data, _packet):
         exit()
     # Back propagation to forwarder suppression
     # If incoming message originated from this server suppress distributing it again
-    if message[MESSAGE_JSON_VIA] == str(NEXUS_SERVER_DESTINATION):
+    if message[MESSAGE_JSON_VIA] == NEXUS_SERVER_DESTINATION.hexhash:
         # Log message received by distribution event
         RNS.log(
             "Message distribution is suppressed because we received it from this server."
@@ -612,8 +613,8 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         )
 
         # Set origin and via destination id into message to prevent back propagation
-        message[MESSAGE_JSON_ORIGIN] = str(NEXUS_SERVER_DESTINATION)
-        message[MESSAGE_JSON_VIA] = str(NEXUS_SERVER_DESTINATION)
+        message[MESSAGE_JSON_ORIGIN] = NEXUS_SERVER_DESTINATION.hexhash
+        message[MESSAGE_JSON_VIA] = NEXUS_SERVER_DESTINATION.hexhash
         # Distribute message to all registered nexus server
         # Logging of this is done by the distribution function
         # Suppression of back propagation not necessary, since POST creates a new message
@@ -694,7 +695,7 @@ def distribute_message(message):
             # Check if target has not expired yet
             if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
                 # Set new forwarder (VIA) id to message
-                message[MESSAGE_JSON_VIA] = str(NEXUS_SERVER_DESTINATION)
+                message[MESSAGE_JSON_VIA] = NEXUS_SERVER_DESTINATION.hexhash
                 # Send message to destination
                 RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
                 # Log that we send something to this destination
