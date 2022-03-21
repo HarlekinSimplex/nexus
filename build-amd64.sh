@@ -3,7 +3,7 @@
 # docker push bsbdock/reticulum:2.1_linux-amd64
 
 #################################################
-# Build and tag Nexus container
+# Build and tag nexus_server container
 #
 cd ./bsbdock.nexus_context
 docker build --tag bsbdock/nexus:1.0_linux-amd64 -f Dockerfile_nexus1.0_linux-amd64 .
