@@ -50,15 +50,15 @@ EXPOSE 4281
 
 # Create workdir
 RUN mkdir /bsb
-RUN mkdir /bsb/Nexus
+RUN mkdir /bsb/nexus_server
 
 # Pull in container start script an make it executable
 COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh
 
 # Pull in NexusServer script
-COPY Nexus /bsb/Nexus
-RUN chmod ug+x /bsb/Nexus/NexusServer.py
+COPY nexus_server /bsb/nexus_server
+RUN chmod ug+x /bsb/nexus_server/NexusServer.py
 
 # Launch Nexus server on start
 CMD /bsb/start.sh
