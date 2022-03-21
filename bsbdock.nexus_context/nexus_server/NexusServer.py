@@ -141,7 +141,7 @@ def initialize_server(
     # Expiration of distribution link occurs after this many seconds without another announcement
     if time_out is not None:
         # Update long poll to its default value according the actual default configuration
-        NEXUS_SERVER_LONGPOLL = int(int(time_out)/(NEXUS_SERVER_TIMEOUT/NEXUS_SERVER_LONGPOLL))
+        NEXUS_SERVER_LONGPOLL = int(int(time_out) / (NEXUS_SERVER_TIMEOUT / NEXUS_SERVER_LONGPOLL))
         # Overwrite default time out with specified value
         NEXUS_SERVER_TIMEOUT = int(time_out)
 
@@ -174,7 +174,10 @@ def initialize_server(
     )
     # Log server address
     RNS.log(
-        "Server address: " + str(NEXUS_SERVER_DESTINATION)
+        "Server full address: " + str(NEXUS_SERVER_DESTINATION)
+    )
+    RNS.log(
+        "Server address (hash): " + RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
     )
 
     # Approve all packages received (no handler necessary)
@@ -363,7 +366,7 @@ class AnnounceHandler:
         )
 
         # Get dict key and timestamp for distribution identity registration
-        dict_key = announced_identity.get_public_key()
+        dict_key = RNS.prettyhexrep(destination_hash)
         dict_time = int(time.time())
 
         # Add announced nexus distribution target to distribution dict if it has the same cluster or gateway name.
@@ -443,7 +446,7 @@ def packet_callback(data, _packet):
 
     # Back propagation to origin suppression
     # If incoming message originated from this server suppress distributing it again
-    if message[MESSAGE_JSON_ORIGIN] == str(NEXUS_SERVER_DESTINATION):
+    if message[MESSAGE_JSON_ORIGIN] == RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash):
         # Log message received by distribution event
         RNS.log(
             "Message distribution is suppressed because origin was this server."
@@ -451,7 +454,7 @@ def packet_callback(data, _packet):
         exit()
     # Back propagation to forwarder suppression
     # If incoming message originated from this server suppress distributing it again
-    if message[MESSAGE_JSON_VIA] == str(NEXUS_SERVER_DESTINATION):
+    if message[MESSAGE_JSON_VIA] == RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash):
         # Log message received by distribution event
         RNS.log(
             "Message distribution is suppressed because we received it from this server."
@@ -612,8 +615,8 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         )
 
         # Set origin and via destination id into message to prevent back propagation
-        message[MESSAGE_JSON_ORIGIN] = str(NEXUS_SERVER_DESTINATION)
-        message[MESSAGE_JSON_VIA] = str(NEXUS_SERVER_DESTINATION)
+        message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
+        message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
         # Distribute message to all registered nexus server
         # Logging of this is done by the distribution function
         # Suppression of back propagation not necessary, since POST creates a new message
@@ -672,18 +675,18 @@ def distribute_message(message):
 
         # Back propagation to origin suppression
         # If origin of message to distribute equals target suppress distributing it
-        if message[MESSAGE_JSON_ORIGIN] == str(remote_server):
+        if message[MESSAGE_JSON_ORIGIN] == RNS.prettyhexrep(remote_server.hash):
             # Log message received by distribution event
             RNS.log(
-                "Distribution to " + str(remote_server) +
+                "Distribution to " + RNS.prettyhexrep(remote_server.hash) +
                 " was suppressed because message originated from that server"
             )
         # Back propagation to forwarder suppression
         # If forwarder of message to distribute equals target suppress distributing it
-        elif message[MESSAGE_JSON_VIA] == str(remote_server):
+        elif message[MESSAGE_JSON_VIA] == RNS.prettyhexrep(remote_server.hash):
             # Log message received by distribution event
             RNS.log(
-                "Distribution to " + str(remote_server) +
+                "Distribution to " + RNS.prettyhexrep(remote_server.hash) +
                 " was suppressed because message was forwarded from that server"
             )
         else:
@@ -694,7 +697,7 @@ def distribute_message(message):
             # Check if target has not expired yet
             if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
                 # Set new forwarder (VIA) id to message
-                message[MESSAGE_JSON_VIA] = str(NEXUS_SERVER_DESTINATION)
+                message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
                 # Send message to destination
                 RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
                 # Log that we send something to this destination
