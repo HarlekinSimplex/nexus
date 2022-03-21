@@ -14,7 +14,7 @@ services:
 ## If image can not be pulled from docker hub run one of the following commands
 ## bash ./build-arm-v7.sh for building an arm architecture image (Raspberry)
 ## bash ./build-amd64.sh for building an amd64 architecture image
-    image: bsbdock/nexus
+    image: ${NEXUS_IMAGE}
 
 ## Uncomment if you want to build the image automatically
 ## Requires proper environment variable uncommented at file .env as well
