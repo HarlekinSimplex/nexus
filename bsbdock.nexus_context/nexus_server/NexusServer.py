@@ -20,6 +20,9 @@ import time
 # Global variables
 #
 
+# Server Version
+NEXUS_SERVER_VERSION = "1.2.0"
+
 # Trigger some Debug only related log entries
 DEBUG = False
 
@@ -152,14 +155,12 @@ def initialize_server(
         NEXUS_SERVER_LONGPOLL = int(long_poll)
 
     # Log actually used parameters
-    RNS.log(
-        "Server configuration:" +
-        " timeout=" + str(NEXUS_SERVER_TIMEOUT) +
-        " longpoll=" + str(NEXUS_SERVER_LONGPOLL) +
-        " port=" + str(NEXUS_SERVER_ADDRESS[1]) +
-        " aspect=" + NEXUS_SERVER_ASPECT +
-        " role=" + str(NEXUS_SERVER_ROLE)
-    )
+    RNS.log("Server Server v"+NEXUS_SERVER_VERSION+" configuration:")
+    RNS.log("--timeout=" + str(NEXUS_SERVER_TIMEOUT) )
+    RNS.log("--longpoll=" + str(NEXUS_SERVER_LONGPOLL))
+    RNS.log("--port=" + str(NEXUS_SERVER_ADDRESS[1]))
+    RNS.log("--aspect=" + NEXUS_SERVER_ASPECT )
+    RNS.log("--role=" + str(NEXUS_SERVER_ROLE))
 
     # Create the identity of this server
     # Each time the server starts a new identity with new keys is created
