@@ -38,14 +38,13 @@ EXPOSE 4281
 RUN mkdir /bsb
 RUN mkdir /bsb/nexus_server
 
-# Invalidate Cache
-ARG CACHEBUST=0
-
 # Pull in container start script and make it executable
+ARG CACHEBUST=0
 COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh
 
 # Pull in NexusServer
+ARG CACHEBUST=0
 COPY nexus_server /bsb/nexus_server
 RUN chmod ug+x /bsb/nexus_server/nexus_server.py
 
