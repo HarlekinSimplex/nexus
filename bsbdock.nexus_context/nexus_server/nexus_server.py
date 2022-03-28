@@ -429,7 +429,7 @@ class AnnounceHandler:
         if link_flag1 or link_flag2:
 
             # Check if destination is a new destination
-            if SERVER_IDENTITIES[dict_key] is None:
+            if not dict_key in SERVER_IDENTITIES.keys():
                 # Destination is new
                 # Announce this server once out of sequence to accelerate distribution list build up at that new
                 # server destination subscription list
