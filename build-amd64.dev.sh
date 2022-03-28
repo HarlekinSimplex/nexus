@@ -1,12 +1,12 @@
 #!/bin/bash
-# docker push bsbdock/nexus:1.0_linux-amd64
+# docker push bsbdock/nexus:1.2.1_linux-amd64
 # docker push bsbdock/reticulum:2.1_linux-amd64
 
 #################################################
 # Build and tag nexus_server2 container
 #
 cd ./bsbdock.nexus_context
-docker build --tag bsbdock/nexus:dev_linux-amd64 -f Dockerfile_nexus1.0_linux-amd64 .
+docker build --tag bsbdock/nexus:dev_linux-amd64 -f Dockerfile_nexus1.2.1_linux-amd64 .
 docker tag bsbdock/nexus:dev_linux-amd64 bsbdock/nexus
 cd ..
 
