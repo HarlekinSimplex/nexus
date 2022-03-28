@@ -1,6 +1,6 @@
 #!/bin/bash
-# docker push bsbdock/nexus:1.2.1_linux-amd64
-# docker push bsbdock/reticulum:2.1_linux-amd64
+# docker push bsbdock/nexus:dev_linux-amd64
+# docker push bsbdock/reticulum:dev_linux-amd64
 
 #################################################
 # Build and tag nexus_server2 container
