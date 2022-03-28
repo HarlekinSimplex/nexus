@@ -53,10 +53,12 @@ RUN mkdir /bsb
 RUN mkdir /bsb/nexus_server
 
 # Pull in container start script an make it executable
+ARG CACHEBUST=0
 COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh
 
 # Pull in NexusServer script
+ARG CACHEBUST=0
 COPY nexus_server /bsb/nexus_server
 RUN chmod ug+x /bsb/nexus_server/nexus_server.py
 
