@@ -38,9 +38,10 @@ EXPOSE 4281
 RUN mkdir /bsb
 RUN mkdir /bsb/nexus_server
 
-# Echo version to console
-RUN echo "Copying verion 1.2.1 into image"
-# Pull in container start script an make it executable
+# Invalidate Cache
+ARG CACHEBUST=0
+
+# Pull in container start script and make it executable
 COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh
 
