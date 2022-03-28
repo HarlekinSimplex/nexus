@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # ##########################################################################################
-#
 # Nexus Message Server
-# Version 1.1.0
 #
 
+import os
 import signal
 import threading
 import sys
@@ -16,15 +15,25 @@ import json
 import pickle
 import time
 
+import vendor.umsgpack as msgpack
+
 ##########################################################################################
 # Global variables
 #
 
 # Server Version
-NEXUS_SERVER_VERSION = "1.2.0"
+__version__ = "1.2.1"
+
+version = (1, 2, 1)
+"Module version tuple"
 
 # Trigger some Debug only related log entries
 DEBUG = False
+
+# Message storage
+STORAGE_DIR = os.path.expanduser("~") + "/.nexus/storage"
+# Message storage
+STORAGE_FILE = STORAGE_DIR + "/messages.umsgpack"
 
 # This are the data stores used by the server
 # ToDo: Implement data persistence on restart
@@ -108,7 +117,7 @@ NEXUS_SERVER_IDENTITY = RNS.Identity
 # The parameters are parsed by __main__ and then passed to this function.
 # Example call with all parameters given with their actual default values:
 #
-# python3 NexusServer.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
+# python3 nexus_server.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
 #
 def initialize_server(
         configpath, server_port=None, server_aspect=None, server_role=None, long_poll=None, time_out=None
@@ -120,6 +129,7 @@ def initialize_server(
     global NEXUS_SERVER_ROLE
     global NEXUS_SERVER_LONGPOLL
     global NEXUS_SERVER_TIMEOUT
+    global MESSAGE_STORE
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -144,7 +154,7 @@ def initialize_server(
     # Expiration of distribution link occurs after this many seconds without another announcement
     if time_out is not None:
         # Update long poll to its default value according the actual default configuration
-        NEXUS_SERVER_LONGPOLL = int(int(time_out) / (NEXUS_SERVER_TIMEOUT / NEXUS_SERVER_LONGPOLL))
+        NEXUS_SERVER_LONGPOLL = int(float(time_out) / (NEXUS_SERVER_TIMEOUT / NEXUS_SERVER_LONGPOLL))
         # Overwrite default time out with specified value
         NEXUS_SERVER_TIMEOUT = int(time_out)
 
@@ -155,12 +165,36 @@ def initialize_server(
         NEXUS_SERVER_LONGPOLL = int(long_poll)
 
     # Log actually used parameters
-    RNS.log("Server Server v"+NEXUS_SERVER_VERSION+" configuration:")
-    RNS.log("--timeout=" + str(NEXUS_SERVER_TIMEOUT) )
+    RNS.log("Server Server v" + __version__ + " configuration:")
+    RNS.log("--timeout=" + str(NEXUS_SERVER_TIMEOUT))
     RNS.log("--longpoll=" + str(NEXUS_SERVER_LONGPOLL))
     RNS.log("--port=" + str(NEXUS_SERVER_ADDRESS[1]))
-    RNS.log("--aspect=" + NEXUS_SERVER_ASPECT )
+    RNS.log("--aspect=" + NEXUS_SERVER_ASPECT)
     RNS.log("--role=" + str(NEXUS_SERVER_ROLE))
+
+    # Load messages from storage
+    # Check if storage path is available
+    if not os.path.isdir(STORAGE_DIR):
+        # Create storage path
+        os.makedirs(STORAGE_DIR)
+        # Log that storage directory was created
+        RNS.log(
+            "Created storage path " + STORAGE_DIR
+        )
+    # Check if we can read some messages from storage
+    if os.path.isfile(STORAGE_FILE):
+        try:
+            file = open(STORAGE_FILE, "rb")
+            MESSAGE_STORE = msgpack.unpackb(file.read())
+            file.close()
+            RNS.log(
+                str(len(MESSAGE_STORE)) + " messages loaded from storage: " + STORAGE_FILE
+            )
+        except Exception as e:
+            RNS.log("Could not load messages from " + STORAGE_FILE)
+            RNS.log("The contained exception was: %s" % (str(e)))
+    else:
+        RNS.log("No messages to load from " + STORAGE_FILE)
 
     # Create the identity of this server
     # Each time the server starts a new identity with new keys is created
@@ -221,10 +255,8 @@ def initialize_server(
 # Calling this function will start a timer that will call this function again after the
 # specified re-announce period.
 #
-def announce_server():
+def single_announce_server():
     global NEXUS_SERVER_DESTINATION
-    global NEXUS_SERVER_ASPECT
-    global APP_NAME
     global NEXUS_SERVER_LONGPOLL
     global NEXUS_SERVER_ROLE
 
@@ -240,6 +272,14 @@ def announce_server():
         # Log entry does not use bytes but a string representation
         "Server announce sent with app_data: " + str(NEXUS_SERVER_ROLE)
     )
+
+
+def announce_server():
+    global NEXUS_SERVER_LONGPOLL
+
+    # Announce this server to the network
+    # All other nexus server with the same aspect will register this server as a distribution target
+    single_announce_server()
 
     # Start timer to re announce this server in due time as specified
     t = threading.Timer(NEXUS_SERVER_LONGPOLL, announce_server)
@@ -387,13 +427,27 @@ class AnnounceHandler:
 
         # If we had a cluster or gateway match subscribe announced target
         if link_flag1 or link_flag2:
-            # Register destination as valid distribution target
+
+            # Check if destination is a new destination
+            if not dict_key in SERVER_IDENTITIES.keys():
+                # Destination is new
+                # Announce this server once out of sequence to accelerate distribution list build up at that new
+                # server destination subscription list
+                single_announce_server()
+                # Log that we added new subscription
+                RNS.log(
+                    "Subscription for " + RNS.prettyhexrep(destination_hash) +
+                    " will be added"
+                )
+            else:
+                # Log that we just updated new subscription
+                RNS.log(
+                    "Subscription for " + RNS.prettyhexrep(destination_hash) +
+                    " will be updated"
+                )
+            # Register o9r update destination as valid distribution target
             SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
-            # If actual is still valid log it
-            RNS.log(
-                "Subscription for " + RNS.prettyhexrep(destination_hash) +
-                " was added/updated"
-            )
+
             # Log list of severs with seconds it was last heard
             for element in SERVER_IDENTITIES.copy():
                 # Get timestamp and destination hash from dict
@@ -478,6 +532,8 @@ def packet_callback(data, _packet):
         )
         # Append the JSON message map to the message store at last position
         MESSAGE_STORE.append(message)
+        # Save messages to message store
+        save_messages()
         # Distribute message to all registered nexus servers
         distribute_message(message)
     else:
@@ -501,6 +557,8 @@ def packet_callback(data, _packet):
                     )
                     # Insert it at the actual position
                     MESSAGE_STORE.insert(i, message)
+                    # Save messages to message store
+                    save_messages()
                     # Distribute message to all registered nexus servers
                     distribute_message(message)
                     break
@@ -514,6 +572,8 @@ def packet_callback(data, _packet):
                 )
                 # Insert it at the actual position
                 MESSAGE_STORE.insert(i, message)
+                # Save messages to message store
+                save_messages()
                 # Distribute message to all registered nexus servers
                 distribute_message(message)
                 break
@@ -529,6 +589,8 @@ def packet_callback(data, _packet):
                 )
                 # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
+                # Save messages to message store
+                save_messages()
                 # Distribute message to all registered nexus servers
                 distribute_message(message)
                 break
@@ -544,6 +606,8 @@ def packet_callback(data, _packet):
         )
         # If limit is exceeded just drop first (oldest) element of list
         MESSAGE_STORE.pop(0)
+        # Save messages to message store
+        save_messages()
 
     # clean up
     sys.stdout.flush()
@@ -637,6 +701,9 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
                 " exceeded. Oldest message is dropped now"
             )
 
+        # Save messages to message store
+        save_messages()
+
         # Build and return JSON success response
         self._set_headers()
         self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
@@ -714,6 +781,24 @@ def distribute_message(message):
                 SERVER_IDENTITIES.pop(element)
 
 
+##########################################################################################
+# Save messages to storage file
+#
+def save_messages():
+    global MESSAGE_STORE
+
+    # Check if storage file is there
+    try:
+        save_file = open(STORAGE_FILE, "wb")
+        save_file.write(msgpack.packb(MESSAGE_STORE))
+        save_file.close()
+        RNS.log("Messages saved to storage file:" + STORAGE_FILE)
+
+    except Exception as err:
+        RNS.log("Could not save message to storage file: " + STORAGE_FILE)
+        RNS.log("The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
+
+
 #######################################################
 # Program Startup
 #
@@ -728,6 +813,7 @@ def signal_handler(_signal, _frame):
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
 
+    # Parse commandline arguments
     try:
         parser = argparse.ArgumentParser(
             description="Minimal Nexus Message Server with automatic cluster replication"

@@ -2,9 +2,9 @@
 # bsbdock/reticulum Dockerfile
 #
 # How to build this container:
-# docker build --tag bsbdock/nexus -f Dockerfile_nexus1.0_linux-arm-v7 .
-# docker build --tag bsbdock/nexus:1.0_linux-arm-v7 -f Dockerfile_nexus1.0_linux-arm-v7 .
-# docker push bsbdock/nexus:1.0_linux-arm-v7
+# docker build --tag bsbdock/nexus -f Dockerfile_nexus1.2.1_linux-arm-v7 .
+# docker build --tag bsbdock/nexus:1.2.1_linux-arm-v7 -f Dockerfile_nexus1.0_linux-arm-v7 .
+# docker push bsbdock/nexus:1.2.1_linux-arm-v7
 #
 # How to invoke a shell into this container:
 # docker run -it bsbdock/nexus bash
@@ -53,12 +53,14 @@ RUN mkdir /bsb
 RUN mkdir /bsb/nexus_server
 
 # Pull in container start script an make it executable
+ARG CACHEBUST=0
 COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh
 
 # Pull in NexusServer script
+ARG CACHEBUST=0
 COPY nexus_server /bsb/nexus_server
-RUN chmod ug+x /bsb/nexus_server/NexusServer.py
+RUN chmod ug+x /bsb/nexus_server/nexus_server.py
 
 # Launch Nexus server on start
 CMD /bsb/start.sh
