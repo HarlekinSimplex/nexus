@@ -42,7 +42,7 @@ RUN mkdir /bsb/nexus_server
 COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh
 
-# Pull in NexusServer script
+# Pull in NexusServer v1.2.1
 COPY nexus_server /bsb/nexus_server
 RUN chmod ug+x /bsb/nexus_server/nexus_server.py
 
