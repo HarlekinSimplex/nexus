@@ -24,9 +24,9 @@ import vendor.umsgpack as msgpack
 #
 
 # Server Version
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
-version = (1, 2, 0)
+version = (1, 2, 1)
 "Module version tuple"
 
 # Trigger some Debug only related log entries
