@@ -654,9 +654,6 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
         # Create a timestamp and add that to the message map
         message[MESSAGE_JSON_ID] = int(time.time() * 100000)
-        # Save messages to message store
-        save_messages()
-
         # Log message received event
         RNS.log(
             "Message received via HTTP POST: " + str(message)
@@ -683,6 +680,9 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
                 "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
                 " exceeded. Oldest message is dropped now"
             )
+
+        # Save messages to message store
+        save_messages()
 
         # Build and return JSON success response
         self._set_headers()
