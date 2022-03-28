@@ -194,7 +194,7 @@ def initialize_server(
             RNS.log("Could not load messages from " + STORAGE_FILE)
             RNS.log("The contained exception was: %s" % (str(e)))
     else:
-        RNS.log("No messages to load from" + STORAGE_FILE)
+        RNS.log("No messages to load from " + STORAGE_FILE)
 
     # Create the identity of this server
     # Each time the server starts a new identity with new keys is created
@@ -255,10 +255,8 @@ def initialize_server(
 # Calling this function will start a timer that will call this function again after the
 # specified re-announce period.
 #
-def announce_server():
+def single_announce_server():
     global NEXUS_SERVER_DESTINATION
-    global NEXUS_SERVER_ASPECT
-    global APP_NAME
     global NEXUS_SERVER_LONGPOLL
     global NEXUS_SERVER_ROLE
 
@@ -274,6 +272,14 @@ def announce_server():
         # Log entry does not use bytes but a string representation
         "Server announce sent with app_data: " + str(NEXUS_SERVER_ROLE)
     )
+
+
+def announce_server():
+    global NEXUS_SERVER_LONGPOLL
+
+    # Announce this server to the network
+    # All other nexus server with the same aspect will register this server as a distribution target
+    single_announce_server()
 
     # Start timer to re announce this server in due time as specified
     t = threading.Timer(NEXUS_SERVER_LONGPOLL, announce_server)
@@ -421,13 +427,27 @@ class AnnounceHandler:
 
         # If we had a cluster or gateway match subscribe announced target
         if link_flag1 or link_flag2:
-            # Register destination as valid distribution target
+
+            # Check if destination is a new destination
+            if SERVER_IDENTITIES[dict_key] is None:
+                # Destination is new
+                # Announce this server once out of sequence to accelerate distribution list build up at that new
+                # server destination subscription list
+                single_announce_server()
+                # Log that we added new subscription
+                RNS.log(
+                    "Subscription for " + RNS.prettyhexrep(destination_hash) +
+                    " will be added"
+                )
+            else:
+                # Log that we just updated new subscription
+                RNS.log(
+                    "Subscription for " + RNS.prettyhexrep(destination_hash) +
+                    " will be updated"
+                )
+            # Register o9r update destination as valid distribution target
             SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
-            # If actual is still valid log it
-            RNS.log(
-                "Subscription for " + RNS.prettyhexrep(destination_hash) +
-                " was added/updated"
-            )
+
             # Log list of severs with seconds it was last heard
             for element in SERVER_IDENTITIES.copy():
                 # Get timestamp and destination hash from dict
