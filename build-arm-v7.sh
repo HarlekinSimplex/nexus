@@ -3,7 +3,7 @@
 # docker push bsbdock/reticulum:2.1_linux-arm-v7
 
 #################################################
-# Build and tag nexus_server container
+# Build and tag nexus_server2 container
 #
 cd ./bsbdock.nexus_context
 docker build --tag bsbdock/nexus:1.2.0_linux-arm-v7 -f Dockerfile_nexus1.2.0_linux-arm-v7 .
