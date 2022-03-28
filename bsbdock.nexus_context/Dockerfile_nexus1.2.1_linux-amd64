@@ -2,9 +2,7 @@
 # bsbdock/reticulum Dockerfile
 #
 # How to build this container:
-# docker build --tag bsbdock/nexus -f Dockerfile_nexus1.0_linux-arm-v7 .
-# docker build --tag bsbdock/nexus:1.0_linux-arm-v7 -f Dockerfile_nexus1.0_linux-arm-v7 .
-# docker push bsbdock/nexus:1.0_linux-arm-v7
+# docker buildx build --no-cache --tag bsbdock/reticulum -f Dockerfile_reticulum2.1_linux-amd64 .
 #
 # How to invoke a shell into this container:
 # docker run -it bsbdock/nexus bash
@@ -23,18 +21,6 @@ RUN apt-get install tzdata
 
 # Install pip3
 RUN apt -y install python3-pip
-RUN pip install --upgrade pip
-
-# Build essentials
-RUN apt -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
-
-# Install rust
-RUN apt -y install curl
-RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
-ENV PATH="/root/.cargo/bin:$PATH"
-
-# Build/Install cryptography
-RUN pip3 install cryptography
 
 # Install Reticulum stack and NomadNet messenger application
 RUN pip3 install rns lxmf nomadnet rnodeconf
@@ -42,7 +28,7 @@ RUN pip3 install rns lxmf nomadnet rnodeconf
 # Install personal helper tools
 RUN apt -y install mc
 
-# Expose port for Reticulum server TCP Interface (disable as default)
+# Expose port for Reticulum server TCP Interface (disable as default) 
 EXPOSE 4242
 # Expose ports for Nexus Server Web and API Interface
 EXPOSE 4280
@@ -58,7 +44,7 @@ RUN chmod ug+x /bsb/start.sh
 
 # Pull in NexusServer script
 COPY nexus_server /bsb/nexus_server
-RUN chmod ug+x /bsb/nexus_server/NexusServer.py
+RUN chmod ug+x /bsb/nexus_server/nexus_server.py
 
 # Launch Nexus server on start
 CMD /bsb/start.sh
