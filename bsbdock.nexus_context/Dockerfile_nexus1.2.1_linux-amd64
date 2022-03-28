@@ -38,11 +38,13 @@ EXPOSE 4281
 RUN mkdir /bsb
 RUN mkdir /bsb/nexus_server
 
+# Echo version to console
+RUN echo "Copying verion 1.2.1 into image"
 # Pull in container start script an make it executable
 COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh
 
-# Pull in NexusServer v1.2.1
+# Pull in NexusServer
 COPY nexus_server /bsb/nexus_server
 RUN chmod ug+x /bsb/nexus_server/nexus_server.py
 
