@@ -129,6 +129,7 @@ def initialize_server(
     global NEXUS_SERVER_ROLE
     global NEXUS_SERVER_LONGPOLL
     global NEXUS_SERVER_TIMEOUT
+    global MESSAGE_STORE
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -170,6 +171,30 @@ def initialize_server(
     RNS.log("--port=" + str(NEXUS_SERVER_ADDRESS[1]))
     RNS.log("--aspect=" + NEXUS_SERVER_ASPECT)
     RNS.log("--role=" + str(NEXUS_SERVER_ROLE))
+
+    # Load messages from storage
+    # Check if storage path is available
+    if not os.path.isdir(STORAGE_DIR):
+        # Create storage path
+        os.makedirs(STORAGE_DIR)
+        # Log that storage directory was created
+        RNS.log(
+            "Created storage path " + STORAGE_DIR
+        )
+    # Check if we can read some messages from storage
+    if os.path.isfile(STORAGE_FILE):
+        try:
+            file = open(STORAGE_FILE, "rb")
+            MESSAGE_STORE = msgpack.unpackb(file.read())
+            file.close()
+            RNS.log(
+                str(len(MESSAGE_STORE)) + " messages loaded from storage: " + STORAGE_FILE
+            )
+        except Exception as e:
+            RNS.log("Could not load messages from " + STORAGE_FILE)
+            RNS.log("The contained exception was: %s" % (str(e)))
+    else:
+        RNS.log("No messages to load from" + STORAGE_FILE)
 
     # Create the identity of this server
     # Each time the server starts a new identity with new keys is created
@@ -767,25 +792,6 @@ def signal_handler(_signal, _frame):
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
-
-    # Check if storage path is available
-    if not os.path.isdir(STORAGE_DIR):
-        os.makedirs(STORAGE_DIR)
-        # Log that storage directory was created
-        RNS.log(
-            "Created storage path " + STORAGE_DIR
-        )
-
-    # Check if we can read some messages from storage
-    if os.path.isfile(STORAGE_FILE):
-        try:
-            file = open(STORAGE_FILE, "rb")
-            MESSAGE_STORE = msgpack.unpackb(file.read())
-            file.close()
-
-        except Exception as e:
-            RNS.log("Could not load messages from " + STORAGE_FILE)
-            RNS.log("The contained exception was: %s" % (str(e)))
 
     # Parse commandline arguments
     try:
