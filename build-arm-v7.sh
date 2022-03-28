@@ -6,7 +6,7 @@
 # Build and tag nexus_server2 container
 #
 cd ./bsbdock.nexus_context
-docker build build --build-arg CACHEBUST=$(date +%s) --tag bsbdock/nexus:1.2.1_linux-arm-v7 -f Dockerfile_nexus1.2.1_linux-arm-v7 .
+docker build --build-arg CACHEBUST=$(date +%s) --tag bsbdock/nexus:1.2.1_linux-arm-v7 -f Dockerfile_nexus1.2.1_linux-arm-v7 .
 docker tag bsbdock/nexus:1.2.1_linux-arm-v7 bsbdock/nexus
 cd ..
 
