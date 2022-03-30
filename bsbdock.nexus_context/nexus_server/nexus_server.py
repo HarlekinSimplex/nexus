@@ -830,7 +830,7 @@ def distribute_message(message):
     # If one target is not expired send message to that target
     for bridge_target in BRIDGE_TARGETS:
         # Use POST to send message to bridge nexus server link
-        response = requests.post(bridge_target[BRIDGE_JSON_URL], message.encode('utf-8'))
+        response = requests.post(bridge_target[BRIDGE_JSON_URL], json=message)
         # Log that we bridged a message
         RNS.log("Bridge POST to " + bridge_target[BRIDGE_JSON_URL])
         RNS.log("Bridge POST response was:'" + remove_whitespace(response.text) + "'")
