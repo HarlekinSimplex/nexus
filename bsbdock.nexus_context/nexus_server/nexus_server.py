@@ -60,7 +60,7 @@ DISTRIBUTION_TARGETS = {}
 #    {'url': 'https://nexus.deltamatrix.org:8241', 'bridge': 'dev.test01'},
 #    {'url': 'https://nexus.deltamatrix.org:8242', 'bridge': 'dev.test02'}
 # ]
-BRIDGE_TARGETS = [{}]
+BRIDGE_TARGETS = []
 
 # Json labels used
 # Message format used with client app
