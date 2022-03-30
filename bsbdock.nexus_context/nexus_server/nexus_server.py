@@ -529,7 +529,7 @@ def packet_callback(data, _packet):
 # request handler in case it was received from a client or bridge Post
 def process_incoming_message(message):
     # Back propagation to origin suppression
-    # If incoming message originated from this server suppress distributing it again
+    # If incoming message originated from this server suppress distribution
     if message[MESSAGE_JSON_ORIGIN] == RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash):
         # Log message received by distribution event
         RNS.log(
@@ -710,20 +710,11 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
         # Check if incoming message was a client sent message and does not have a bridge: tag
         if BRIDGE_JSON_BRIDGE not in message.keys():
-            # Set origin and via destination id into message to prevent back propagation loops and necessary
-            # redundant re-distribution of messages
-            message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
-            message[MESSAGE_JSON_VIA] = message[MESSAGE_JSON_ORIGIN]
-            # Log client message event
-            RNS.log(
-                "Message was posted by a client app. Origin and via tags have been set to: " +
-                message[MESSAGE_JSON_ORIGIN]
-            )
+            RNS.log("Message was posted by a client app.")
         else:
             # Log client message event
             RNS.log(
-                "Message was posted by a server bridge with: origin=" + message[MESSAGE_JSON_ORIGIN] +
-                " and via=" + message[MESSAGE_JSON_ORIGIN]
+                "Message originated from nexus bridge '" + message[BRIDGE_JSON_BRIDGE] + "'"
             )
 
         # Store and distribute message as required
@@ -789,6 +780,10 @@ def distribute_message(message):
             actual_time = int(time.time())
             # Check if target has not expired yet
             if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
+                # Check if message has no origin yet (was a new local post)
+                if MESSAGE_JSON_ORIGIN not in message:
+                    # Set Origin to this server
+                    message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
                 # Set new forwarder (VIA) id to message
                 message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
                 # Send message to destination
