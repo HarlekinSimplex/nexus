@@ -52,15 +52,15 @@ DISTRIBUTION_TARGETS = {}
 
 # Bridge links
 # These links are used to propagate messages into other nexus message server networks
-# This can be used to keep announcement traffic within a small bunch of servers als well as to reduce redundant message
+# This can be used to keep announcement traffic within a small bunch of servers als well as to reduce redundant
 # message traffic into the bridged cluster of servers.
 # These links are use as additional distribution targets
 # Links ar specified using an array of json map as startup parameter --bridge
 # BRIDGE_LINKS = [
-#    {'url': 'https://nexus.deltamatrix.org:8241', 'nickname': 'BRIDGE:dev.test01'},
-#    {'url': 'https://nexus.deltamatrix.org:8242', 'nickname': 'BRIDGE:dev.test02'}
+#    {'url': 'https://nexus.deltamatrix.org:8241', 'bridge': 'dev.test01'},
+#    {'url': 'https://nexus.deltamatrix.org:8242', 'bridge': 'dev.test02'}
 # ]
-BRIDGE_LINKS = [{}]
+BRIDGE_TARGETS = [{}]
 
 # Json labels used
 # Message format used with client app
@@ -74,9 +74,10 @@ MESSAGE_JSON_ID = "id"
 # Tags used with normal distribution management
 MESSAGE_JSON_ORIGIN = "origin"
 MESSAGE_JSON_VIA = "via"
+
 # Tags used with bridge distribution management
-MESSAGE_JSON_URL = "url"
-MESSAGE_JSON_NICK = "nickname"
+BRIDGE_JSON_URL = "url"
+BRIDGE_JSON_BRIDGE = "bridge"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # Role Example: {"c": "ClusterName", "g": "GatewayName"}
@@ -143,7 +144,7 @@ def initialize_server(
     global NEXUS_SERVER_LONGPOLL
     global NEXUS_SERVER_TIMEOUT
     global MESSAGE_STORE
-    global BRIDGE_LINKS
+    global BRIDGE_TARGETS
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -182,7 +183,7 @@ def initialize_server(
     # Valid server link urls as used in the client for POST/GET HTTP requests
     if bridge_links is not None:
         # Overwrite default role with specified role
-        BRIDGE_LINKS = json.loads(bridge_links)
+        BRIDGE_TARGETS = json.loads(bridge_links)
 
     # Log actually used parameters
     RNS.log("Server Server v" + __version__ + " configuration:")
@@ -191,7 +192,7 @@ def initialize_server(
     RNS.log("--port=" + str(NEXUS_SERVER_ADDRESS[1]))
     RNS.log("--aspect=" + NEXUS_SERVER_ASPECT)
     RNS.log("--role=" + str(NEXUS_SERVER_ROLE))
-    RNS.log("--bridge=" + str(BRIDGE_LINKS))
+    RNS.log("--bridge=" + str(BRIDGE_TARGETS))
 
     # Load messages from storage
     # Check if storage path is available
@@ -707,30 +708,26 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             "Message received via HTTP POST: " + str(message)
         )
 
-        # Set origin and via destination id into message to prevent back propagation
-        message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
-        message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
-        # Distribute message to all registered nexus server
-        # Logging of this is done by the distribution function
-        # Suppression of back propagation not necessary, since POST creates a new message
-        # that needs to be sent to all active distribution targets
-        distribute_message(message)
-
-        # Append the JSON message map to the message store at last (most recent) position
-        MESSAGE_STORE.append(message)
-        # Check store size if defined limit is reached
-        length = len(MESSAGE_STORE)
-        if length > MESSAGE_BUFFER_SIZE:
-            # If limit is exceeded just drop first (oldest) element of list
-            MESSAGE_STORE.pop(0)
-            # Log Message drop because of buffer overflow
+        # Check if incoming message was a client sent message and does not have a bridge: tag
+        if BRIDGE_JSON_BRIDGE not in message.keys():
+            # Set origin and via destination id into message to prevent back propagation loops and necessary
+            # redundant re-distribution of messages
+            message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
+            message[MESSAGE_JSON_VIA] = message[MESSAGE_JSON_ORIGIN]
+            # Log client message event
             RNS.log(
-                "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
-                " exceeded. Oldest message is dropped now"
+                "Message was posted by a client app. Origin and via tags have been set to: " +
+                message[MESSAGE_JSON_ORIGIN]
+            )
+        else:
+            # Log client message event
+            RNS.log(
+                "Message was posted by a server bridge with: origin=" + message[MESSAGE_JSON_ORIGIN] +
+                " and via=" + message[MESSAGE_JSON_ORIGIN]
             )
 
-        # Save messages to message store
-        save_messages()
+        # Store and distribute message as required
+        process_incoming_message(message)
 
         # Build and return JSON success response
         self._set_headers()
@@ -754,23 +751,15 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # While we iterate through the list all already expired targets are dropped from the list.
 # Same expiration management is done during announcement processing.
 #
-
-
-# url = 'https://nexus.deltamatrix.org:8244'
-# myobj = {'somekey': 'somevalue'}
-# x = requests.post(url, data = myobj)
-# print(x.text)
-# https://nexus.deltamatrix.org:8244
-
 def distribute_message(message):
     # Loop through all registered distribution targets
     # and remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
-    for element in DISTRIBUTION_TARGETS.copy():
+    for target in DISTRIBUTION_TARGETS.copy():
         # Get target identity from target dict
         # and create distribution destination
         remote_server = RNS.Destination(
-            DISTRIBUTION_TARGETS[element][1],
+            DISTRIBUTION_TARGETS[target][1],
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
             APP_NAME,
@@ -795,7 +784,7 @@ def distribute_message(message):
             )
         else:
             # Get time stamp from target dict
-            timestamp = DISTRIBUTION_TARGETS[element][0]
+            timestamp = DISTRIBUTION_TARGETS[target][0]
             # Get actual time from system
             actual_time = int(time.time())
             # Check if target has not expired yet
@@ -806,15 +795,31 @@ def distribute_message(message):
                 RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
                 # Log that we send something to this destination
                 RNS.log(
-                    "Message sent to destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2])
+                    "Message sent to destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[target][2])
                 )
             else:
                 # Log that we removed the destination
                 RNS.log(
-                    "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2]) + " removed"
+                    "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[target][2]) + " removed"
                 )
                 # Remove expired target identity from distribution list
-                DISTRIBUTION_TARGETS.pop(element)
+                DISTRIBUTION_TARGETS.pop(target)
+
+    # Loop through all registered bridge targets
+    # and remove all targets that have not announced them self within given timeout period
+    # If one target is not expired send message to that target
+    for bridge_target in BRIDGE_TARGETS:
+        # Use POST to send message to bridge nexus server link
+        result = requests.post(bridge_target[BRIDGE_JSON_URL], message)
+        # Log that we bridged a message
+        RNS.log("Bridge POST to " + bridge_target[BRIDGE_JSON_URL])
+        RNS.log("Bridge POST result was " + result.text)
+
+# url = 'https://nexus.deltamatrix.org:8244'
+# myobj = {'somekey': 'somevalue'}
+# x = requests.post(url, data = myobj)
+# print(x.text)
+# https://nexus.deltamatrix.org:8244
 
 
 ##########################################################################################
