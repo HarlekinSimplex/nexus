@@ -15,6 +15,7 @@ import requests
 import json
 import pickle
 import time
+import string
 
 import vendor.umsgpack as msgpack
 
@@ -74,6 +75,7 @@ MESSAGE_JSON_ID = "id"
 # Tags used with normal distribution management
 MESSAGE_JSON_ORIGIN = "origin"
 MESSAGE_JSON_VIA = "via"
+MESSAGE_JSON_ORIGIN_LOCAL = "local"
 
 # Tags used with bridge distribution management
 BRIDGE_JSON_URL = "url"
@@ -113,6 +115,13 @@ INITIAL_ANNOUNCEMENT_DELAY = 5
 NEXUS_SERVER_DESTINATION = RNS.Destination
 # The identity use by this server
 NEXUS_SERVER_IDENTITY = RNS.Identity
+
+
+##########################################################################################
+# Helper functions
+#
+def remove_whitespace(in_string: str):
+    return in_string.translate(str.maketrans(dict.fromkeys(string.whitespace)))
 
 
 ##########################################################################################
@@ -710,11 +719,19 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
         # Check if incoming message was a client sent message and does not have a bridge: tag
         if BRIDGE_JSON_BRIDGE not in message.keys():
-            RNS.log("Message was posted by a client app.")
+            # Set origin and via tag to local so that distribution handling does not block initial distribution
+            # Message will appear in the client tag with local instead of this server id
+            message[MESSAGE_JSON_ORIGIN] = MESSAGE_JSON_ORIGIN_LOCAL
+            message[MESSAGE_JSON_VIA] = MESSAGE_JSON_ORIGIN_LOCAL
+            RNS.log("Message was posted by a client app. Origin and Via set to '" + MESSAGE_JSON_ORIGIN_LOCAL + "'")
         else:
             # Log client message event
             RNS.log(
                 "Message originated from nexus bridge '" + message[BRIDGE_JSON_BRIDGE] + "'"
+            )
+            RNS.log(
+                "Message has Origin '" + message[MESSAGE_JSON_ORIGIN] +
+                "' and was received via '" + message[MESSAGE_JSON_VIA] + "'"
             )
 
         # Store and distribute message as required
@@ -778,14 +795,16 @@ def distribute_message(message):
             timestamp = DISTRIBUTION_TARGETS[target][0]
             # Get actual time from system
             actual_time = int(time.time())
+
             # Check if target has not expired yet
             if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
-                # Check if message has no origin yet (was a new local post)
-                if MESSAGE_JSON_ORIGIN not in message:
-                    # Set Origin to this server
+                # Check if message has origin set to local (was a new local post)
+                if message[MESSAGE_JSON_ORIGIN] == MESSAGE_JSON_ORIGIN_LOCAL:
+                    # Set Origin to this server for distribution purpose
                     message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
                 # Set new forwarder (VIA) id to message
                 message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
+
                 # Send message to destination
                 RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
                 # Log that we send something to this destination
@@ -805,16 +824,10 @@ def distribute_message(message):
     # If one target is not expired send message to that target
     for bridge_target in BRIDGE_TARGETS:
         # Use POST to send message to bridge nexus server link
-        result = requests.post(bridge_target[BRIDGE_JSON_URL], message)
+        response = requests.post(bridge_target[BRIDGE_JSON_URL], message)
         # Log that we bridged a message
         RNS.log("Bridge POST to " + bridge_target[BRIDGE_JSON_URL])
-        RNS.log("Bridge POST result was " + result.text)
-
-# url = 'https://nexus.deltamatrix.org:8244'
-# myobj = {'somekey': 'somevalue'}
-# x = requests.post(url, data = myobj)
-# print(x.text)
-# https://nexus.deltamatrix.org:8244
+        RNS.log("Bridge POST response was:'" + remove_whitespace(response.text) + "'")
 
 
 ##########################################################################################
