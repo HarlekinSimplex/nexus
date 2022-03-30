@@ -708,7 +708,13 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Get length of POST message, read those bytes and parse it as JSON string into a message
         # and append that string to the message store
         length = int(self.headers.get('content-length'))
-        message = json.loads(self.rfile.read(length))
+        body = self.rfile.read(length)
+        # Log message received event
+        RNS.log(
+            "HTTP POST Body:" + str(body)
+        )
+        # Parse JSON
+        message = json.loads(body)
 
         # Create a timestamp and add that to the message map
         message[MESSAGE_JSON_ID] = int(time.time() * 100000)
