@@ -11,6 +11,7 @@ import argparse
 import RNS
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from http import HTTPStatus
+import requests
 import json
 import pickle
 import time
@@ -35,36 +36,47 @@ STORAGE_DIR = os.path.expanduser("~") + "/.nexus/storage"
 # Message storage
 STORAGE_FILE = STORAGE_DIR + "/messages.umsgpack"
 
-# This are the data stores used by the server
-# ToDo: Implement data persistence on restart
-#           ORM
-#           Persistence Layer for
-#              SQLLight
-#              PostgresQL
-#
 # Message buffer used for actually server messages
 MESSAGE_STORE = []
 # Number of messages hold (Size of message buffer)
 MESSAGE_BUFFER_SIZE = 20
 
+# Distribution links
 # List of subscribed reticulum identities and their target hashes and public keys to distribute messages to
 # Entries are a lists (int, RNS.Identity ,bytes) containing a time stamp, the announced reticulum identity object and
 # the destination hash.
 # These lists are stored in the map by using the public key of the identity as map key.
 # This key ist used to insert new entries as well as updating already existing entries (time stamp) to prevent
 # subscription timeouts during announce and paket processing.
-SERVER_IDENTITIES = {}
+DISTRIBUTION_TARGETS = {}
+
+# Bridge links
+# These links are used to propagate messages into other nexus message server networks
+# This can be used to keep announcement traffic within a small bunch of servers als well as to reduce redundant message
+# message traffic into the bridged cluster of servers.
+# These links are use as additional distribution targets
+# Links ar specified using an array of json map as startup parameter --bridge
+# BRIDGE_LINKS = [
+#    {'url': 'https://nexus.deltamatrix.org:8241', 'nickname': 'BRIDGE:dev.test01'},
+#    {'url': 'https://nexus.deltamatrix.org:8242', 'nickname': 'BRIDGE:dev.test02'}
+# ]
+BRIDGE_LINKS = [{}]
 
 # Json labels used
 # Message format used with client app
 # Message Examples:
 # {"id": Integer, "time": "String", "msg": "MessageBody"}
 # {'id': 1646174919000. 'time': '2022-03-01 23:48:39', 'msg': 'Test Message #1'}
+# Tags used in messages
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
+# Tags used with normal distribution management
 MESSAGE_JSON_ORIGIN = "origin"
 MESSAGE_JSON_VIA = "via"
+# Tags used with bridge distribution management
+MESSAGE_JSON_URL = "url"
+MESSAGE_JSON_NICK = "nickname"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # Role Example: {"c": "ClusterName", "g": "GatewayName"}
@@ -120,7 +132,8 @@ NEXUS_SERVER_IDENTITY = RNS.Identity
 # python3 nexus_server.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
 #
 def initialize_server(
-        configpath, server_port=None, server_aspect=None, server_role=None, long_poll=None, time_out=None
+        configpath,
+        server_port=None, server_aspect=None, server_role=None, long_poll=None, time_out=None, bridge_links=None
 ):
     global NEXUS_SERVER_ADDRESS
     global NEXUS_SERVER_ASPECT
@@ -130,6 +143,7 @@ def initialize_server(
     global NEXUS_SERVER_LONGPOLL
     global NEXUS_SERVER_TIMEOUT
     global MESSAGE_STORE
+    global BRIDGE_LINKS
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -164,6 +178,12 @@ def initialize_server(
         # Overwrite default long poll default with specified value
         NEXUS_SERVER_LONGPOLL = int(long_poll)
 
+    # Bridge link configuration
+    # Valid server link urls as used in the client for POST/GET HTTP requests
+    if bridge_links is not None:
+        # Overwrite default role with specified role
+        BRIDGE_LINKS = json.loads(bridge_links)
+
     # Log actually used parameters
     RNS.log("Server Server v" + __version__ + " configuration:")
     RNS.log("--timeout=" + str(NEXUS_SERVER_TIMEOUT))
@@ -171,6 +191,7 @@ def initialize_server(
     RNS.log("--port=" + str(NEXUS_SERVER_ADDRESS[1]))
     RNS.log("--aspect=" + NEXUS_SERVER_ASPECT)
     RNS.log("--role=" + str(NEXUS_SERVER_ROLE))
+    RNS.log("--bridge=" + str(BRIDGE_LINKS))
 
     # Load messages from storage
     # Check if storage path is available
@@ -390,7 +411,7 @@ class AnnounceHandler:
     # and cannot use wildcards.
     @staticmethod
     def received_announce(destination_hash, announced_identity, app_data):
-        global SERVER_IDENTITIES
+        global DISTRIBUTION_TARGETS
 
         # Log that we received an announcement matching our aspect filter criteria
         RNS.log(
@@ -429,7 +450,7 @@ class AnnounceHandler:
         if link_flag1 or link_flag2:
 
             # Check if destination is a new destination
-            if not dict_key in SERVER_IDENTITIES.keys():
+            if dict_key not in DISTRIBUTION_TARGETS.keys():
                 # Destination is new
                 # Announce this server once out of sequence to accelerate distribution list build up at that new
                 # server destination subscription list
@@ -446,13 +467,13 @@ class AnnounceHandler:
                     " will be updated"
                 )
             # Register o9r update destination as valid distribution target
-            SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
+            DISTRIBUTION_TARGETS[dict_key] = (dict_time, announced_identity, destination_hash)
 
             # Log list of severs with seconds it was last heard
-            for element in SERVER_IDENTITIES.copy():
+            for element in DISTRIBUTION_TARGETS.copy():
                 # Get timestamp and destination hash from dict
-                timestamp = SERVER_IDENTITIES[element][0]
-                destination = RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+                timestamp = DISTRIBUTION_TARGETS[element][0]
+                destination = RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2])
                 # Calculate seconds since last announce
                 last_heard = int(time.time()) - timestamp
 
@@ -461,10 +482,10 @@ class AnnounceHandler:
                 if last_heard >= NEXUS_SERVER_TIMEOUT:
                     # Log that we removed the destination
                     RNS.log(
-                        "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
+                        "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2]) + " removed"
                     )
                     # Actually remove destination from dict
-                    SERVER_IDENTITIES.pop(element)
+                    DISTRIBUTION_TARGETS.pop(element)
 
                 # If actual is still valid log it
                 RNS.log(
@@ -498,7 +519,14 @@ def packet_callback(data, _packet):
     RNS.log(
         "Message received via nexus multicast: " + str(message)
     )
+    # Processing received  message
+    process_incoming_message(message)
 
+
+# Process incoming message
+# This function is called by the reticulum paket handler (message was received as reticulum message) and by the POST
+# request handler in case it was received from a client or bridge Post
+def process_incoming_message(message):
     # Back propagation to origin suppression
     # If incoming message originated from this server suppress distributing it again
     if message[MESSAGE_JSON_ORIGIN] == RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash):
@@ -726,15 +754,23 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # While we iterate through the list all already expired targets are dropped from the list.
 # Same expiration management is done during announcement processing.
 #
+
+
+# url = 'https://nexus.deltamatrix.org:8244'
+# myobj = {'somekey': 'somevalue'}
+# x = requests.post(url, data = myobj)
+# print(x.text)
+# https://nexus.deltamatrix.org:8244
+
 def distribute_message(message):
     # Loop through all registered distribution targets
     # and remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
-    for element in SERVER_IDENTITIES.copy():
+    for element in DISTRIBUTION_TARGETS.copy():
         # Get target identity from target dict
         # and create distribution destination
         remote_server = RNS.Destination(
-            SERVER_IDENTITIES[element][1],
+            DISTRIBUTION_TARGETS[element][1],
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
             APP_NAME,
@@ -759,7 +795,7 @@ def distribute_message(message):
             )
         else:
             # Get time stamp from target dict
-            timestamp = SERVER_IDENTITIES[element][0]
+            timestamp = DISTRIBUTION_TARGETS[element][0]
             # Get actual time from system
             actual_time = int(time.time())
             # Check if target has not expired yet
@@ -770,15 +806,15 @@ def distribute_message(message):
                 RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
                 # Log that we send something to this destination
                 RNS.log(
-                    "Message sent to destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+                    "Message sent to destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2])
                 )
             else:
                 # Log that we removed the destination
                 RNS.log(
-                    "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
+                    "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2]) + " removed"
                 )
                 # Remove expired target identity from distribution list
-                SERVER_IDENTITIES.pop(element)
+                DISTRIBUTION_TARGETS.pop(element)
 
 
 ##########################################################################################
@@ -867,6 +903,14 @@ if __name__ == "__main__":
             type=str
         )
 
+        parser.add_argument(
+            "--bridge",
+            action="store",
+            default=None,
+            help="list of maps containing bridge link connection data",
+            type=str
+        )
+
         # Parse passed commandline arguments as specified above
         params = parser.parse_args()
 
@@ -902,8 +946,13 @@ if __name__ == "__main__":
         else:
             timeout_para = None
 
+        if params.bridge:
+            bridge_para = params.bridge
+        else:
+            bridge_para = None
+
         # Call server initialization and startup reticulum and HTTP listeners
-        initialize_server(config_para, port_para, aspect_para, role_para, longpoll_para, timeout_para)
+        initialize_server(config_para, port_para, aspect_para, role_para, longpoll_para, timeout_para, bridge_para)
 
     # Handle keyboard interrupt aka ctrl-C to exit server
     except KeyboardInterrupt:
