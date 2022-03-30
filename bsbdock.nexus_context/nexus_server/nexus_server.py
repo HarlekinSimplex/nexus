@@ -716,8 +716,6 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Parse JSON
         message = json.loads(body)
 
-        # Create a timestamp and add that to the message map
-        message[MESSAGE_JSON_ID] = int(time.time() * 100000)
         # Log message received event
         RNS.log(
             "Message received via HTTP POST: " + str(message)
@@ -725,6 +723,10 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
         # Check if incoming message was a client sent message and does not have a bridge: tag
         if BRIDGE_JSON_BRIDGE not in message.keys():
+            # Check if message has already an id and create one of not
+            if MESSAGE_JSON_ID not in message:
+                # Create a timestamp and add that to the message map
+                message[MESSAGE_JSON_ID] = int(time.time() * 100000)
             # Set origin and via tag to local so that distribution handling does not block initial distribution
             # Message will appear in the client tag with local instead of this server id
             message[MESSAGE_JSON_ORIGIN] = MESSAGE_JSON_ORIGIN_LOCAL
