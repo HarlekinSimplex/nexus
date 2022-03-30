@@ -79,7 +79,7 @@ MESSAGE_JSON_ORIGIN_LOCAL = "local"
 
 # Tags used with bridge distribution management
 BRIDGE_JSON_URL = "url"
-BRIDGE_JSON_BRIDGE = "bridge"
+BRIDGE_JSON_PATH = "path"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # Role Example: {"c": "ClusterName", "g": "GatewayName"}
@@ -546,7 +546,7 @@ def process_incoming_message(message):
         )
         exit()
     # Back propagation to forwarder suppression
-    # If incoming message originated from this server suppress distributing it again
+    # If incoming message was forwarded by his server suppress distribution
     if message[MESSAGE_JSON_VIA] == RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash):
         # Log message received by distribution event
         RNS.log(
@@ -570,12 +570,10 @@ def process_incoming_message(message):
         )
         # Append the JSON message map to the message store at last position
         MESSAGE_STORE.append(message)
-        # Save messages to message store
-        save_messages()
         # Distribute message to all registered nexus servers
         distribute_message(message)
     else:
-        # At least one message is already there and need to be checked for insertion and distribution
+        # At least one message is already there and need to be checked for insertion
         # loop through all messages and check if we have to store and distribute it
         for i in range(0, message_store_size):
             # Check if we already have that message at the actual buffer position
@@ -586,7 +584,7 @@ def process_incoming_message(message):
                     RNS.log(
                         "Message storing and distribution not necessary because message is already in the buffer"
                     )
-                    break
+                    exit()
                 # Message has same time stamp but differs
                 else:
                     # Log message insertion with same timestamp
@@ -595,8 +593,6 @@ def process_incoming_message(message):
                     )
                     # Insert it at the actual position
                     MESSAGE_STORE.insert(i, message)
-                    # Save messages to message store
-                    save_messages()
                     # Distribute message to all registered nexus servers
                     distribute_message(message)
                     break
@@ -610,8 +606,6 @@ def process_incoming_message(message):
                 )
                 # Insert it at the actual position
                 MESSAGE_STORE.insert(i, message)
-                # Save messages to message store
-                save_messages()
                 # Distribute message to all registered nexus servers
                 distribute_message(message)
                 break
@@ -627,8 +621,6 @@ def process_incoming_message(message):
                 )
                 # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
-                # Save messages to message store
-                save_messages()
                 # Distribute message to all registered nexus servers
                 distribute_message(message)
                 break
@@ -644,8 +636,9 @@ def process_incoming_message(message):
         )
         # If limit is exceeded just drop first (oldest) element of list
         MESSAGE_STORE.pop(0)
-        # Save messages to message store
-        save_messages()
+
+    # Save changes to message store
+    save_messages()
 
     # clean up
     sys.stdout.flush()
@@ -710,9 +703,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         length = int(self.headers.get('content-length'))
         body = self.rfile.read(length)
         # Log message received event
-        RNS.log(
-            "HTTP POST Body:" + str(body)
-        )
+        # RNS.log("HTTP POST Body:" + str(body))
         # Parse JSON
         message = json.loads(body)
 
@@ -722,7 +713,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         )
 
         # Check if incoming message was a client sent message and does not have a bridge: tag
-        if BRIDGE_JSON_BRIDGE not in message.keys():
+        if BRIDGE_JSON_PATH not in message.keys():
             # Check if message has already an id and create one of not
             if MESSAGE_JSON_ID not in message:
                 # Create a timestamp and add that to the message map
@@ -735,7 +726,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         else:
             # Log client message event
             RNS.log(
-                "Message originated from nexus bridge '" + message[BRIDGE_JSON_BRIDGE] + "'"
+                "Message originated from nexus bridge '" + message[BRIDGE_JSON_PATH] + "'"
             )
             RNS.log(
                 "Message has Origin '" + message[MESSAGE_JSON_ORIGIN] +
@@ -831,6 +822,14 @@ def distribute_message(message):
     # and remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
     for bridge_target in BRIDGE_TARGETS:
+        # Add server cluster to message path tag (mark it as a bridged message)
+        if BRIDGE_JSON_PATH not in message:
+            # Set actual cluster as bridge path root
+            message[BRIDGE_JSON_PATH] = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+        else:
+            # Add actual cluster to bridge path
+            message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+
         # Use POST to send message to bridge nexus server link
         response = requests.post(bridge_target[BRIDGE_JSON_URL], json=message)
         # Log that we bridged a message
