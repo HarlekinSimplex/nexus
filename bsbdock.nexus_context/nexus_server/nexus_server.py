@@ -632,7 +632,7 @@ def packet_callback(data, _packet):
 
     # Log message received by distribution event
     RNS.log(
-        "Message received rns packet send: " + str(message)
+        "Message received via RNS packet: " + str(message)
     )
 
     # Process, store and distribute message as required
