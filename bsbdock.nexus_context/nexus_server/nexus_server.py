@@ -720,13 +720,13 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         else:
             # Log client message event
             RNS.log(
-                "Message was bridged by a nexus server with path ::" + message[BRIDGE_JSON_PATH]
+                "Message was bridged by a nexus server with path <" + message[BRIDGE_JSON_PATH] + ">"
             )
 
         # Log origin and via
         RNS.log(
-            "Message has Origin '" + message[MESSAGE_JSON_ORIGIN] +
-            "' and was received via '" + message[MESSAGE_JSON_VIA] + "'"
+            "Message has Origin " + message[MESSAGE_JSON_ORIGIN] +
+            "' and was received via " + message[MESSAGE_JSON_VIA]
         )
 
         # Build and return JSON success response
