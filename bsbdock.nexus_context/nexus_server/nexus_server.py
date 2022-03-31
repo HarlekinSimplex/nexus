@@ -834,8 +834,7 @@ def distribute_message(message):
         response = requests.post(
             bridge_target[BRIDGE_JSON_URL],
             json=message,
-            headers={'Content-type': 'application/json'},
-            timeout=0.001
+            headers={'Content-type': 'application/json'}
         )
         # Log that we bridged a message
         RNS.log("Bridge POST to " + bridge_target[BRIDGE_JSON_URL])
