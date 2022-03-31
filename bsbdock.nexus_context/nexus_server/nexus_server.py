@@ -321,7 +321,7 @@ def initialize_server(
             remote_buffer = json.loads(response.content)
             # Log GET result
             RNS.log(
-                "GET request was successful. " + str(len(remote_buffer)) + " Messages received"
+                "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
             )
             # Digest received messages
             digest_messages(remote_buffer, bridge_target[MERGE_JSON_TAG])
@@ -333,7 +333,7 @@ def initialize_server(
 
     # Log start of message distribution after digesting bridge link buffers
     RNS.log(
-        "Initial synchronization - Distribute messages marked as new"
+        "Initial synchronization - Distribute messages marked as selected for distribution"
     )
     # Distribute all messages marked with merge tag
     # Loop through massage buffer and distribute all messages that have been tagged
@@ -601,7 +601,7 @@ class AnnounceHandler:
 
                 # If actual is still valid log it
                 RNS.log(
-                    "Registered Server " + destination + " last heard " + str(last_heard) + "sec ago."
+                    "Registered Server " + destination + " last heard " + str(last_heard) + "sec ago"
                 )
         else:
             # Announce should be ignored since it belongs to a different cluster, and we are not eligible to
@@ -633,7 +633,7 @@ def packet_callback(data, _packet):
 
     # Log message received by distribution event
     RNS.log(
-        "Message received via nexus multicast: " + str(message)
+        "Message received rns packet send: " + str(message)
     )
 
     # Process, store and distribute message as required
@@ -836,7 +836,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
         # Do some logging of the outcome of the POST processing so far
         if BRIDGE_JSON_PATH not in message.keys():
-            RNS.log("Message was posted by a client app (New Message).")
+            RNS.log("Message was posted by a client app (New Message)")
         else:
             # Log client message event
             RNS.log(
@@ -884,6 +884,51 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # Additionally, the message is bridged to all registered bridge targets.
 #
 def distribute_message(message):
+    # Process bridge targets
+
+    # Loop through all registered bridge targets
+    # and remove all targets that have not announced them self within given timeout period
+    # If one target is not expired send message to that target
+    for bridge_target in BRIDGE_TARGETS:
+        # Check if actual message was pulled from that target
+        # If so suppress distribution to that target
+        if MERGE_JSON_TAG in message.keys():
+            if message[MERGE_JSON_TAG] == bridge_target[MERGE_JSON_TAG]:
+                # Log message received by distribution event
+                RNS.log(
+                    "Distribution to " + message[MERGE_JSON_TAG] +
+                    " was suppressed because message originated from that server"
+                )
+                # Continue with next bridge target
+                continue
+
+        # Remove merge tag from message
+        # It should not be sent out
+        message.pop(MERGE_JSON_TAG)
+
+        # Add server cluster to message path tag (mark it as a bridged message)
+        if BRIDGE_JSON_PATH not in message.keys():
+            # Set actual cluster as bridge path root
+            message[BRIDGE_JSON_PATH] = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+        else:
+            # Add actual cluster to bridge path
+            message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+
+        # Use POST to send message to bridge nexus server link
+        response = requests.post(
+            url=bridge_target[BRIDGE_JSON_URL],
+            json=message,
+            headers={'Content-type': 'application/json'}
+        )
+        # Check if request was successful
+        if response.ok:
+            # Log that we bridged a message
+            RNS.log("POST request to URL:" + bridge_target[BRIDGE_JSON_URL]) + " completed successfully"
+        else:
+            # Log POST failure
+            RNS.log("POST request to URL:" + bridge_target[BRIDGE_JSON_URL]) + " failed with reason:" + response.reason
+
+
     # Process distribution targets
 
     # Loop through all registered distribution targets
@@ -908,6 +953,8 @@ def distribute_message(message):
                 "Distribution to " + RNS.prettyhexrep(remote_server.hash) +
                 " was suppressed because message originated from that server"
             )
+            # Continue with next distribution target
+            continue
         # Back propagation to forwarder suppression
         # If forwarder of message to distribute equals target suppress distributing it
         elif message[MESSAGE_JSON_VIA] == RNS.prettyhexrep(remote_server.hash):
@@ -916,6 +963,8 @@ def distribute_message(message):
                 "Distribution to " + RNS.prettyhexrep(remote_server.hash) +
                 " was suppressed because message was forwarded from that server"
             )
+            # Continue with next distribution target
+            continue
         else:
             # Set new forwarder (VIA) id to message
             # Overwrite previous forwarder id
@@ -941,50 +990,6 @@ def distribute_message(message):
                 )
                 # Remove expired target identity from distribution list
                 DISTRIBUTION_TARGETS.pop(target)
-
-    # Process bridge targets
-
-    # Loop through all registered bridge targets
-    # and remove all targets that have not announced them self within given timeout period
-    # If one target is not expired send message to that target
-    for bridge_target in BRIDGE_TARGETS:
-        # Check if actual message was pulled from that target
-        # If so suppress distribution to that target
-        if MERGE_JSON_TAG in message.keys():
-            if message[MERGE_JSON_TAG] == bridge_target[MERGE_JSON_TAG]:
-                # Log message received by distribution event
-                RNS.log(
-                    "Distribution to " + message[MERGE_JSON_TAG] +
-                    " was suppressed because message originated from that server"
-                )
-                # Continue with next bridge target
-                continue
-
-        # Remove merge tag from message
-        # It should not be sent out
-        message.pop(MERGE_JSON_TAG)
-
-        # Add server cluster to message path tag (mark it as a bridged message)
-        if BRIDGE_JSON_PATH not in message:
-            # Set actual cluster as bridge path root
-            message[BRIDGE_JSON_PATH] = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-        else:
-            # Add actual cluster to bridge path
-            message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-
-        # Use POST to send message to bridge nexus server link
-        response = requests.post(
-            url=bridge_target[BRIDGE_JSON_URL],
-            json=message,
-            headers={'Content-type': 'application/json'}
-        )
-        # Check if request was successful
-        if response.ok:
-            # Log that we bridged a message
-            RNS.log("POST request to URL:" + bridge_target[BRIDGE_JSON_URL]) + " completed successfully. "
-        else:
-            # Log POST failure
-            RNS.log("POST request to URL:" + bridge_target[BRIDGE_JSON_URL]) + " failed with reason:" + response.reason
 
 
 ##########################################################################################
