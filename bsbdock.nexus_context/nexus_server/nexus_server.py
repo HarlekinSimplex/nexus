@@ -541,7 +541,6 @@ def packet_callback(data, _packet):
 # Its Job is to check if we need to add/insert the message in the message buffer or should it be ignored
 # After this it is forwarded to distribution
 def process_incoming_message(message):
-
     # If message is more recent than the oldest message in the buffer
     # and has not arrived earlier then add/insert message at the correct position and
     # Get actual timestamp from message
@@ -757,7 +756,6 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # Additionally, the message is bridged to all registered bridge targets.
 #
 def distribute_message(message):
-
     # Process distribution targets
 
     # Loop through all registered distribution targets
@@ -839,7 +837,6 @@ def distribute_message(message):
         # Log that we bridged a message
         RNS.log("Bridge POST to " + bridge_target[BRIDGE_JSON_URL])
         RNS.log("Bridge POST response was:'" + remove_whitespace(response.text) + "'")
-
 
 
 ##########################################################################################
