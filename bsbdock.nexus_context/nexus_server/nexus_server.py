@@ -831,10 +831,16 @@ def distribute_message(message):
             message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
 
         # Use POST to send message to bridge nexus server link
-        response = requests.post(bridge_target[BRIDGE_JSON_URL], json=message)
+        response = requests.post(
+            bridge_target[BRIDGE_JSON_URL],
+            json=message,
+            headers={'Content-type': 'application/json'},
+            timeout=0.001
+        )
         # Log that we bridged a message
         RNS.log("Bridge POST to " + bridge_target[BRIDGE_JSON_URL])
         RNS.log("Bridge POST response was:'" + remove_whitespace(response.text) + "'")
+
 
 
 ##########################################################################################
