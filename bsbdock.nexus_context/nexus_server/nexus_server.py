@@ -279,6 +279,9 @@ def initialize_server(
     # Termination by ctrl-c or like process termination
     launch_http_server()
 
+    # Flush pending log
+    sys.stdout.flush()
+
 
 ##########################################################################################
 # Announce the server to the reticulum network
@@ -508,6 +511,9 @@ class AnnounceHandler:
                 "Announced nexus target was ignored"
             )
 
+    # Flush pending log
+    sys.stdout.flush()
+
 
 ##########################################################################################
 # Reticulum callback to handle incoming data packets
@@ -519,6 +525,7 @@ class AnnounceHandler:
 #           Remove message
 #           Get messages (since)
 #           Get last messages (number of messages)
+# The received message is processed and the forwarded to distribution
 #
 def packet_callback(data, _packet):
     # Reconstruct original python object
@@ -529,12 +536,15 @@ def packet_callback(data, _packet):
     RNS.log(
         "Message received via nexus multicast: " + str(message)
     )
-    # Processing received  message
+
+    # Process and store message as required
     process_incoming_message(message)
+
+    # Distribute message to all registered or bridged nexus servers
+    distribute_message(message)
 
     # Flush pending log
     sys.stdout.flush()
-    return
 
 
 ##########################################################################################
@@ -543,7 +553,6 @@ def packet_callback(data, _packet):
 # This function is called by the reticulum paket handler (message was received as reticulum message) and by the POST
 # request handler in case it was received from a client or bridge POST request
 # Its Job is to check if we need to add/insert the message in the message buffer or should it be ignored
-# After this it is forwarded to distribution
 def process_incoming_message(message):
     # If message is more recent than the oldest message in the buffer
     # and has not arrived earlier than add/insert message at the correct position and
@@ -627,16 +636,6 @@ def process_incoming_message(message):
         # If limit is exceeded just drop first (oldest) element of list
         MESSAGE_STORE.pop(0)
 
-    # Save changes to message store
-    save_messages()
-
-    # Distribute message to all registered nexus servers
-    distribute_message(message)
-
-    # Flush pending log
-    sys.stdout.flush()
-    return
-
 
 ##########################################################################################
 # HTTP request handler class to process received HTTP POST/GET app client requests
@@ -664,7 +663,6 @@ def process_incoming_message(message):
 # ]
 #
 class ServerRequestHandler(BaseHTTPRequestHandler):
-
     # Borrowing from https://gist.github.com/nitaku/10d0662536f37a087e1b
     # Set headers of actual request
     def _set_headers(self):
@@ -743,8 +741,11 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         self._set_headers()
         self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
 
-        # Store and distribute message as required
+        # Process and store message as required
         process_incoming_message(message)
+
+        # Distribute message to all registered or bridged nexus servers
+        distribute_message(message)
 
         # Flush pending log
         sys.stdout.flush()
@@ -852,10 +853,6 @@ def distribute_message(message):
         RNS.log("Bridge POST to " + bridge_target[BRIDGE_JSON_URL])
         RNS.log("Bridge POST response was:'" + remove_whitespace(response.text) + "'")
 
-    # Flush pending log
-    sys.stdout.flush()
-    return
-
 
 ##########################################################################################
 # Save messages to storage file
@@ -874,10 +871,6 @@ def save_messages():
         RNS.log("Could not save message to storage file: " + STORAGE_FILE)
         RNS.log("The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
 
-    # Flush pending log
-    sys.stdout.flush()
-    return
-
 
 #######################################################
 # Program Startup
@@ -890,7 +883,7 @@ def signal_handler(_signal, _frame):
 
     # Flush pending log
     sys.stdout.flush()
-
+    # Exit
     sys.exit(0)
 
 
