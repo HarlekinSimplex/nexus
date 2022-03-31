@@ -27,7 +27,7 @@ RUN apt -y install python3-pip
 # Install Reticulum stack and NomadNet messenger application
 RUN pip3 install rns lxmf nomadnet rnodeconf
 
-# Install additional pathon packages
+# Install additional python packages
 RUN pip3 install requests
 
 # Install personal helper tools
