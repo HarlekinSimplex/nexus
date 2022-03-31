@@ -11,9 +11,11 @@ import argparse
 import RNS
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from http import HTTPStatus
+import requests
 import json
 import pickle
 import time
+import string
 
 import vendor.umsgpack as msgpack
 
@@ -22,9 +24,9 @@ import vendor.umsgpack as msgpack
 #
 
 # Server Version
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 
-version = (1, 2, 1)
+version = (1, 3, 0)
 "Module version tuple"
 
 # Trigger some Debug only related log entries
@@ -35,36 +37,49 @@ STORAGE_DIR = os.path.expanduser("~") + "/.nexus/storage"
 # Message storage
 STORAGE_FILE = STORAGE_DIR + "/messages.umsgpack"
 
-# This are the data stores used by the server
-# ToDo: Implement data persistence on restart
-#           ORM
-#           Persistence Layer for
-#              SQLLight
-#              PostgresQL
-#
 # Message buffer used for actually server messages
 MESSAGE_STORE = []
 # Number of messages hold (Size of message buffer)
 MESSAGE_BUFFER_SIZE = 20
 
+# Distribution links
 # List of subscribed reticulum identities and their target hashes and public keys to distribute messages to
 # Entries are a lists (int, RNS.Identity ,bytes) containing a time stamp, the announced reticulum identity object and
 # the destination hash.
 # These lists are stored in the map by using the public key of the identity as map key.
 # This key ist used to insert new entries as well as updating already existing entries (time stamp) to prevent
 # subscription timeouts during announce and paket processing.
-SERVER_IDENTITIES = {}
+DISTRIBUTION_TARGETS = {}
+
+# Bridge links
+# These links are used to propagate messages into other nexus message server networks
+# This can be used to keep announcement traffic within a small bunch of servers als well as to reduce redundant
+# message traffic into the bridged cluster of servers.
+# These links are use as additional distribution targets
+# Links ar specified using an array of json map as startup parameter --bridge
+# BRIDGE_LINKS = [
+#    {'url': 'https://nexus.deltamatrix.org:8241', 'bridge': 'dev.test01'},
+#    {'url': 'https://nexus.deltamatrix.org:8242', 'bridge': 'dev.test02'}
+# ]
+BRIDGE_TARGETS = []
 
 # Json labels used
 # Message format used with client app
 # Message Examples:
 # {"id": Integer, "time": "String", "msg": "MessageBody"}
 # {'id': 1646174919000. 'time': '2022-03-01 23:48:39', 'msg': 'Test Message #1'}
+# Tags used in messages
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
+# Tags used with normal distribution management
 MESSAGE_JSON_ORIGIN = "origin"
 MESSAGE_JSON_VIA = "via"
+MESSAGE_JSON_ORIGIN_LOCAL = "local"
+
+# Tags used with bridge distribution management
+BRIDGE_JSON_URL = "url"
+BRIDGE_JSON_PATH = "path"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # Role Example: {"c": "ClusterName", "g": "GatewayName"}
@@ -103,6 +118,13 @@ NEXUS_SERVER_IDENTITY = RNS.Identity
 
 
 ##########################################################################################
+# Helper functions
+#
+def remove_whitespace(in_string: str):
+    return in_string.translate(str.maketrans(dict.fromkeys(string.whitespace)))
+
+
+##########################################################################################
 # Initialize Nexus Server
 # Parameters:
 #   configpath<str>:        Alternate config path to be used for initialization of reticulum
@@ -120,7 +142,8 @@ NEXUS_SERVER_IDENTITY = RNS.Identity
 # python3 nexus_server.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
 #
 def initialize_server(
-        configpath, server_port=None, server_aspect=None, server_role=None, long_poll=None, time_out=None
+        configpath,
+        server_port=None, server_aspect=None, server_role=None, long_poll=None, time_out=None, bridge_links=None
 ):
     global NEXUS_SERVER_ADDRESS
     global NEXUS_SERVER_ASPECT
@@ -130,6 +153,7 @@ def initialize_server(
     global NEXUS_SERVER_LONGPOLL
     global NEXUS_SERVER_TIMEOUT
     global MESSAGE_STORE
+    global BRIDGE_TARGETS
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -164,6 +188,12 @@ def initialize_server(
         # Overwrite default long poll default with specified value
         NEXUS_SERVER_LONGPOLL = int(long_poll)
 
+    # Bridge link configuration
+    # Valid server link urls as used in the client for POST/GET HTTP requests
+    if bridge_links is not None:
+        # Overwrite default role with specified role
+        BRIDGE_TARGETS = json.loads(bridge_links)
+
     # Log actually used parameters
     RNS.log("Server Server v" + __version__ + " configuration:")
     RNS.log("--timeout=" + str(NEXUS_SERVER_TIMEOUT))
@@ -171,6 +201,7 @@ def initialize_server(
     RNS.log("--port=" + str(NEXUS_SERVER_ADDRESS[1]))
     RNS.log("--aspect=" + NEXUS_SERVER_ASPECT)
     RNS.log("--role=" + str(NEXUS_SERVER_ROLE))
+    RNS.log("--bridge=" + str(BRIDGE_TARGETS))
 
     # Load messages from storage
     # Check if storage path is available
@@ -390,7 +421,7 @@ class AnnounceHandler:
     # and cannot use wildcards.
     @staticmethod
     def received_announce(destination_hash, announced_identity, app_data):
-        global SERVER_IDENTITIES
+        global DISTRIBUTION_TARGETS
 
         # Log that we received an announcement matching our aspect filter criteria
         RNS.log(
@@ -429,7 +460,7 @@ class AnnounceHandler:
         if link_flag1 or link_flag2:
 
             # Check if destination is a new destination
-            if not dict_key in SERVER_IDENTITIES.keys():
+            if dict_key not in DISTRIBUTION_TARGETS.keys():
                 # Destination is new
                 # Announce this server once out of sequence to accelerate distribution list build up at that new
                 # server destination subscription list
@@ -446,13 +477,13 @@ class AnnounceHandler:
                     " will be updated"
                 )
             # Register o9r update destination as valid distribution target
-            SERVER_IDENTITIES[dict_key] = (dict_time, announced_identity, destination_hash)
+            DISTRIBUTION_TARGETS[dict_key] = (dict_time, announced_identity, destination_hash)
 
             # Log list of severs with seconds it was last heard
-            for element in SERVER_IDENTITIES.copy():
+            for element in DISTRIBUTION_TARGETS.copy():
                 # Get timestamp and destination hash from dict
-                timestamp = SERVER_IDENTITIES[element][0]
-                destination = RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+                timestamp = DISTRIBUTION_TARGETS[element][0]
+                destination = RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2])
                 # Calculate seconds since last announce
                 last_heard = int(time.time()) - timestamp
 
@@ -461,10 +492,10 @@ class AnnounceHandler:
                 if last_heard >= NEXUS_SERVER_TIMEOUT:
                     # Log that we removed the destination
                     RNS.log(
-                        "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
+                        "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2]) + " removed"
                     )
                     # Actually remove destination from dict
-                    SERVER_IDENTITIES.pop(element)
+                    DISTRIBUTION_TARGETS.pop(element)
 
                 # If actual is still valid log it
                 RNS.log(
@@ -498,28 +529,20 @@ def packet_callback(data, _packet):
     RNS.log(
         "Message received via nexus multicast: " + str(message)
     )
+    # Processing received  message
+    process_incoming_message(message)
 
-    # Back propagation to origin suppression
-    # If incoming message originated from this server suppress distributing it again
-    if message[MESSAGE_JSON_ORIGIN] == RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash):
-        # Log message received by distribution event
-        RNS.log(
-            "Message distribution is suppressed because origin was this server."
-        )
-        exit()
-    # Back propagation to forwarder suppression
-    # If incoming message originated from this server suppress distributing it again
-    if message[MESSAGE_JSON_VIA] == RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash):
-        # Log message received by distribution event
-        RNS.log(
-            "Message distribution is suppressed because we received it from this server."
-        )
-        exit()
 
+##########################################################################################
+# Process incoming message
+#
+# This function is called by the reticulum paket handler (message was received as reticulum message) and by the POST
+# request handler in case it was received from a client or bridge POST request
+# Its Job is to check if we need to add/insert the message in the message buffer or should it be ignored
+# After this it is forwarded to distribution
+def process_incoming_message(message):
     # If message is more recent than the oldest message in the buffer
-    # and has not arrived earlier than add/insert message at the correct position and
-    # distribute the message to all registered servers
-
+    # and has not arrived earlier then add/insert message at the correct position and
     # Get actual timestamp from message
     message_id = message[MESSAGE_JSON_ID]
     # Get actual number of messages in the buffer
@@ -532,12 +555,8 @@ def packet_callback(data, _packet):
         )
         # Append the JSON message map to the message store at last position
         MESSAGE_STORE.append(message)
-        # Save messages to message store
-        save_messages()
-        # Distribute message to all registered nexus servers
-        distribute_message(message)
     else:
-        # At least one message is already there and need to be checked for insertion and distribution
+        # At least one message is already there and need to be checked for insertion
         # loop through all messages and check if we have to store and distribute it
         for i in range(0, message_store_size):
             # Check if we already have that message at the actual buffer position
@@ -548,7 +567,8 @@ def packet_callback(data, _packet):
                     RNS.log(
                         "Message storing and distribution not necessary because message is already in the buffer"
                     )
-                    break
+                    # Since we consider a message at the buffer has been distributed already we can exit this function
+                    return
                 # Message has same time stamp but differs
                 else:
                     # Log message insertion with same timestamp
@@ -557,10 +577,8 @@ def packet_callback(data, _packet):
                     )
                     # Insert it at the actual position
                     MESSAGE_STORE.insert(i, message)
-                    # Save messages to message store
-                    save_messages()
-                    # Distribute message to all registered nexus servers
-                    distribute_message(message)
+                    # Message processing completed
+                    # Exit loop
                     break
             # Timestamps to not mach
             # lets check if it is to be inserted here
@@ -572,10 +590,8 @@ def packet_callback(data, _packet):
                 )
                 # Insert it at the actual position
                 MESSAGE_STORE.insert(i, message)
-                # Save messages to message store
-                save_messages()
-                # Distribute message to all registered nexus servers
-                distribute_message(message)
+                # Message processing completed
+                # Exit loop
                 break
             # Continue until we find the place to insert it, or
             # we have checked the latest entry in the buffer (i=size-1)
@@ -589,14 +605,12 @@ def packet_callback(data, _packet):
                 )
                 # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
-                # Save messages to message store
-                save_messages()
-                # Distribute message to all registered nexus servers
-                distribute_message(message)
+                # Message processing completed
+                # Exit loop
                 break
 
-    # No we are done with adding and distributing
-    # Lets check store size if defined limit is reached now
+    # No we are done with adding/inserting
+    # Lets check buffer size if defined limit is exceeded now
     length = len(MESSAGE_STORE)
     if length > MESSAGE_BUFFER_SIZE:
         # Log message pop
@@ -606,11 +620,12 @@ def packet_callback(data, _packet):
         )
         # If limit is exceeded just drop first (oldest) element of list
         MESSAGE_STORE.pop(0)
-        # Save messages to message store
-        save_messages()
 
-    # clean up
-    sys.stdout.flush()
+    # Save changes to message store
+    save_messages()
+
+    # Distribute message to all registered nexus servers
+    distribute_message(message)
 
 
 ##########################################################################################
@@ -670,43 +685,56 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Get length of POST message, read those bytes and parse it as JSON string into a message
         # and append that string to the message store
         length = int(self.headers.get('content-length'))
-        message = json.loads(self.rfile.read(length))
+        body = self.rfile.read(length)
+        # Log message received event
+        # RNS.log("HTTP POST Body:" + str(body))
+        # Parse JSON
+        message = json.loads(body)
 
-        # Create a timestamp and add that to the message map
-        message[MESSAGE_JSON_ID] = int(time.time() * 100000)
         # Log message received event
         RNS.log(
             "Message received via HTTP POST: " + str(message)
         )
 
-        # Set origin and via destination id into message to prevent back propagation
-        message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
-        message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
-        # Distribute message to all registered nexus server
-        # Logging of this is done by the distribution function
-        # Suppression of back propagation not necessary, since POST creates a new message
-        # that needs to be sent to all active distribution targets
-        distribute_message(message)
+        # Check if incoming message was a client sent message and does not have a path tag
+        # Bridged messages have a path tag set
 
-        # Append the JSON message map to the message store at last (most recent) position
-        MESSAGE_STORE.append(message)
-        # Check store size if defined limit is reached
-        length = len(MESSAGE_STORE)
-        if length > MESSAGE_BUFFER_SIZE:
-            # If limit is exceeded just drop first (oldest) element of list
-            MESSAGE_STORE.pop(0)
-            # Log Message drop because of buffer overflow
+        # If message has no 'origin' set use this server as origin
+        if MESSAGE_JSON_ORIGIN not in message.keys():
+            # Set Origin to this server
+            message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
+
+        # If message has no 'via' set use this server as via
+        if MESSAGE_JSON_VIA not in message.keys():
+            # Set Via to this server
+            message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
+
+        # If message has no ID yet create one
+        if MESSAGE_JSON_ID not in message.keys():
+            # Create a timestamp and add that as ID to the message map
+            message[MESSAGE_JSON_ID] = int(time.time() * 100000)
+
+        # Do some logging of the outcome of the POST processing so far
+        if BRIDGE_JSON_PATH not in message.keys():
+            RNS.log("Message was posted by a client app (New Message).")
+        else:
+            # Log client message event
             RNS.log(
-                "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
-                " exceeded. Oldest message is dropped now"
+                "Message was bridged by a nexus server with path <" + message[BRIDGE_JSON_PATH] + ">"
             )
 
-        # Save messages to message store
-        save_messages()
+        # Log origin and via
+        RNS.log(
+            "Message has Origin " + message[MESSAGE_JSON_ORIGIN] +
+            " and was received via " + message[MESSAGE_JSON_VIA]
+        )
 
         # Build and return JSON success response
         self._set_headers()
         self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
+
+        # Store and distribute message as required
+        process_incoming_message(message)
 
     # Set request options
     def do_OPTIONS(self):
@@ -725,16 +753,19 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # updated their availability by a re-announcement prior the expiration period.
 # While we iterate through the list all already expired targets are dropped from the list.
 # Same expiration management is done during announcement processing.
+# Additionally, the message is bridged to all registered bridge targets.
 #
 def distribute_message(message):
+    # Process distribution targets
+
     # Loop through all registered distribution targets
-    # and remove all targets that have not announced them self within given timeout period
+    # Remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
-    for element in SERVER_IDENTITIES.copy():
+    for target in DISTRIBUTION_TARGETS.copy():
         # Get target identity from target dict
         # and create distribution destination
         remote_server = RNS.Destination(
-            SERVER_IDENTITIES[element][1],
+            DISTRIBUTION_TARGETS[target][1],
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
             APP_NAME,
@@ -758,27 +789,54 @@ def distribute_message(message):
                 " was suppressed because message was forwarded from that server"
             )
         else:
+            # Set new forwarder (VIA) id to message
+            # Overwrite previous forwarder id
+            message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
+
             # Get time stamp from target dict
-            timestamp = SERVER_IDENTITIES[element][0]
+            timestamp = DISTRIBUTION_TARGETS[target][0]
             # Get actual time from system
             actual_time = int(time.time())
+
             # Check if target has not expired yet
             if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
-                # Set new forwarder (VIA) id to message
-                message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
                 # Send message to destination
                 RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
                 # Log that we send something to this destination
                 RNS.log(
-                    "Message sent to destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2])
+                    "Message sent to destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[target][2])
                 )
             else:
                 # Log that we removed the destination
                 RNS.log(
-                    "Distribution destination " + RNS.prettyhexrep(SERVER_IDENTITIES[element][2]) + " removed"
+                    "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[target][2]) + " removed"
                 )
                 # Remove expired target identity from distribution list
-                SERVER_IDENTITIES.pop(element)
+                DISTRIBUTION_TARGETS.pop(target)
+
+    # Process bridge targets
+
+    # Loop through all registered bridge targets
+    # and remove all targets that have not announced them self within given timeout period
+    # If one target is not expired send message to that target
+    for bridge_target in BRIDGE_TARGETS:
+        # Add server cluster to message path tag (mark it as a bridged message)
+        if BRIDGE_JSON_PATH not in message:
+            # Set actual cluster as bridge path root
+            message[BRIDGE_JSON_PATH] = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+        else:
+            # Add actual cluster to bridge path
+            message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+
+        # Use POST to send message to bridge nexus server link
+        response = requests.post(
+            bridge_target[BRIDGE_JSON_URL],
+            json=message,
+            headers={'Content-type': 'application/json'}
+        )
+        # Log that we bridged a message
+        RNS.log("Bridge POST to " + bridge_target[BRIDGE_JSON_URL])
+        RNS.log("Bridge POST response was:'" + remove_whitespace(response.text) + "'")
 
 
 ##########################################################################################
@@ -867,6 +925,14 @@ if __name__ == "__main__":
             type=str
         )
 
+        parser.add_argument(
+            "--bridge",
+            action="store",
+            default=None,
+            help="list of maps containing bridge link connection data",
+            type=str
+        )
+
         # Parse passed commandline arguments as specified above
         params = parser.parse_args()
 
@@ -902,10 +968,19 @@ if __name__ == "__main__":
         else:
             timeout_para = None
 
+        if params.bridge:
+            bridge_para = params.bridge
+        else:
+            bridge_para = None
+
         # Call server initialization and startup reticulum and HTTP listeners
-        initialize_server(config_para, port_para, aspect_para, role_para, longpoll_para, timeout_para)
+        initialize_server(config_para, port_para, aspect_para, role_para, longpoll_para, timeout_para, bridge_para)
 
     # Handle keyboard interrupt aka ctrl-C to exit server
     except KeyboardInterrupt:
         print("Server terminated by ctrl-c")
+
+        # clean up
+        sys.stdout.flush()
+
         sys.exit(0)
