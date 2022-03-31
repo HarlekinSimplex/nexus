@@ -726,7 +726,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Log origin and via
         RNS.log(
             "Message has Origin " + message[MESSAGE_JSON_ORIGIN] +
-            "' and was received via " + message[MESSAGE_JSON_VIA]
+            " and was received via " + message[MESSAGE_JSON_VIA]
         )
 
         # Build and return JSON success response
