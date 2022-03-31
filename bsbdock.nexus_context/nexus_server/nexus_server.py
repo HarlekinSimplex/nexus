@@ -2,7 +2,7 @@
 # ##########################################################################################
 # Nexus Message Server
 #
-
+import copy
 import os
 import signal
 import threading
@@ -58,8 +58,8 @@ DISTRIBUTION_TARGETS = {}
 # These links are use as additional distribution targets
 # Links ar specified using an array of json map as startup parameter --bridge
 # BRIDGE_LINKS = [
-#    {'url': 'https://nexus.deltamatrix.org:8241', 'bridge': 'dev.test01'},
-#    {'url': 'https://nexus.deltamatrix.org:8242', 'bridge': 'dev.test02'}
+#    {'url': 'https://nexus.deltamatrix.org:8241', 'tag': 'dev.test01'},
+#    {'url': 'https://nexus.deltamatrix.org:8242', 'tag': 'dev.test02'}
 # ]
 BRIDGE_TARGETS = []
 
@@ -80,6 +80,8 @@ MESSAGE_JSON_ORIGIN_LOCAL = "local"
 # Tags used with bridge distribution management
 BRIDGE_JSON_URL = "url"
 BRIDGE_JSON_PATH = "path"
+# Tags used during message buffer use (tag to indicate is selected for distribution)
+MERGE_JSON_TAG = "tag"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # Role Example: {"c": "ClusterName", "g": "GatewayName"}
@@ -125,6 +127,27 @@ def remove_whitespace(in_string: str):
 
 
 ##########################################################################################
+# Tag message by message ID
+#
+def tag_message(message_id, tag, value):
+    # Bif ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
+    for message in MESSAGE_STORE:
+        if message[MESSAGE_JSON_ID] == message_id:
+            message[tag] = value
+
+
+##########################################################################################
+# Untag message by message ID
+#
+def untag_message(message_id, tag):
+    # Bif ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
+    for message in MESSAGE_STORE:
+        if message[MESSAGE_JSON_ID] == message_id:
+            message.pop(tag)
+
+        ##########################################################################################
+
+
 # Initialize Nexus Server
 # Parameters:
 #   configpath<str>:        Alternate config path to be used for initialization of reticulum
@@ -274,6 +297,63 @@ def initialize_server(
     t.daemon = True
     t.start()
 
+    # Initial synchronisation Part 1
+    # Retrieve and process message buffers from bridged targets
+    # Log sync start
+    RNS.log(
+        "Initial synchronization - GET and digest messages from bridged serves"
+    )
+    # Loop through all bridge targets
+    for bridge_target in BRIDGE_TARGETS:
+        # Use GET Request to pull message buffer from bridge server
+        response = requests.get(
+            url=bridge_target[BRIDGE_JSON_URL],
+            headers={'Content-type': 'application/json'}
+        )
+        # Log GET Request
+        RNS.log(
+            "Pulled bridge message buffer with GET request to:" + bridge_target[BRIDGE_JSON_URL]
+        )
+        # Check if GET was successful
+        # If so, parse response body into message buffer and digest it
+        if response.ok:
+            # Parse json bytes into message array of json maps
+            remote_buffer = json.loads(response.content)
+            # Log GET result
+            RNS.log(
+                "GET request was successful. " + str(len(remote_buffer)) + " Messages received"
+            )
+            # Digest received messages
+            digest_messages(remote_buffer, bridge_target[MERGE_JSON_TAG])
+        else:
+            # Log GET failure
+            RNS.log(
+                "GET request has failed. Reason:" + response.reason
+            )
+
+    # Log start of message distribution after digesting bridge link buffers
+    RNS.log(
+        "Initial synchronization - Distribute messages marked as new"
+    )
+    # Distribute all messages marked with merge tag
+    # Loop through massage buffer and distribute all messages that have been tagged
+    for message in copy.deepcopy(MESSAGE_STORE):
+        # Check if message has a merge tag stating the origin bridge tag
+        if MERGE_JSON_TAG in message.keys():
+            # Remove tag at the original buffer (if still there)
+            # Can be invalid in case any incoming message may have caused drop of that message
+            untag_message(message[MESSAGE_JSON_ID], MERGE_JSON_TAG)
+            # Distribute message to distribution targets and other bridge targets
+            # Copy of message still has bridge tan to indicate its origin
+            distribute_message(message)
+
+    # Save message buffer after synchronisation
+    save_messages()
+    # Log completion of initial synchronization
+    RNS.log(
+        "Initial synchronization - Distribution completed"
+    )
+
     # Launch HTTP GET/POST processing
     # This is an endless loop
     # Termination by ctrl-c or like process termination
@@ -281,6 +361,25 @@ def initialize_server(
 
     # Flush pending log
     sys.stdout.flush()
+
+
+##########################################################################################
+# Digest an array of messages into the global message store
+#
+# This is used for merging available message buffers into one buffer (Synchronization during server startup)
+#
+def digest_messages(merge_buffer, tag):
+    # Process all messages inside pulled buffer as if they have been standard incoming messages
+    # Distribution however will be performed only for messages that got a tag and are still in the buffer
+    # after all messages has been digested
+    for merge_message in merge_buffer:
+        # Digest the message into the message buffer and return ID if we need to distribute the message
+        message_id = process_incoming_message(merge_message)
+        # If distribution is due, tag message as new (distribution will occur as soon as we have completed
+        # processing of all messages in the pulled remote buffer)
+        if message_id:
+            # Tag message with given tag
+            tag_message(message_id, MERGE_JSON_TAG, tag)
 
 
 ##########################################################################################
@@ -483,7 +582,7 @@ class AnnounceHandler:
             DISTRIBUTION_TARGETS[dict_key] = (dict_time, announced_identity, destination_hash)
 
             # Log list of severs with seconds it was last heard
-            for element in DISTRIBUTION_TARGETS.copy():
+            for element in copy.copy(DISTRIBUTION_TARGETS):
                 # Get timestamp and destination hash from dict
                 timestamp = DISTRIBUTION_TARGETS[element][0]
                 destination = RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2])
@@ -542,6 +641,9 @@ def packet_callback(data, _packet):
         # Distribute message to all registered or bridged nexus servers
         distribute_message(message)
 
+    # Save message buffer after synchronisation
+    save_messages()
+
     # Flush pending log
     sys.stdout.flush()
 
@@ -553,6 +655,8 @@ def packet_callback(data, _packet):
 # request handler in case it was received from a client or bridge POST request
 # Its Job is to check if we need to add/insert the message in the message buffer or should it be ignored
 def process_incoming_message(message):
+    global MESSAGE_STORE
+
     # If message is more recent than the oldest message in the buffer
     # and has not arrived earlier than add/insert message at the correct position and
     # Get actual timestamp from message
@@ -627,18 +731,22 @@ def process_incoming_message(message):
 
     # No we are done with adding/inserting
     # Lets check buffer size if defined limit is exceeded now
-    length = len(MESSAGE_STORE)
-    if length > MESSAGE_BUFFER_SIZE:
-        # Log message pop
-        RNS.log(
-            "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
-            " exceeded. Oldest message is dropped now"
-        )
-        # If limit is exceeded just drop first (oldest) element of list
-        MESSAGE_STORE.pop(0)
+    # and if so pop oldest message until we are back in the limit
+    while True:
+        length = len(MESSAGE_STORE)
+        if length > MESSAGE_BUFFER_SIZE:
+            # Log message pop
+            RNS.log(
+                "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
+                " exceeded. Oldest message is dropped now"
+            )
+            # If limit is exceeded just drop first (oldest) element of list
+            MESSAGE_STORE.pop(0)
+        else:
+            break
 
-    # Return True to indicate that distribution is required
-    return True
+    # Return message_id of the processed message that is cleared for distribution
+    return message_id
 
 
 ##########################################################################################
@@ -750,9 +858,11 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             # Distribute message to all registered or bridged nexus servers
             distribute_message(message)
 
+        # Save message buffer after synchronisation
+        save_messages()
+
         # Flush pending log
         sys.stdout.flush()
-        return
 
     # Set request options
     def do_OPTIONS(self):
@@ -779,7 +889,7 @@ def distribute_message(message):
     # Loop through all registered distribution targets
     # Remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
-    for target in DISTRIBUTION_TARGETS.copy():
+    for target in copy.copy(DISTRIBUTION_TARGETS):
         # Get target identity from target dict
         # and create distribution destination
         remote_server = RNS.Destination(
@@ -838,6 +948,22 @@ def distribute_message(message):
     # and remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
     for bridge_target in BRIDGE_TARGETS:
+        # Check if actual message was pulled from that target
+        # If so suppress distribution to that target
+        if MERGE_JSON_TAG in message.keys():
+            if message[MERGE_JSON_TAG] == bridge_target[MERGE_JSON_TAG]:
+                # Log message received by distribution event
+                RNS.log(
+                    "Distribution to " + message[MERGE_JSON_TAG] +
+                    " was suppressed because message originated from that server"
+                )
+                # Continue with next bridge target
+                continue
+
+        # Remove merge tag from message
+        # It should not be sent out
+        message.pop(MERGE_JSON_TAG)
+
         # Add server cluster to message path tag (mark it as a bridged message)
         if BRIDGE_JSON_PATH not in message:
             # Set actual cluster as bridge path root
@@ -848,13 +974,17 @@ def distribute_message(message):
 
         # Use POST to send message to bridge nexus server link
         response = requests.post(
-            bridge_target[BRIDGE_JSON_URL],
+            url=bridge_target[BRIDGE_JSON_URL],
             json=message,
             headers={'Content-type': 'application/json'}
         )
-        # Log that we bridged a message
-        RNS.log("Bridge POST to " + bridge_target[BRIDGE_JSON_URL])
-        RNS.log("Bridge POST response was:'" + remove_whitespace(response.text) + "'")
+        # Check if request was successful
+        if response.ok:
+            # Log that we bridged a message
+            RNS.log("POST request to URL:" + bridge_target[BRIDGE_JSON_URL]) + " completed successfully. "
+        else:
+            # Log POST failure
+            RNS.log("POST request to URL:" + bridge_target[BRIDGE_JSON_URL]) + " failed with reason:" + response.reason
 
 
 ##########################################################################################
