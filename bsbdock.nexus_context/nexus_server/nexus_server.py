@@ -569,7 +569,7 @@ def process_incoming_message(message):
                         "Message storing and distribution not necessary because message is already in the buffer"
                     )
                     # Since we consider a message at the buffer has been distributed already we can exit this function
-                    exit()
+                    return
                 # Message has same time stamp but differs
                 else:
                     # Log message insertion with same timestamp
@@ -730,12 +730,12 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             "' and was received via '" + message[MESSAGE_JSON_VIA] + "'"
         )
 
-        # Store and distribute message as required
-        process_incoming_message(message)
-
         # Build and return JSON success response
         self._set_headers()
         self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
+
+        # Store and distribute message as required
+        process_incoming_message(message)
 
     # Set request options
     def do_OPTIONS(self):
@@ -754,7 +754,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # updated their availability by a re-announcement prior the expiration period.
 # While we iterate through the list all already expired targets are dropped from the list.
 # Same expiration management is done during announcement processing.
-# Additionally the message is bridged to all registered bridge targets.
+# Additionally, the message is bridged to all registered bridge targets.
 #
 def distribute_message(message):
 
