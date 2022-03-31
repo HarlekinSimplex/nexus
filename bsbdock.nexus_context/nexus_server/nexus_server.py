@@ -286,16 +286,6 @@ def initialize_server(
     # Register a call back function to process all incoming data packages (aka messages)
     NEXUS_SERVER_DESTINATION.set_packet_callback(packet_callback)
 
-    # Start timer to announce this server after 3 sec
-    # All other nexus server with the same aspect will register this server as a distribution target
-    # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
-    # Using a 3sec delay is useful while debugging oder development since dev servers need to be listening prior
-    # announcements may link them to a testing cluster or like subscription topology
-    t = threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server)
-    # Star as daemon so it terminates with main thread
-    t.daemon = True
-    t.start()
-
     # Initial synchronisation Part 1
     # Retrieve and process message buffers from bridged targets
     # Log sync start
@@ -352,6 +342,16 @@ def initialize_server(
     RNS.log(
         "Initial synchronization - Distribution completed"
     )
+
+    # Start timer to announce this server after 3 sec
+    # All other nexus server with the same aspect will register this server as a distribution target
+    # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
+    # Using a 3sec delay is useful while debugging oder development since dev servers need to be listening prior
+    # announcements may link them to a testing cluster or like subscription topology
+    t = threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server)
+    # Star as daemon so it terminates with main thread
+    t.daemon = True
+    t.start()
 
     # Launch HTTP GET/POST processing
     # This is an endless loop
@@ -577,7 +577,7 @@ class AnnounceHandler:
                     "Subscription for " + RNS.prettyhexrep(destination_hash) +
                     " will be updated"
                 )
-            # Register o9r update destination as valid distribution target
+            # Register for update destination as valid distribution target
             DISTRIBUTION_TARGETS[dict_key] = (dict_time, announced_identity, destination_hash)
 
             # Log list of severs with seconds it was last heard
@@ -883,6 +883,8 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # Additionally, the message is bridged to all registered bridge targets.
 #
 def distribute_message(message):
+    global DISTRIBUTION_TARGETS
+
     # Process bridge targets
 
     # Loop through all registered bridge targets
@@ -899,34 +901,37 @@ def distribute_message(message):
                     " was suppressed because message originated from that server"
                 )
                 # Continue with next bridge target
-                continue
+            else:
+                # Remove merge tag from message if it is still there
+                # It should not be sent out
+                if MERGE_JSON_TAG in message.keys():
+                    message.pop(MERGE_JSON_TAG)
 
-        # Remove merge tag from message if it is still there
-        # It should not be sent out
-        if MERGE_JSON_TAG in message.keys():
-            message.pop(MERGE_JSON_TAG)
+                # Add server cluster to message path tag (mark it as a bridged message)
+                if BRIDGE_JSON_PATH not in message.keys():
+                    # Set actual cluster as bridge path root
+                    message[BRIDGE_JSON_PATH] = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+                else:
+                    # Add actual cluster to bridge path
+                    message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
 
-        # Add server cluster to message path tag (mark it as a bridged message)
-        if BRIDGE_JSON_PATH not in message.keys():
-            # Set actual cluster as bridge path root
-            message[BRIDGE_JSON_PATH] = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-        else:
-            # Add actual cluster to bridge path
-            message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-
-        # Use POST to send message to bridge nexus server link
-        response = requests.post(
-            url=bridge_target[BRIDGE_JSON_URL],
-            json=message,
-            headers={'Content-type': 'application/json'}
-        )
-        # Check if request was successful
-        if response.ok:
-            # Log that we bridged a message
-            RNS.log("POST request " + bridge_target[BRIDGE_JSON_URL]) + " completed successfully"
-        else:
-            # Log POST failure
-            RNS.log("POST request " + bridge_target[BRIDGE_JSON_URL]) + " failed with reason:" + response.reason
+                # Use POST to send message to bridge nexus server link
+                response = requests.post(
+                    url=bridge_target[BRIDGE_JSON_URL],
+                    json=message,
+                    headers={'Content-type': 'application/json'}
+                )
+                # Check if request was successful
+                if response.ok:
+                    # Log that we bridged a message
+                    RNS.log(
+                        "POST request " + bridge_target[BRIDGE_JSON_URL] + " completed successfully"
+                    )
+                else:
+                    # Log POST failure
+                    RNS.log(
+                        "POST request " + bridge_target[BRIDGE_JSON_URL] + " failed with reason:" + response.reason
+                    )
 
     # Process distribution targets
 
