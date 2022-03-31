@@ -697,7 +697,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         )
 
         # Check if incoming message was a client sent message and does not have a path tag
-        # Bridged messages have a path tag set
+        # Bridged messages have a path tag set, local posts of new messages does not.
 
         # If message has no 'origin' set use this server as origin
         if MESSAGE_JSON_ORIGIN not in message.keys():
