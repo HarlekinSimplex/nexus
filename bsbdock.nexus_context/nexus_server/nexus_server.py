@@ -537,11 +537,10 @@ def packet_callback(data, _packet):
         "Message received via nexus multicast: " + str(message)
     )
 
-    # Process and store message as required
-    process_incoming_message(message)
-
-    # Distribute message to all registered or bridged nexus servers
-    distribute_message(message)
+    # Process, store and distribute message as required
+    if process_incoming_message(message):
+        # Distribute message to all registered or bridged nexus servers
+        distribute_message(message)
 
     # Flush pending log
     sys.stdout.flush()
@@ -583,7 +582,9 @@ def process_incoming_message(message):
                     # Since we consider a message at the buffer has been distributed already we can exit this function
                     # Flush pending log
                     sys.stdout.flush()
-                    return
+                    # Return False to indicate that distribution is not required
+                    return False
+
                 # Message has same time stamp but differs
                 else:
                     # Log message insertion with same timestamp
@@ -635,6 +636,9 @@ def process_incoming_message(message):
         )
         # If limit is exceeded just drop first (oldest) element of list
         MESSAGE_STORE.pop(0)
+
+    # Return True to indicate that distribution is required
+    return True
 
 
 ##########################################################################################
@@ -741,11 +745,10 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         self._set_headers()
         self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
 
-        # Process and store message as required
-        process_incoming_message(message)
-
-        # Distribute message to all registered or bridged nexus servers
-        distribute_message(message)
+        # Process, store and distribute message as required
+        if process_incoming_message(message):
+            # Distribute message to all registered or bridged nexus servers
+            distribute_message(message)
 
         # Flush pending log
         sys.stdout.flush()
