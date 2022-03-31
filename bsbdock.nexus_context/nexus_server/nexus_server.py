@@ -893,45 +893,47 @@ def distribute_message(message):
     for bridge_target in BRIDGE_TARGETS:
         # Check if actual message was pulled from that target
         # If so suppress distribution to that target
+        flag = False
         if MERGE_JSON_TAG in message.keys():
-            if message[MERGE_JSON_TAG] == bridge_target[MERGE_JSON_TAG]:
-                # Log message received by distribution event
-                RNS.log(
-                    "Distribution to " + message[MERGE_JSON_TAG] +
-                    " was suppressed because message originated from that server"
-                )
-                # Continue with next bridge target
+            flag = True
+        if flag and message[MERGE_JSON_TAG] == bridge_target[MERGE_JSON_TAG]:
+            # Log message received by distribution event
+            RNS.log(
+                "Distribution to " + message[MERGE_JSON_TAG] +
+                " was suppressed because message originated from that server"
+            )
+            # Continue with next bridge target
+        else:
+            # Remove merge tag from message if it is still there
+            # It should not be sent out
+            if MERGE_JSON_TAG in message.keys():
+                message.pop(MERGE_JSON_TAG)
+
+            # Add server cluster to message path tag (mark it as a bridged message)
+            if BRIDGE_JSON_PATH not in message.keys():
+                # Set actual cluster as bridge path root
+                message[BRIDGE_JSON_PATH] = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
             else:
-                # Remove merge tag from message if it is still there
-                # It should not be sent out
-                if MERGE_JSON_TAG in message.keys():
-                    message.pop(MERGE_JSON_TAG)
+                # Add actual cluster to bridge path
+                message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
 
-                # Add server cluster to message path tag (mark it as a bridged message)
-                if BRIDGE_JSON_PATH not in message.keys():
-                    # Set actual cluster as bridge path root
-                    message[BRIDGE_JSON_PATH] = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-                else:
-                    # Add actual cluster to bridge path
-                    message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-
-                # Use POST to send message to bridge nexus server link
-                response = requests.post(
-                    url=bridge_target[BRIDGE_JSON_URL],
-                    json=message,
-                    headers={'Content-type': 'application/json'}
+            # Use POST to send message to bridge nexus server link
+            response = requests.post(
+                url=bridge_target[BRIDGE_JSON_URL],
+                json=message,
+                headers={'Content-type': 'application/json'}
+            )
+            # Check if request was successful
+            if response.ok:
+                # Log that we bridged a message
+                RNS.log(
+                    "POST request " + bridge_target[BRIDGE_JSON_URL] + " completed successfully"
                 )
-                # Check if request was successful
-                if response.ok:
-                    # Log that we bridged a message
-                    RNS.log(
-                        "POST request " + bridge_target[BRIDGE_JSON_URL] + " completed successfully"
-                    )
-                else:
-                    # Log POST failure
-                    RNS.log(
-                        "POST request " + bridge_target[BRIDGE_JSON_URL] + " failed with reason:" + response.reason
-                    )
+            else:
+                # Log POST failure
+                RNS.log(
+                    "POST request " + bridge_target[BRIDGE_JSON_URL] + " failed with reason:" + response.reason
+                )
 
     # Process distribution targets
 
