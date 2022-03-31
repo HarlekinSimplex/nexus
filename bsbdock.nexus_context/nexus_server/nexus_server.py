@@ -532,6 +532,10 @@ def packet_callback(data, _packet):
     # Processing received  message
     process_incoming_message(message)
 
+    # Flush pending log
+    sys.stdout.flush()
+    return
+
 
 ##########################################################################################
 # Process incoming message
@@ -542,7 +546,7 @@ def packet_callback(data, _packet):
 # After this it is forwarded to distribution
 def process_incoming_message(message):
     # If message is more recent than the oldest message in the buffer
-    # and has not arrived earlier then add/insert message at the correct position and
+    # and has not arrived earlier than add/insert message at the correct position and
     # Get actual timestamp from message
     message_id = message[MESSAGE_JSON_ID]
     # Get actual number of messages in the buffer
@@ -568,6 +572,8 @@ def process_incoming_message(message):
                         "Message storing and distribution not necessary because message is already in the buffer"
                     )
                     # Since we consider a message at the buffer has been distributed already we can exit this function
+                    # Flush pending log
+                    sys.stdout.flush()
                     return
                 # Message has same time stamp but differs
                 else:
@@ -626,6 +632,10 @@ def process_incoming_message(message):
 
     # Distribute message to all registered nexus servers
     distribute_message(message)
+
+    # Flush pending log
+    sys.stdout.flush()
+    return
 
 
 ##########################################################################################
@@ -736,6 +746,10 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Store and distribute message as required
         process_incoming_message(message)
 
+        # Flush pending log
+        sys.stdout.flush()
+        return
+
     # Set request options
     def do_OPTIONS(self):
         # Send allow-origin header and clearance for GET and POST requests
@@ -838,6 +852,10 @@ def distribute_message(message):
         RNS.log("Bridge POST to " + bridge_target[BRIDGE_JSON_URL])
         RNS.log("Bridge POST response was:'" + remove_whitespace(response.text) + "'")
 
+    # Flush pending log
+    sys.stdout.flush()
+    return
+
 
 ##########################################################################################
 # Save messages to storage file
@@ -856,6 +874,10 @@ def save_messages():
         RNS.log("Could not save message to storage file: " + STORAGE_FILE)
         RNS.log("The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
 
+    # Flush pending log
+    sys.stdout.flush()
+    return
+
 
 #######################################################
 # Program Startup
@@ -865,6 +887,10 @@ def save_messages():
 
 def signal_handler(_signal, _frame):
     print("exiting")
+
+    # Flush pending log
+    sys.stdout.flush()
+
     sys.exit(0)
 
 
@@ -976,11 +1002,13 @@ if __name__ == "__main__":
         # Call server initialization and startup reticulum and HTTP listeners
         initialize_server(config_para, port_para, aspect_para, role_para, longpoll_para, timeout_para, bridge_para)
 
+        # Flush pending log
+        sys.stdout.flush()
+
     # Handle keyboard interrupt aka ctrl-C to exit server
     except KeyboardInterrupt:
         print("Server terminated by ctrl-c")
 
-        # clean up
+        # Flush pending log
         sys.stdout.flush()
-
         sys.exit(0)
