@@ -55,7 +55,7 @@ EXPOSE 4281
 RUN mkdir /bsb
 RUN mkdir /bsb/nexus_server
 
-# Pull in container start script an make it executable
+# Pull in container start script and make it executable
 ARG CACHEBUST=0
 COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh

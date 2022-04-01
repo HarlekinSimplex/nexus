@@ -217,7 +217,7 @@ def initialize_server(
         BRIDGE_TARGETS = json.loads(bridge_links)
 
     # Log actually used parameters
-    RNS.log("Server Server v" + __version__ + " configuration:")
+    RNS.log("Nexus Server v" + __version__ + " startup configuration:")
     RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT))
     RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL))
     RNS.log("  --port=" + str(NEXUS_SERVER_ADDRESS[1]))
