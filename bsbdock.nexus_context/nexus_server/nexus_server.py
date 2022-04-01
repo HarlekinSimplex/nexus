@@ -218,12 +218,12 @@ def initialize_server(
 
     # Log actually used parameters
     RNS.log("Server Server v" + __version__ + " configuration:")
-    RNS.log("--timeout=" + str(NEXUS_SERVER_TIMEOUT))
-    RNS.log("--longpoll=" + str(NEXUS_SERVER_LONGPOLL))
-    RNS.log("--port=" + str(NEXUS_SERVER_ADDRESS[1]))
-    RNS.log("--aspect=" + NEXUS_SERVER_ASPECT)
-    RNS.log("--role=" + str(NEXUS_SERVER_ROLE))
-    RNS.log("--bridge=" + str(BRIDGE_TARGETS))
+    RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT))
+    RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL))
+    RNS.log("  --port=" + str(NEXUS_SERVER_ADDRESS[1]))
+    RNS.log("  --aspect=" + NEXUS_SERVER_ASPECT)
+    RNS.log("  --role=" + str(NEXUS_SERVER_ROLE))
+    RNS.log("  --bridge=" + str(BRIDGE_TARGETS))
 
     # Load messages from storage
     # Check if storage path is available
@@ -431,7 +431,7 @@ def launch_http_server():
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
     # Log launch with aspect and address/port used
     RNS.log(
-        "serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS
+        "Serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS
     )
     # Invoke server loop
     # (infinite)
