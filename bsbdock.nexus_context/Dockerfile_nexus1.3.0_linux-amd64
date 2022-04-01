@@ -31,7 +31,7 @@ RUN pip3 install rns lxmf nomadnet rnodeconf
 RUN pip3 install requests
 
 # Install personal helper tools
-RUN apt -y install mc
+RUN apt -y install mc nano
 
 # Expose port for Reticulum server TCP Interface (disable as default) 
 EXPOSE 4242
