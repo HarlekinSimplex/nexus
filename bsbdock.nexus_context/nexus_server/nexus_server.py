@@ -534,7 +534,7 @@ class AnnounceHandler:
         announced_role = pickle.loads(app_data)
         # Log role
         RNS.log(
-            "The announce contained the following nexus role dict: " +
+            "The announce contained the following nexus role: " +
             str(announced_role)
         )
 
