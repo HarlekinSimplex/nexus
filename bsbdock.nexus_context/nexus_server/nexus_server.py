@@ -347,12 +347,12 @@ def initialize_server(
             RNS.log("The contained exception was: %s" % (str(e)))
         # Drop all messages with deprecated or missing message version
         validate_message_store()
+        # Save buffer
+        save_messages()
         # Log how many have survived validation
         RNS.log(
             str(len(MESSAGE_STORE)) + " messages left after validation"
         )
-        # Save buffer
-        save_messages()
     else:
         RNS.log("No messages to load from " + STORAGE_FILE)
 
