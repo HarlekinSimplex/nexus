@@ -29,7 +29,7 @@ __version__ = "1.3.0.1"
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
 # New messages will be tagged with 'v': __message_version__
-__message_version__ = "0"
+__message_version__ = "1"
 
 # Trigger some Debug only related log entries
 DEBUG = False
@@ -138,6 +138,7 @@ def tag_message(message_id, tag, value):
     for message in MESSAGE_STORE:
         if message[MESSAGE_JSON_ID] == message_id:
             message[tag] = value
+            break
 
 
 ##########################################################################################
@@ -148,6 +149,7 @@ def untag_message(message_id, tag):
     for message in MESSAGE_STORE:
         if message[MESSAGE_JSON_ID] == message_id:
             message.pop(tag)
+            break
 
 
 ##########################################################################################
@@ -158,6 +160,7 @@ def drop_message(message_id):
     for i in range(len(MESSAGE_STORE)):
         if MESSAGE_STORE[i][MESSAGE_JSON_ID] == message_id:
             MESSAGE_STORE.pop(i)
+            break
 
 
 ##########################################################################################
@@ -407,31 +410,30 @@ def initialize_server(
                     url=bridge_target[BRIDGE_JSON_URL],
                     headers={'Content-type': 'application/json'}
                 )
+                # Log GET Request
+                RNS.log(
+                    "Pulled bridge message buffer with GET request " + bridge_target[BRIDGE_JSON_URL]
+                )
+                # Check if GET was successful
+                # If so, parse response body into message buffer and digest it
+                if response.ok:
+                    # Parse json bytes into message array of json maps
+                    remote_buffer = json.loads(response.content)
+                    # Log GET result
+                    RNS.log(
+                        "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
+                    )
+
+                    # Digest received messages
+                    digest_messages(remote_buffer, bridge_target[MERGE_JSON_TAG])
+                else:
+                    # Log GET failure
+                    RNS.log(
+                        "GET request has failed with reason " + response.reason
+                    )
             except Exception as e:
                 RNS.log("Could not complete GET request " + bridge_target[BRIDGE_JSON_URL])
                 RNS.log("The contained exception was: %s" % (str(e)))
-
-            # Log GET Request
-            RNS.log(
-                "Pulled bridge message buffer with GET request " + bridge_target[BRIDGE_JSON_URL]
-            )
-            # Check if GET was successful
-            # If so, parse response body into message buffer and digest it
-            if response.ok:
-                # Parse json bytes into message array of json maps
-                remote_buffer = json.loads(response.content)
-                # Log GET result
-                RNS.log(
-                    "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
-                )
-
-                # Digest received messages
-                digest_messages(remote_buffer, bridge_target[MERGE_JSON_TAG])
-            else:
-                # Log GET failure
-                RNS.log(
-                    "GET request has failed with reason " + response.reason
-                )
 
         # Log start of message distribution after digesting bridge link buffers
         RNS.log(
@@ -1046,21 +1048,20 @@ def distribute_message(message):
                     json=message,
                     headers={'Content-type': 'application/json'}
                 )
+                # Check if request was successful
+                if response.ok:
+                    # Log that we bridged a message
+                    RNS.log(
+                        "POST request " + bridge_target[BRIDGE_JSON_URL] + " completed successfully"
+                    )
+                else:
+                    # Log POST failure
+                    RNS.log(
+                        "POST request " + bridge_target[BRIDGE_JSON_URL] + " failed with reason:" + response.reason
+                    )
             except Exception as e:
                 RNS.log("Could not complete POST request " + bridge_target[BRIDGE_JSON_URL])
                 RNS.log("The contained exception was: %s" % (str(e)))
-
-            # Check if request was successful
-            if response.ok:
-                # Log that we bridged a message
-                RNS.log(
-                    "POST request " + bridge_target[BRIDGE_JSON_URL] + " completed successfully"
-                )
-            else:
-                # Log POST failure
-                RNS.log(
-                    "POST request " + bridge_target[BRIDGE_JSON_URL] + " failed with reason:" + response.reason
-                )
 
     # Process distribution targets
 
