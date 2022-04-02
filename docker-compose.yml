@@ -44,7 +44,7 @@ services:
     volumes:
       - type: bind
 # Mapping used to externalize config files of reticulum, nomadnet and nexus
-        source: ${NEXUS_COMPOSE_HOME:-$$PWD}/${NEXUS_ROOT_BIND:-nexus_root}
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root}
         target: ${NEXUS_ROOT:-/root}
     logging:
       driver: "json-file"
