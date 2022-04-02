@@ -79,7 +79,7 @@ MESSAGE_JSON_ORIGIN_LOCAL = "local"
 
 # Tags used with bridge distribution management
 BRIDGE_JSON_URL = "url"
-BRIDGE_JSON_PATH = "path"
+MESSAGE_JSON_PATH = "path"
 # Tags used during message buffer use (tag to indicate is selected for distribution)
 MERGE_JSON_TAG = "tag"
 
@@ -130,7 +130,7 @@ def remove_whitespace(in_string: str):
 # Tag message by message ID
 #
 def tag_message(message_id, tag, value):
-    # Bif ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
+    # ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
     for message in MESSAGE_STORE:
         if message[MESSAGE_JSON_ID] == message_id:
             message[tag] = value
@@ -140,10 +140,35 @@ def tag_message(message_id, tag, value):
 # Untag message by message ID
 #
 def untag_message(message_id, tag):
-    # Bif ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
+    # ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
     for message in MESSAGE_STORE:
         if message[MESSAGE_JSON_ID] == message_id:
             message.pop(tag)
+
+
+##########################################################################################
+# Add actual cluster to distribution path
+#
+def add_cluster_to_message_path(message_id):
+    # ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
+    for message in MESSAGE_STORE:
+        if message[MESSAGE_JSON_ID] == message_id:
+            # Do some logging of the actual message path
+            if MESSAGE_JSON_PATH not in message.keys():
+                # Set this server cluster as root to the message path tag
+                message[MESSAGE_JSON_PATH] = '@' + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+                # Log set root path event
+                RNS.log(
+                    "New message " + str(message[MESSAGE_JSON_ID]) + " has root path " + message[MESSAGE_JSON_PATH]
+                )
+            else:
+                # Add this server cluster to message path
+                message[MESSAGE_JSON_PATH] = message[MESSAGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+                # Log path extension event
+                RNS.log(
+                    "Path of message " + str(message[MESSAGE_JSON_ID]) + " was extended to " + message[
+                        MESSAGE_JSON_PATH]
+                )
 
 
 ##########################################################################################
@@ -287,7 +312,7 @@ def initialize_server(
     NEXUS_SERVER_DESTINATION.set_packet_callback(packet_callback)
 
     # Check if we have bridge links configured
-    if len(BRIDGE_TARGETS) >0:
+    if len(BRIDGE_TARGETS) > 0:
         # Initial synchronisation Part 1
         # Retrieve and process message buffers from bridged targets
         # Log sync start
@@ -394,10 +419,6 @@ def digest_messages(merge_buffer, tag):
 # specified re-announce period.
 #
 def single_announce_server():
-    global NEXUS_SERVER_DESTINATION
-    global NEXUS_SERVER_LONGPOLL
-    global NEXUS_SERVER_ROLE
-
     # Announce this server to the network
     # All other nexus server with the same aspect will register this server as a distribution target
     # noinspection PyArgumentList
@@ -413,8 +434,6 @@ def single_announce_server():
 
 
 def announce_server():
-    global NEXUS_SERVER_LONGPOLL
-
     # Announce this server to the network
     # All other nexus server with the same aspect will register this server as a distribution target
     single_announce_server()
@@ -430,9 +449,6 @@ def announce_server():
 # Start up of the threaded HTTP server to handle client json GET/POST requests
 #
 def launch_http_server():
-    global NEXUS_SERVER_ASPECT
-    global NEXUS_SERVER_ADDRESS
-
     # Create multithreading http server with given address and port to listen for json app interaction
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
     # Log launch with aspect and address/port used
@@ -660,10 +676,8 @@ def packet_callback(data, _packet):
 # request handler in case it was received from a client or bridge POST request
 # Its Job is to check if we need to add/insert the message in the message buffer or should it be ignored
 def process_incoming_message(message):
-    global MESSAGE_STORE
-
     # If message is more recent than the oldest message in the buffer
-    # and has not arrived earlier than add/insert message at the correct position and
+    # and has not arrived earlier, then add/insert message at the correct position and
     # Get actual timestamp from message
     message_id = message[MESSAGE_JSON_ID]
     # Get actual number of messages in the buffer
@@ -733,6 +747,10 @@ def process_incoming_message(message):
                 # Message processing completed
                 # Exit loop
                 break
+
+    # If we pass this point of digestion we have new message received
+    # Update the distribution path of the message
+    add_cluster_to_message_path(message_id)
 
     # No we are done with adding/inserting
     # Lets check buffer size if defined limit is exceeded now
@@ -816,11 +834,6 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Parse JSON
         message = json.loads(body)
 
-        # Log message received event
-        RNS.log(
-            "Message received via HTTP POST: " + str(message)
-        )
-
         # Check if incoming message was a client sent message and does not have a path tag
         # Bridged messages have a path tag set, local posts of new messages does not.
 
@@ -840,26 +853,25 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             message[MESSAGE_JSON_ID] = int(time.time() * 100000)
 
         # Do some logging of the outcome of the POST processing so far
-        if BRIDGE_JSON_PATH not in message.keys():
-            # Set this server cluster as root to the message path tag
-            message[BRIDGE_JSON_PATH] = '@' + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-            # Log client message path set
+        if MESSAGE_JSON_PATH not in message.keys():
+            # Log new client message received event
             RNS.log(
-                "New message posted by a client got path " + message[BRIDGE_JSON_PATH]
+                "HTTP POST received from client"
             )
         else:
-            # Add this server cluster to message path tag
-            message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-            # Log bridge message path extension
+            # Log new client message received event
             RNS.log(
-                "Path of bridged message was extended to " + message[BRIDGE_JSON_PATH]
+                "HTTP POST received from bridge"
             )
 
         # Log origin and via
-        RNS.log(
-            "Message has Origin " + message[MESSAGE_JSON_ORIGIN] +
-            " and was received via " + message[MESSAGE_JSON_VIA]
-        )
+        RNS.log("- Message '" + message[MESSAGE_JSON_MSG] + "'")
+        RNS.log("- ID      " + str(message[MESSAGE_JSON_ID]))
+        RNS.log("- Time    '" + message[MESSAGE_JSON_TIME] + "'")
+        RNS.log("- Origin  " + message[MESSAGE_JSON_ORIGIN])
+        RNS.log("- Via     " + message[MESSAGE_JSON_ORIGIN])
+        if MESSAGE_JSON_PATH in message.keys():
+            RNS.log("- Path   " + message[MESSAGE_JSON_PATH])
 
         # Build and return JSON success response
         self._set_headers()
@@ -896,8 +908,6 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # Additionally, the message is bridged to all registered bridge targets.
 #
 def distribute_message(message):
-    global DISTRIBUTION_TARGETS
-
     # Process bridge targets
 
     # Loop through all registered bridge targets
@@ -1007,8 +1017,6 @@ def distribute_message(message):
 # Save messages to storage file
 #
 def save_messages():
-    global MESSAGE_STORE
-
     # Check if storage file is there
     try:
         save_file = open(STORAGE_FILE, "wb")
