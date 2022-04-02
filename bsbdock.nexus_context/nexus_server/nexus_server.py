@@ -29,7 +29,7 @@ __version__ = "1.3.0.1"
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
 # New messages will be tagged with 'v': __message_version__
-__message_version__ = "1"
+__message_version__ = "0"
 
 # Trigger some Debug only related log entries
 DEBUG = False
@@ -155,7 +155,7 @@ def untag_message(message_id, tag):
 #
 def drop_message(message_id):
     # ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
-    for i in range(0, len(MESSAGE_STORE)):
+    for i in range(0, len(MESSAGE_STORE)-1):
         if MESSAGE_STORE[i][MESSAGE_JSON_ID] == message_id:
             MESSAGE_STORE.pop(i)
 
