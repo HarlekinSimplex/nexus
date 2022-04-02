@@ -841,15 +841,16 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
         # Do some logging of the outcome of the POST processing so far
         if BRIDGE_JSON_PATH not in message.keys():
+            # Set this server cluster as root to the message path tag
+            message[BRIDGE_JSON_PATH] = '@' + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+            # Log client message path set
             RNS.log(
                 "New message posted by a client got path " + message[BRIDGE_JSON_PATH]
             )
-            # Set this server cluster as root to the message path tag
-            message[BRIDGE_JSON_PATH] = '@' + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
         else:
             # Add this server cluster to message path tag
             message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-            # Log client message event
+            # Log bridge message path extension
             RNS.log(
                 "Path of bridged message was extended to " + message[BRIDGE_JSON_PATH]
             )
