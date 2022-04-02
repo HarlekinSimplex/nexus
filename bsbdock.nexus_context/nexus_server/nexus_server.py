@@ -24,10 +24,12 @@ import vendor.umsgpack as msgpack
 #
 
 # Server Version
-__version__ = "1.3.0"
+__version__ = "1.3.0.1"
 
-version = (1, 3, 0)
-"Module version tuple"
+# Message purge version
+# Increase this number to cause an automatic message drop from saved buffers or any incoming message.
+# New messages will be tagged with 'v': __message_version__
+__message_version__ = "1"
 
 # Trigger some Debug only related log entries
 DEBUG = False
@@ -72,6 +74,7 @@ BRIDGE_TARGETS = []
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
+MESSAGE_JSON_VERSION = "v"
 # Tags used with normal distribution management
 MESSAGE_JSON_ORIGIN = "origin"
 MESSAGE_JSON_VIA = "via"
@@ -148,6 +151,16 @@ def untag_message(message_id, tag):
 
 
 ##########################################################################################
+# Drop Message from message store by ID
+#
+def drop_message(message_id):
+    # ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
+    for i in range(0, len(MESSAGE_STORE)):
+        if MESSAGE_STORE[i][MESSAGE_JSON_ID] == message_id:
+            MESSAGE_STORE.pop(i)
+
+
+##########################################################################################
 # Add element to given path without duplicates at the end
 #
 # '' + 'bbb' -> ':bbb'
@@ -178,7 +191,7 @@ def add_cluster_to_message_path(message_id):
                 )
             else:
                 # Add this server cluster to message path
-                message[MESSAGE_JSON_PATH] =\
+                message[MESSAGE_JSON_PATH] = \
                     extend_path(message[MESSAGE_JSON_PATH], NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER])
 
                 # Log path extension event
@@ -186,6 +199,50 @@ def add_cluster_to_message_path(message_id):
                     "Path of message " + str(message[MESSAGE_JSON_ID]) + " was extended to " + message[
                         MESSAGE_JSON_PATH]
                 )
+
+
+##########################################################################################
+# Validate/Drop/Migrate Message
+#
+def is_valid_message(message):
+    # Invalid message if message version tag is missing
+    if MESSAGE_JSON_VERSION not in message.keys():
+        return False
+    # Invalid message if message version tag is below 1
+    elif message[MESSAGE_JSON_VERSION] < __message_version__:
+        return False
+
+    return True
+
+
+##########################################################################################
+# Validate message store
+#
+def validate_message_store():
+    for message in MESSAGE_STORE.copy():
+        if not is_valid_message(message):
+            RNS.log(
+                "Message " + str(message[MESSAGE_JSON_ID]) + " will be dropped due to deprecated message version"
+            )
+            # Drop invalid message from message store
+            drop_message(message[MESSAGE_JSON_ID])
+    # Update saved message store
+    save_messages()
+
+
+##########################################################################################
+# Log message data
+#
+def log_message(message):
+    # Log message data
+    RNS.log("- Message '" + message[MESSAGE_JSON_MSG] + "'")
+    RNS.log("- Version " + str(message[MESSAGE_JSON_VERSION]))
+    RNS.log("- ID      " + str(message[MESSAGE_JSON_ID]))
+    RNS.log("- Time    '" + message[MESSAGE_JSON_TIME] + "'")
+    RNS.log("- Origin  " + message[MESSAGE_JSON_ORIGIN])
+    RNS.log("- Via     " + message[MESSAGE_JSON_ORIGIN])
+    if MESSAGE_JSON_PATH in message.keys():
+        RNS.log("- Path   " + message[MESSAGE_JSON_PATH])
 
 
 ##########################################################################################
@@ -259,7 +316,7 @@ def initialize_server(
         BRIDGE_TARGETS = json.loads(bridge_links)
 
     # Log actually used parameters
-    RNS.log("Nexus Server v" + __version__ + " startup configuration:")
+    RNS.log("Nexus Server v" + __version__ + " using Message v" + __message_version__ + " startup configuration:")
     RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT))
     RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL))
     RNS.log("  --port=" + str(NEXUS_SERVER_ADDRESS[1]))
@@ -288,6 +345,12 @@ def initialize_server(
         except Exception as e:
             RNS.log("Could not load messages from " + STORAGE_FILE)
             RNS.log("The contained exception was: %s" % (str(e)))
+        # Drop all messages with deprecated or missing message version
+        validate_message_store()
+        # Log how many have survived validation
+        RNS.log(
+            str(len(MESSAGE_STORE)) + " messages left after validation"
+        )
     else:
         RNS.log("No messages to load from " + STORAGE_FILE)
 
@@ -356,6 +419,7 @@ def initialize_server(
                 RNS.log(
                     "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
                 )
+
                 # Digest received messages
                 digest_messages(remote_buffer, bridge_target[MERGE_JSON_TAG])
             else:
@@ -420,13 +484,19 @@ def digest_messages(merge_buffer, tag):
     # Distribution however will be performed only for messages that got a tag and are still in the buffer
     # after all messages has been digested
     for merge_message in merge_buffer:
-        # Digest the message into the message buffer and return ID if we need to distribute the message
-        message_id = process_incoming_message(merge_message)
-        # If distribution is due, tag message as new (distribution will occur as soon as we have completed
-        # processing of all messages in the pulled remote buffer)
-        if message_id:
-            # Tag message with given tag
-            tag_message(message_id, MERGE_JSON_TAG, tag)
+        # Check if message to digest is valid
+        if is_valid_message(merge_message):
+            # Digest the message into the message buffer and return ID if we need to distribute the message
+            message_id = process_incoming_message(merge_message)
+            # If distribution is due, tag message as new (distribution will occur as soon as we have completed
+            # processing of all messages in the pulled remote buffer)
+            if message_id:
+                # Tag message with given tag
+                tag_message(message_id, MERGE_JSON_TAG, tag)
+        else:
+            RNS.log(
+                "Message pulled from bridge has invalid version and is dropped"
+            )
 
 
 ##########################################################################################
@@ -669,18 +739,27 @@ def packet_callback(data, _packet):
     # In this case it was a python dictionary containing the json message
     message = pickle.loads(data)
 
-    # Log message received by distribution event
-    RNS.log(
-        "Message received via RNS packet: " + str(message)
-    )
+    # Check if message is valid
+    if is_valid_message(message):
+        # Log message received by distribution event
+        RNS.log(
+            "Valid message received via RNS packet"
+        )
+        # Log message data
+        log_message(message)
 
-    # Process, store and distribute message as required
-    if process_incoming_message(message):
-        # Distribute message to all registered or bridged nexus servers
-        distribute_message(message)
+        # Process, store and distribute message as required
+        if process_incoming_message(message):
+            # Distribute message to all registered or bridged nexus servers
+            distribute_message(message)
 
-    # Save message buffer after synchronisation
-    save_messages()
+        # Save message buffer after synchronisation
+        save_messages()
+    else:
+        # Message failed validation and is ignored
+        RNS.log(
+            "Received RNS packet failed version validation and is ignored"
+        )
 
     # Flush pending log
     sys.stdout.flush()
@@ -851,56 +930,61 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Parse JSON
         message = json.loads(body)
 
-        # Check if incoming message was a client sent message and does not have a path tag
-        # Bridged messages have a path tag set, local posts of new messages does not.
-
-        # If message has no 'origin' set use this server as origin
-        if MESSAGE_JSON_ORIGIN not in message.keys():
-            # Set Origin to this server
-            message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
-
-        # If message has no 'via' set use this server as via
-        if MESSAGE_JSON_VIA not in message.keys():
-            # Set Via to this server
-            message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
-
-        # If message has no ID yet create one
-        if MESSAGE_JSON_ID not in message.keys():
-            # Create a timestamp and add that as ID to the message map
-            message[MESSAGE_JSON_ID] = int(time.time() * 100000)
-
         # Do some logging of the outcome of the POST processing so far
         if MESSAGE_JSON_PATH not in message.keys():
             # Log new client message received event
             RNS.log(
                 "HTTP POST received from client"
             )
+            # ToDo Set message version correctly at client side (actually not implemented in client)
+            message[MESSAGE_JSON_VERSION] = __message_version__
+            RNS.log("Message version set to " + __message_version__)
         else:
             # Log new client message received event
             RNS.log(
                 "HTTP POST received from bridge"
             )
 
-        # Log origin and via
-        RNS.log("- Message '" + message[MESSAGE_JSON_MSG] + "'")
-        RNS.log("- ID      " + str(message[MESSAGE_JSON_ID]))
-        RNS.log("- Time    '" + message[MESSAGE_JSON_TIME] + "'")
-        RNS.log("- Origin  " + message[MESSAGE_JSON_ORIGIN])
-        RNS.log("- Via     " + message[MESSAGE_JSON_ORIGIN])
-        if MESSAGE_JSON_PATH in message.keys():
-            RNS.log("- Path   " + message[MESSAGE_JSON_PATH])
+        # Check if message is valid
+        if is_valid_message(message):
+            # Check if incoming message was a client sent message and does not have a path tag
+            # Bridged messages have a path tag set, local posts of new messages does not.
 
-        # Build and return JSON success response
-        self._set_headers()
-        self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
+            # If message has no 'origin' set use this server as origin
+            if MESSAGE_JSON_ORIGIN not in message.keys():
+                # Set Origin to this server
+                message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
 
-        # Process, store and distribute message as required
-        if process_incoming_message(message):
-            # Distribute message to all registered or bridged nexus servers
-            distribute_message(message)
+            # If message has no 'via' set use this server as via
+            if MESSAGE_JSON_VIA not in message.keys():
+                # Set Via to this server
+                message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
 
-        # Save message buffer after synchronisation
-        save_messages()
+            # If message has no ID yet create one
+            if MESSAGE_JSON_ID not in message.keys():
+                # Create a timestamp and add that as ID to the message map
+                message[MESSAGE_JSON_ID] = int(time.time() * 100000)
+
+            # Log updated message data
+            log_message(message)
+
+            # Build and return JSON success response
+            self._set_headers()
+            self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
+
+            # Process, store and distribute message as required
+            if process_incoming_message(message):
+                # Distribute message to all registered or bridged nexus servers
+                distribute_message(message)
+
+            # Save message buffer after synchronisation
+            save_messages()
+
+        else:
+            # Message failed validation and is ignored
+            RNS.log(
+                "Received POST request failed version validation and is ignored"
+            )
 
         # Flush pending log
         sys.stdout.flush()
