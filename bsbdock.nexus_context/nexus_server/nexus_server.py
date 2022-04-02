@@ -347,8 +347,6 @@ def initialize_server(
             RNS.log("The contained exception was: %s" % (str(e)))
         # Drop all messages with deprecated or missing message version
         validate_message_store()
-        # Save buffer
-        save_messages()
         # Log how many have survived validation
         RNS.log(
             str(len(MESSAGE_STORE)) + " messages left after validation"
@@ -704,7 +702,8 @@ class AnnounceHandler:
                 if last_heard >= NEXUS_SERVER_TIMEOUT:
                     # Log that we removed the destination
                     RNS.log(
-                        "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2]) + " removed"
+                        "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2]) +
+                        " removed because of timeout"
                     )
                     # Actually remove destination from dict
                     DISTRIBUTION_TARGETS.pop(element)
