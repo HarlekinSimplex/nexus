@@ -286,62 +286,68 @@ def initialize_server(
     # Register a call back function to process all incoming data packages (aka messages)
     NEXUS_SERVER_DESTINATION.set_packet_callback(packet_callback)
 
-    # Initial synchronisation Part 1
-    # Retrieve and process message buffers from bridged targets
-    # Log sync start
-    RNS.log(
-        "Initial synchronization - GET and digest messages from bridged servers"
-    )
-    # Loop through all bridge targets
-    for bridge_target in BRIDGE_TARGETS:
-        # Use GET Request to pull message buffer from bridge server
-        response = requests.get(
-            url=bridge_target[BRIDGE_JSON_URL],
-            headers={'Content-type': 'application/json'}
-        )
-        # Log GET Request
+    # Check if we have bridge links configured
+    if len(BRIDGE_TARGETS) >0:
+        # Initial synchronisation Part 1
+        # Retrieve and process message buffers from bridged targets
+        # Log sync start
         RNS.log(
-            "Pulled bridge message buffer with GET request " + bridge_target[BRIDGE_JSON_URL]
+            "Initial synchronization - GET and digest messages from bridged servers"
         )
-        # Check if GET was successful
-        # If so, parse response body into message buffer and digest it
-        if response.ok:
-            # Parse json bytes into message array of json maps
-            remote_buffer = json.loads(response.content)
-            # Log GET result
-            RNS.log(
-                "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
+        # Loop through all bridge targets
+        for bridge_target in BRIDGE_TARGETS:
+            # Use GET Request to pull message buffer from bridge server
+            response = requests.get(
+                url=bridge_target[BRIDGE_JSON_URL],
+                headers={'Content-type': 'application/json'}
             )
-            # Digest received messages
-            digest_messages(remote_buffer, bridge_target[MERGE_JSON_TAG])
-        else:
-            # Log GET failure
+            # Log GET Request
             RNS.log(
-                "GET request has failed with reason " + response.reason
+                "Pulled bridge message buffer with GET request " + bridge_target[BRIDGE_JSON_URL]
             )
+            # Check if GET was successful
+            # If so, parse response body into message buffer and digest it
+            if response.ok:
+                # Parse json bytes into message array of json maps
+                remote_buffer = json.loads(response.content)
+                # Log GET result
+                RNS.log(
+                    "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
+                )
+                # Digest received messages
+                digest_messages(remote_buffer, bridge_target[MERGE_JSON_TAG])
+            else:
+                # Log GET failure
+                RNS.log(
+                    "GET request has failed with reason " + response.reason
+                )
 
-    # Log start of message distribution after digesting bridge link buffers
-    RNS.log(
-        "Initial synchronization - Distribute messages marked as selected for distribution"
-    )
-    # Distribute all messages marked with merge tag
-    # Loop through massage buffer and distribute all messages that have been tagged
-    for message in copy.deepcopy(MESSAGE_STORE):
-        # Check if message has a merge tag stating the origin bridge tag
-        if MERGE_JSON_TAG in message.keys():
-            # Remove tag at the original buffer (if still there)
-            # Can be invalid in case any incoming message may have caused drop of that message
-            untag_message(message[MESSAGE_JSON_ID], MERGE_JSON_TAG)
-            # Distribute message to distribution targets and other bridge targets
-            # Copy of message still has bridge tan to indicate its origin
-            distribute_message(message)
+        # Log start of message distribution after digesting bridge link buffers
+        RNS.log(
+            "Initial synchronization - Distribute messages marked as selected for distribution"
+        )
+        # Distribute all messages marked with merge tag
+        # Loop through massage buffer and distribute all messages that have been tagged
+        for message in copy.deepcopy(MESSAGE_STORE):
+            # Check if message has a merge tag stating the origin bridge tag
+            if MERGE_JSON_TAG in message.keys():
+                # Remove tag at the original buffer (if still there)
+                # Can be invalid in case any incoming message may have caused drop of that message
+                untag_message(message[MESSAGE_JSON_ID], MERGE_JSON_TAG)
+                # Distribute message to distribution targets and other bridge targets
+                # Copy of message still has bridge tan to indicate its origin
+                distribute_message(message)
 
-    # Save message buffer after synchronisation
-    save_messages()
-    # Log completion of initial synchronization
-    RNS.log(
-        "Initial synchronization - Distribution completed"
-    )
+        # Save message buffer after synchronisation
+        save_messages()
+        # Log completion of initial synchronization
+        RNS.log(
+            "Initial synchronization - Distribution completed"
+        )
+    else:
+        RNS.log(
+            "Now bridge targets defined to use for initial synchronization"
+        )
 
     # Start timer to announce this server after 3 sec
     # All other nexus server with the same aspect will register this server as a distribution target
