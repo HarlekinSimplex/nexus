@@ -9,42 +9,43 @@ version: '3.5'
 #
 services:
   nexus-server_node01:
-    container_name: ${NEXUS_CONTAINER}
+    container_name: ${NEXUS_CONTAINER:-nexus-server_node01}
 
-## If image can not be pulled from docker hub run one of the following commands
-## bash ./build-arm-v7.sh for building an arm architecture image (Raspberry)
-## bash ./build-amd64.sh for building an amd64 architecture image
-    image: ${NEXUS_IMAGE}
+# If image can not be pulled from docker hub run one of the following commands
+# bash ./build-arm-v7.sh for building an arm architecture image (Raspberry)
+# bash ./build-amd64.sh for building an amd64 architecture image
+    image: ${NEXUS_IMAGE:-bsbdock/nexus}
 
-## Uncomment if you want to build the image automatically
-## Requires proper environment variable uncommented at file .env as well
-#    build:
-#      context: ${NEXUS_COMPOSE_HOME}/bsbdock.nexus_context
-#      dockerfile: ${NEXUS_DOCKERFILE}
+# Build environment for nexus container (default ARM-V7 Architectur)
+# Use NEXUS_DOCKERFILE=./Dockerfile_nexus_linux-amd-64 at .env if you want to build for the AMD64 Architecture
+    build:
+      context: ${NEXUS_COMPOSE_HOME:-~/nexus}/bsbdock.nexus_context
+      dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile_nexus_linux-arm-v7}
 
     restart: unless-stopped
     ports:
-## Port for the reticulum server API for reticulum client access if required
-#     - 4242:4242  / - 127.0.0.1:4242:4242
-      - ${NEXUS_PORT_RNSAPI}:4242
-## Port of the nexus server web client and mobile app TCP API
-#      - 4280:4280 / - 127.0.0.1:4280:4180
-#      - 4281:4281 / - 127.0.0.1:4281:4181
-      - ${NEXUS_PORT_WEB}:4280
-      - ${NEXUS_PORT_JSONAPI}:4281
-## Uncomment if you need the RNode LoRa usb interface mapped into the container
+# Port for the reticulum server API for reticulum client access if required
+# Can be set to 127.0.0.1:4242:4242 to permit access other than from localhost
+      - ${NEXUS_PORT_RNSAPI:-4242}:4242
+# Port of the nexus server web admin (not yet served)
+      - ${NEXUS_PORT_WEB:-4280}:4280
+# Port of the nexus server web client and mobile app JSON TCP/IP API
+      - ${NEXUS_PORT_JSONAPI:-4281}:4281
     devices:
-      - ${NEXUS_RNODE_DEVICE}:/dev/ttyACM0
-    env_file:
-      - .env
+# USB Port mapped to container to be used by RNode LoRa interface
+      - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyACM0
+#    env_file:
+#      - .env
     networks:
-      reticulum-test_net:
+      nexus_server_net:
         aliases:
-          - ${NEXUS_CONTAINER_ALIAS}
+# Hostname alias of container within the network spanned by docker
+          - ${NEXUS_CONTAINER_ALIAS:-nexus-server_node01}
     volumes:
       - type: bind
-        source: ${NEXUS_COMPOSE_HOME}/${NEXUS_ROOT_BIND}
-        target: ${NEXUS_ROOT}
+# Mapping used to externalize config files of reticulum, nomadnet and nexus
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root}
+        target: ${NEXUS_ROOT:-/root}
     logging:
       driver: "json-file"
       options:
@@ -55,6 +56,7 @@ services:
 # Reticulum Container Networks
 #
 networks:
-  reticulum-test_net:
-    name: ${NEXUS_NETWORK}
+  nexus_server_net:
+# Name of the network to be spawned or connected to by docker
+    name: ${NEXUS_NETWORK:-nexus-server_net}
     driver: bridge

@@ -290,7 +290,7 @@ def initialize_server(
     # Retrieve and process message buffers from bridged targets
     # Log sync start
     RNS.log(
-        "Initial synchronization - GET and digest messages from bridged serves"
+        "Initial synchronization - GET and digest messages from bridged servers"
     )
     # Loop through all bridge targets
     for bridge_target in BRIDGE_TARGETS:
@@ -534,7 +534,7 @@ class AnnounceHandler:
         announced_role = pickle.loads(app_data)
         # Log role
         RNS.log(
-            "The announce contained the following nexus role dict: " +
+            "The announce contained the following nexus role: " +
             str(announced_role)
         )
 
