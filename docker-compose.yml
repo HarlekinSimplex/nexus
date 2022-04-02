@@ -20,7 +20,7 @@ services:
 ## Requires proper environment variable settings at file .env as well
     build:
       context: ${NEXUS_COMPOSE_HOME:-~/nexus}/bsbdock.nexus_context
-      dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile}
+      dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile_nexus_linux_arm-v7}
 
     restart: unless-stopped
     ports:
