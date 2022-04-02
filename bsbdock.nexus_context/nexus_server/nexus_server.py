@@ -905,8 +905,8 @@ def distribute_message(message):
         if flag and message[MERGE_JSON_TAG] == bridge_target[MERGE_JSON_TAG]:
             # Log message received by distribution event
             RNS.log(
-                "Distribution to " + message[MERGE_JSON_TAG] +
-                " was suppressed because message originated from that server"
+                "Distribution to bridge " + message[MERGE_JSON_TAG] +
+                " was suppressed because message was received from that bridge"
             )
             # Continue with next bridge target
         else:
