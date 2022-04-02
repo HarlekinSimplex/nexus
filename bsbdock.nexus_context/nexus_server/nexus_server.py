@@ -841,11 +841,17 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
         # Do some logging of the outcome of the POST processing so far
         if BRIDGE_JSON_PATH not in message.keys():
-            RNS.log("Message was posted by a client app (New Message)")
+            RNS.log(
+                "New message posted by a client got path " + message[BRIDGE_JSON_PATH]
+            )
+            # Set this server cluster as root to the message path tag
+            message[BRIDGE_JSON_PATH] = '@' + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
         else:
+            # Add this server cluster to message path tag
+            message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
             # Log client message event
             RNS.log(
-                "Message was bridged by a nexus server with path <" + message[BRIDGE_JSON_PATH] + ">"
+                "Path of bridged message was extended to " + message[BRIDGE_JSON_PATH]
             )
 
         # Log origin and via
@@ -914,14 +920,6 @@ def distribute_message(message):
             # It should not be sent out
             if MERGE_JSON_TAG in message.keys():
                 message.pop(MERGE_JSON_TAG)
-
-            # Add server cluster to message path tag (mark it as a bridged message)
-            if BRIDGE_JSON_PATH not in message.keys():
-                # Set actual cluster as bridge path root
-                message[BRIDGE_JSON_PATH] = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-            else:
-                # Add actual cluster to bridge path
-                message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
 
             # Use POST to send message to bridge nexus server link
             response = requests.post(
