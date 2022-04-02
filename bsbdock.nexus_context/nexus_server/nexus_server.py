@@ -1124,10 +1124,10 @@ def save_messages():
         save_file = open(STORAGE_FILE, "wb")
         save_file.write(msgpack.packb(MESSAGE_STORE))
         save_file.close()
-        RNS.log("Messages saved to storage file:" + STORAGE_FILE)
+        RNS.log("Messages saved to storage file " + STORAGE_FILE)
 
     except Exception as err:
-        RNS.log("Could not save message to storage file: " + STORAGE_FILE)
+        RNS.log("Could not save message to storage file " + STORAGE_FILE)
         RNS.log("The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
 
 
