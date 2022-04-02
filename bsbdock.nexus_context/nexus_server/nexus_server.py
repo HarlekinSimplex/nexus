@@ -80,6 +80,7 @@ MESSAGE_JSON_ORIGIN_LOCAL = "local"
 # Tags used with bridge distribution management
 BRIDGE_JSON_URL = "url"
 MESSAGE_JSON_PATH = "path"
+MESSAGE_PATH_SEP = ":"
 # Tags used during message buffer use (tag to indicate is selected for distribution)
 MERGE_JSON_TAG = "tag"
 
@@ -147,6 +148,20 @@ def untag_message(message_id, tag):
 
 
 ##########################################################################################
+# Add element to given path without duplicates at the end
+#
+# '' + 'bbb' -> ':bbb'
+# ':aaa' + 'bbb' -> ':aaa:bbb'
+# ':aaa:bbb' + 'bbb' -> ':aaa:bbb'
+#
+def extend_path(path, element):
+    path_array = path.split(":")
+    if path_array[len(path_array) - 1] != element:
+        path = path + ":" + element
+    return path
+
+
+##########################################################################################
 # Add actual cluster to distribution path
 #
 def add_cluster_to_message_path(message_id):
@@ -156,14 +171,16 @@ def add_cluster_to_message_path(message_id):
             # Do some logging of the actual message path
             if MESSAGE_JSON_PATH not in message.keys():
                 # Set this server cluster as root to the message path tag
-                message[MESSAGE_JSON_PATH] = '@' + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+                message[MESSAGE_JSON_PATH] = MESSAGE_PATH_SEP + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
                 # Log set root path event
                 RNS.log(
                     "New message " + str(message[MESSAGE_JSON_ID]) + " has root path " + message[MESSAGE_JSON_PATH]
                 )
             else:
                 # Add this server cluster to message path
-                message[MESSAGE_JSON_PATH] = message[MESSAGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+                message[MESSAGE_JSON_PATH] =\
+                    extend_path(message[MESSAGE_JSON_PATH], NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER])
+
                 # Log path extension event
                 RNS.log(
                     "Path of message " + str(message[MESSAGE_JSON_ID]) + " was extended to " + message[
