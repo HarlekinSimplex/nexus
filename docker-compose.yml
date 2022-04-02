@@ -34,8 +34,8 @@ services:
     devices:
 # USB Port mapped to container to be used by RNode LoRa interface
       - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyACM0
-#    env_file:
-#      - .env
+    env_file:
+      - .env
     networks:
       nexus_server_net:
         aliases:
