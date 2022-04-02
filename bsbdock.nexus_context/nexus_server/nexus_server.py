@@ -401,11 +401,16 @@ def initialize_server(
         )
         # Loop through all bridge targets
         for bridge_target in BRIDGE_TARGETS:
-            # Use GET Request to pull message buffer from bridge server
-            response = requests.get(
-                url=bridge_target[BRIDGE_JSON_URL],
-                headers={'Content-type': 'application/json'}
-            )
+            try:
+                # Use GET Request to pull message buffer from bridge server
+                response = requests.get(
+                    url=bridge_target[BRIDGE_JSON_URL],
+                    headers={'Content-type': 'application/json'}
+                )
+            except Exception as e:
+                RNS.log("Could not complete GET request " + bridge_target[BRIDGE_JSON_URL])
+                RNS.log("The contained exception was: %s" % (str(e)))
+
             # Log GET Request
             RNS.log(
                 "Pulled bridge message buffer with GET request " + bridge_target[BRIDGE_JSON_URL]
@@ -1035,11 +1040,16 @@ def distribute_message(message):
                 message.pop(MERGE_JSON_TAG)
 
             # Use POST to send message to bridge nexus server link
-            response = requests.post(
-                url=bridge_target[BRIDGE_JSON_URL],
-                json=message,
-                headers={'Content-type': 'application/json'}
-            )
+            try:
+                response = requests.post(
+                    url=bridge_target[BRIDGE_JSON_URL],
+                    json=message,
+                    headers={'Content-type': 'application/json'}
+                )
+            except Exception as e:
+                RNS.log("Could not complete POST request " + bridge_target[BRIDGE_JSON_URL])
+                RNS.log("The contained exception was: %s" % (str(e)))
+
             # Check if request was successful
             if response.ok:
                 # Log that we bridged a message
