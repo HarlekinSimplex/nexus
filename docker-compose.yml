@@ -16,11 +16,11 @@ services:
 ## bash ./build-amd64.sh for building an amd64 architecture image
     image: ${NEXUS_IMAGE:-bsbdock/nexus}
 
-## Uncomment if you want to build the image automatically
-## Requires proper environment variable uncommented at file .env as well
-#    build:
-#      context: ${NEXUS_COMPOSE_HOME}/bsbdock.nexus_context
-#      dockerfile: ${NEXUS_DOCKERFILE}
+## Uncomment if you want to build the image automatically by docker compose
+## Requires proper environment variable settings at file .env as well
+    build:
+      context: ${NEXUS_COMPOSE_HOME:-~/nexus}/bsbdock.nexus_context
+      dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile}
 
     restart: unless-stopped
     ports:
