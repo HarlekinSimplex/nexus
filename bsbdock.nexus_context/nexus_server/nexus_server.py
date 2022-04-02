@@ -155,7 +155,7 @@ def untag_message(message_id, tag):
 #
 def drop_message(message_id):
     # ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
-    for i in range(0, len(MESSAGE_STORE)-1):
+    for i in range(len(MESSAGE_STORE)):
         if MESSAGE_STORE[i][MESSAGE_JSON_ID] == message_id:
             MESSAGE_STORE.pop(i)
 
@@ -351,6 +351,8 @@ def initialize_server(
         RNS.log(
             str(len(MESSAGE_STORE)) + " messages left after validation"
         )
+        # Save buffer
+        save_messages()
     else:
         RNS.log("No messages to load from " + STORAGE_FILE)
 
