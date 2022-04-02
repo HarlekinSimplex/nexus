@@ -11,13 +11,13 @@ services:
   nexus-server_node01:
     container_name: ${NEXUS_CONTAINER:-nexus-server_node01}
 
-## If image can not be pulled from docker hub run one of the following commands
-## bash ./build-arm-v7.sh for building an arm architecture image (Raspberry)
-## bash ./build-amd64.sh for building an amd64 architecture image
+# If image can not be pulled from docker hub run one of the following commands
+# bash ./build-arm-v7.sh for building an arm architecture image (Raspberry)
+# bash ./build-amd64.sh for building an amd64 architecture image
     image: ${NEXUS_IMAGE:-bsbdock/nexus}
 
-## Uncomment if you want to build the image automatically by docker compose
-## Requires proper environment variable settings at file .env as well
+# Build environment for nexus container (default ARM-V7 Architectur)
+# Use NEXUS_DOCKERFILE=./Dockerfile_nexus_linux-amd-64 at .env if you want to build for the AMD64 Architecture
     build:
       context: ${NEXUS_COMPOSE_HOME:-~/nexus}/bsbdock.nexus_context
       dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile_nexus_linux-arm-v7}
