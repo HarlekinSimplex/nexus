@@ -30,7 +30,7 @@ __version__ = "1.3.0.1"
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
 # New messages will be tagged with 'v': __message_version__
-__message_version__ = "0"
+__message_version__ = "1"
 
 # Trigger some Debug only related log entries
 DEBUG = False
@@ -80,12 +80,13 @@ MESSAGE_JSON_VERSION = "v"
 MESSAGE_JSON_ORIGIN = "origin"
 MESSAGE_JSON_VIA = "via"
 MESSAGE_JSON_ORIGIN_LOCAL = "local"
-
 # Tags used with bridge distribution management
-BRIDGE_JSON_URL = "url"
 MESSAGE_JSON_PATH = "path"
 MESSAGE_PATH_SEP = ":"
-# Tags used during message buffer use (tag to indicate is selected for distribution)
+# Tags used with bridge destination management
+BRIDGE_JSON_URL = "url"
+BRIDGE_JSON_CLUSTER = "cluster"
+# Tags used during message buffer merge (tag to indicate is selected for distribution)
 MERGE_JSON_TAG = "tag"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
@@ -127,8 +128,28 @@ NEXUS_SERVER_IDENTITY = RNS.Identity
 ##########################################################################################
 # Helper functions
 #
+
+##########################################################################################
+# Remove all whitespaces
+#
 def remove_whitespace(in_string: str):
     return in_string.translate(str.maketrans(dict.fromkeys(string.whitespace)))
+
+
+##########################################################################################
+# Save messages to storage file
+#
+def save_messages():
+    # Check if storage file is there
+    try:
+        save_file = open(STORAGE_FILE, "wb")
+        save_file.write(msgpack.packb(MESSAGE_STORE))
+        save_file.close()
+        RNS.log("Messages saved to storage file " + STORAGE_FILE)
+
+    except Exception as err:
+        RNS.log("Could not save message to storage file " + STORAGE_FILE)
+        RNS.log("The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
 
 
 ##########################################################################################
@@ -413,7 +434,8 @@ def initialize_server(
                 )
                 # Log GET Request
                 RNS.log(
-                    "Pulled bridge message buffer with GET request " + bridge_target[BRIDGE_JSON_URL]
+                    "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                    "' with GET request " + bridge_target[BRIDGE_JSON_URL]
                 )
                 # Check if GET was successful
                 # If so, parse response body into message buffer and digest it
@@ -426,11 +448,11 @@ def initialize_server(
                     )
 
                     # Digest received messages
-                    digest_messages(remote_buffer, bridge_target[MERGE_JSON_TAG])
+                    digest_messages(remote_buffer, bridge_target[BRIDGE_JSON_CLUSTER])
                 else:
                     # Log GET failure
                     RNS.log(
-                        "GET request has failed with reason " + response.reason
+                        "GET request has failed with reason: " + response.reason
                     )
             except Exception as e:
                 RNS.log("Could not complete GET request " + bridge_target[BRIDGE_JSON_URL])
@@ -480,31 +502,6 @@ def initialize_server(
 
     # Flush pending log
     sys.stdout.flush()
-
-
-##########################################################################################
-# Digest an array of messages into the global message store
-#
-# This is used for merging available message buffers into one buffer (Synchronization during server startup)
-#
-def digest_messages(merge_buffer, tag):
-    # Process all messages inside pulled buffer as if they have been standard incoming messages
-    # Distribution however will be performed only for messages that got a tag and are still in the buffer
-    # after all messages has been digested
-    for merge_message in merge_buffer:
-        # Check if message to digest is valid
-        if is_valid_message(merge_message):
-            # Digest the message into the message buffer and return ID if we need to distribute the message
-            message_id = process_incoming_message(merge_message)
-            # If distribution is due, tag message as new (distribution will occur as soon as we have completed
-            # processing of all messages in the pulled remote buffer)
-            if message_id:
-                # Tag message with given tag
-                tag_message(message_id, MERGE_JSON_TAG, tag)
-        else:
-            RNS.log(
-                "Message pulled from bridge has invalid version and is dropped"
-            )
 
 
 ##########################################################################################
@@ -775,109 +772,6 @@ def packet_callback(data, _packet):
 
 
 ##########################################################################################
-# Process incoming message
-#
-# This function is called by the reticulum paket handler (message was received as reticulum message) and by the POST
-# request handler in case it was received from a client or bridge POST request
-# Its Job is to check if we need to add/insert the message in the message buffer or should it be ignored
-def process_incoming_message(message):
-    # If message is more recent than the oldest message in the buffer
-    # and has not arrived earlier, then add/insert message at the correct position and
-    # Get actual timestamp from message
-    message_id = message[MESSAGE_JSON_ID]
-    # Get actual number of messages in the buffer
-    message_store_size = len(MESSAGE_STORE)
-
-    if message_store_size == 0:
-        # First message arrived event
-        RNS.log(
-            "Message is first message in the buffer"
-        )
-        # Append the JSON message map to the message store at last position
-        MESSAGE_STORE.append(message)
-    else:
-        # At least one message is already there and need to be checked for insertion
-        # loop through all messages and check if we have to store and distribute it
-        for i in range(0, message_store_size):
-            # Check if we already have that message at the actual buffer position
-            if message_id == MESSAGE_STORE[i][MESSAGE_JSON_ID]:
-                # Timestamp did match now check if message does too
-                if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
-                    # Log that we have that one already
-                    RNS.log(
-                        "Message storing and distribution not necessary because message is already in the buffer"
-                    )
-                    # Since we consider a message at the buffer has been distributed already we can exit this function
-                    # Flush pending log
-                    sys.stdout.flush()
-                    # Return False to indicate that distribution is not required
-                    return False
-
-                # Message has same time stamp but differs
-                else:
-                    # Log message insertion with same timestamp
-                    RNS.log(
-                        "Message has a duplicate timestamp but differs (Message will be inserted in timeline)"
-                    )
-                    # Insert it at the actual position
-                    MESSAGE_STORE.insert(i, message)
-                    # Message processing completed
-                    # Exit loop
-                    break
-            # Timestamps to not mach
-            # lets check if it is to be inserted here
-            elif message_id < MESSAGE_STORE[i][MESSAGE_JSON_ID]:
-                # Yes it is
-                # Log message insertion with same timestamp
-                RNS.log(
-                    "Message will be inserted in timeline"
-                )
-                # Insert it at the actual position
-                MESSAGE_STORE.insert(i, message)
-                # Message processing completed
-                # Exit loop
-                break
-            # Continue until we find the place to insert it, or
-            # we have checked the latest entry in the buffer (i=size-1)
-            # If we are there than we can append and distribute it
-            # After that has happened we terminate the loop as well
-            # The loop will never be terminated automatically
-            if i == message_store_size - 1:
-                # Log message append
-                RNS.log(
-                    "Message is most recent and will be appended to timeline"
-                )
-                # Append the JSON message map to the message store at last position
-                MESSAGE_STORE.append(message)
-                # Message processing completed
-                # Exit loop
-                break
-
-    # If we pass this point of digestion we have new message received
-    # Update the distribution path of the message
-    add_cluster_to_message_path(message_id)
-
-    # No we are done with adding/inserting
-    # Lets check buffer size if defined limit is exceeded now
-    # and if so pop oldest message until we are back in the limit
-    while True:
-        length = len(MESSAGE_STORE)
-        if length > MESSAGE_BUFFER_SIZE:
-            # Log message pop
-            RNS.log(
-                "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
-                " exceeded. Oldest message is dropped now"
-            )
-            # If limit is exceeded just drop first (oldest) element of list
-            MESSAGE_STORE.pop(0)
-        else:
-            break
-
-    # Return message_id of the processed message that is cleared for distribution
-    return message_id
-
-
-##########################################################################################
 # HTTP request handler class to process received HTTP POST/GET app client requests
 #
 # The client app uses json requests to communicate with the server.
@@ -1009,6 +903,134 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
 
 ##########################################################################################
+# Digest an array of messages into the global message store
+#
+# This is used for merging available message buffers into one buffer (Synchronization during server startup)
+#
+def digest_messages(merge_buffer, cluster):
+    # Process all messages inside pulled buffer as if they have been standard incoming messages
+    # Distribution however will be performed only for messages that got a cluster tag and are still in the buffer
+    # after all messages have been digested
+    for message in merge_buffer:
+        # Check if message to digest is valid
+        if is_valid_message(message):
+            # Digest the message into the message buffer and return ID if we need to distribute the message
+            message_id = process_incoming_message(message)
+            # If distribution is due, tag message as new (distribution will occur as soon as we have completed
+            # processing of all messages in the pulled remote buffer)
+            if message_id:
+                # Tag message with given cluster tag
+                tag_message(message_id, BRIDGE_JSON_CLUSTER, cluster)
+        else:
+            RNS.log(
+                "Message pulled from bridge to cluster '" + cluster + "' has invalid version and is dropped"
+            )
+
+
+##########################################################################################
+# Process incoming message
+#
+# This function is called by the reticulum paket handler (message was received as reticulum message) and by the POST
+# request handler in case it was received from a client or bridge POST request
+# Its Job is to check if we need to add/insert the message in the message buffer or should it be ignored
+def process_incoming_message(message):
+    # If message is more recent than the oldest message in the buffer
+    # and has not arrived earlier, then add/insert message at the correct position and
+    # Get actual timestamp from message
+    message_id = message[MESSAGE_JSON_ID]
+    # Get actual number of messages in the buffer
+    message_store_size = len(MESSAGE_STORE)
+
+    if message_store_size == 0:
+        # First message arrived event
+        RNS.log(
+            "Message is first message in the buffer"
+        )
+        # Append the JSON message map to the message store at last position
+        MESSAGE_STORE.append(message)
+    else:
+        # At least one message is already there and need to be checked for insertion
+        # loop through all messages and check if we have to store and distribute it
+        for i in range(0, message_store_size):
+            # Check if we already have that message at the actual buffer position
+            if message_id == MESSAGE_STORE[i][MESSAGE_JSON_ID]:
+                # Timestamp did match now check if message does too
+                if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
+                    # Log that we have that one already
+                    RNS.log(
+                        "Message storing and distribution not necessary because message is already in the buffer"
+                    )
+                    # Since we consider a message at the buffer has been distributed already we can exit this function
+                    # Flush pending log
+                    sys.stdout.flush()
+                    # Return False to indicate that distribution is not required
+                    return False
+
+                # Message has same time stamp but differs
+                else:
+                    # Log message insertion with same timestamp
+                    RNS.log(
+                        "Message has a duplicate timestamp but differs (Message will be inserted in timeline)"
+                    )
+                    # Insert it at the actual position
+                    MESSAGE_STORE.insert(i, message)
+                    # Message processing completed
+                    # Exit loop
+                    break
+            # Timestamps to not mach
+            # lets check if it is to be inserted here
+            elif message_id < MESSAGE_STORE[i][MESSAGE_JSON_ID]:
+                # Yes it is
+                # Log message insertion with same timestamp
+                RNS.log(
+                    "Message will be inserted in timeline"
+                )
+                # Insert it at the actual position
+                MESSAGE_STORE.insert(i, message)
+                # Message processing completed
+                # Exit loop
+                break
+            # Continue until we find the place to insert it, or
+            # we have checked the latest entry in the buffer (i=size-1)
+            # If we are there than we can append and distribute it
+            # After that has happened we terminate the loop as well
+            # The loop will never be terminated automatically
+            if i == message_store_size - 1:
+                # Log message append
+                RNS.log(
+                    "Message is most recent and will be appended to timeline"
+                )
+                # Append the JSON message map to the message store at last position
+                MESSAGE_STORE.append(message)
+                # Message processing completed
+                # Exit loop
+                break
+
+    # If we pass this point of digestion we have new message received
+    # Update the distribution path of the message
+    add_cluster_to_message_path(message_id)
+
+    # No we are done with adding/inserting
+    # Lets check buffer size if defined limit is exceeded now
+    # and if so pop oldest message until we are back in the limit
+    while True:
+        length = len(MESSAGE_STORE)
+        if length > MESSAGE_BUFFER_SIZE:
+            # Log message pop
+            RNS.log(
+                "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
+                " exceeded. Oldest message is dropped now"
+            )
+            # If limit is exceeded just drop first (oldest) element of list
+            MESSAGE_STORE.pop(0)
+        else:
+            break
+
+    # Return message_id of the processed message that is cleared for distribution
+    return message_id
+
+
+##########################################################################################
 # Message distribution to registered nexus serves
 #
 # The given message (json map) will be distributed to all linked nexus servers that have
@@ -1021,48 +1043,56 @@ def distribute_message(message):
     # Process bridge targets
 
     # Loop through all registered bridge targets
-    # and remove all targets that have not announced them self within given timeout period
-    # If one target is not expired send message to that target
     for bridge_target in BRIDGE_TARGETS:
-        # Check if actual message was pulled from that target
-        # If so suppress distribution to that target
-        flag = False
-        if MERGE_JSON_TAG in message.keys():
-            flag = True
-        if flag and message[MERGE_JSON_TAG] == bridge_target[MERGE_JSON_TAG]:
-            # Log message received by distribution event
-            RNS.log(
-                "Distribution to bridge " + message[MERGE_JSON_TAG] +
-                " was suppressed because message was received from that bridge"
-            )
-            # Continue with next bridge target
-        else:
-            # Remove merge tag from message if it is still there
-            # It should not be sent out
-            if MERGE_JSON_TAG in message.keys():
-                message.pop(MERGE_JSON_TAG)
-
-            # Use POST to send message to bridge nexus server link
-            try:
-                response = requests.post(
-                    url=bridge_target[BRIDGE_JSON_URL],
-                    json=message,
-                    headers={'Content-type': 'application/json'}
+        # Check if actual message was pulled from that target; aka has the same cluster tag like the bridge target
+        # Check if we have a cluster tag
+        if BRIDGE_JSON_CLUSTER in message.keys():
+            # Check if it is the same as the bridge target
+            if message[BRIDGE_JSON_CLUSTER] == bridge_target[BRIDGE_JSON_CLUSTER]:
+                # Log that this message was actually received from that bridge
+                RNS.log(
+                    "Message distribution to bridge " + bridge_target[BRIDGE_JSON_CLUSTER] +
+                    " was suppressed because message was received from that bridge"
                 )
-                # Check if request was successful
-                if response.ok:
-                    # Log that we bridged a message
-                    RNS.log(
-                        "POST request " + bridge_target[BRIDGE_JSON_URL] + " completed successfully"
+                # Continue with next bridge target
+            # Now lets check if we can find the target cluster in the path of the message
+            # If it is there the message has traveled through that cluster already and does not need to go there again
+            elif message[MESSAGE_JSON_PATH].find(bridge_target[BRIDGE_JSON_CLUSTER]) != -1:
+                # Log that this message was actually received from that bridge
+                RNS.log(
+                    "Message distribution to bridge " + bridge_target[BRIDGE_JSON_CLUSTER] +
+                    " was suppressed because its path '" + message[MESSAGE_JSON_PATH] +
+                    "' contains that cluster already"
+                )
+            else:
+                # Remove cluster tag from message
+                if BRIDGE_JSON_CLUSTER in message.keys():
+                    message.pop(BRIDGE_JSON_CLUSTER)
+
+                # Use POST to send message to bridge nexus server link
+                try:
+                    response = requests.post(
+                        url=bridge_target[BRIDGE_JSON_URL],
+                        json=message,
+                        headers={'Content-type': 'application/json'}
                     )
-                else:
-                    # Log POST failure
-                    RNS.log(
-                        "POST request " + bridge_target[BRIDGE_JSON_URL] + " failed with reason:" + response.reason
-                    )
-            except Exception as e:
-                RNS.log("Could not complete POST request " + bridge_target[BRIDGE_JSON_URL])
-                RNS.log("The contained exception was: %s" % (str(e)))
+                    # Check if request was successful
+                    if response.ok:
+                        # Log that we bridged a message
+                        RNS.log(
+                            "POST request " + bridge_target[BRIDGE_JSON_URL] +
+                            " to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] + "' completed successfully"
+                        )
+                    else:
+                        # Log POST failure
+                        RNS.log(
+                            "POST request " + bridge_target[BRIDGE_JSON_URL] +
+                            " to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                            "' failed with reason: " + response.reason
+                        )
+                except Exception as e:
+                    RNS.log("Could not complete POST request " + bridge_target[BRIDGE_JSON_URL])
+                    RNS.log("The contained exception was: %s" % (str(e)))
 
     # Process distribution targets
 
@@ -1127,28 +1157,11 @@ def distribute_message(message):
                 DISTRIBUTION_TARGETS.pop(target)
 
 
-##########################################################################################
-# Save messages to storage file
-#
-def save_messages():
-    # Check if storage file is there
-    try:
-        save_file = open(STORAGE_FILE, "wb")
-        save_file.write(msgpack.packb(MESSAGE_STORE))
-        save_file.close()
-        RNS.log("Messages saved to storage file " + STORAGE_FILE)
-
-    except Exception as err:
-        RNS.log("Could not save message to storage file " + STORAGE_FILE)
-        RNS.log("The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
-
-
 #######################################################
 # Program Startup
 #
 # Default python entrypoint with processing the give commandline parameters
 #
-
 def signal_handler(_signal, _frame):
     print("exiting")
 
