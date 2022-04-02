@@ -346,7 +346,7 @@ def initialize_server(
         )
     else:
         RNS.log(
-            "Now bridge targets defined to use for initial synchronization"
+            "Now bridge targets configured to use for initial synchronization"
         )
 
     # Start timer to announce this server after 3 sec
