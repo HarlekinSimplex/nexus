@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # ##########################################################################################
+#
 # Nexus Message Server
 #
 import copy
@@ -24,10 +25,12 @@ import vendor.umsgpack as msgpack
 #
 
 # Server Version
-__version__ = "1.3.0"
+__version__ = "1.3.0.1"
 
-version = (1, 3, 0)
-"Module version tuple"
+# Message purge version
+# Increase this number to cause an automatic message drop from saved buffers or any incoming message.
+# New messages will be tagged with 'v': __message_version__
+__message_version__ = "3"
 
 # Trigger some Debug only related log entries
 DEBUG = False
@@ -72,15 +75,18 @@ BRIDGE_TARGETS = []
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
+MESSAGE_JSON_VERSION = "v"
 # Tags used with normal distribution management
 MESSAGE_JSON_ORIGIN = "origin"
 MESSAGE_JSON_VIA = "via"
 MESSAGE_JSON_ORIGIN_LOCAL = "local"
-
 # Tags used with bridge distribution management
+MESSAGE_JSON_PATH = "path"
+MESSAGE_PATH_SEP = ":"
+# Tags used with bridge destination management
 BRIDGE_JSON_URL = "url"
-BRIDGE_JSON_PATH = "path"
-# Tags used during message buffer use (tag to indicate is selected for distribution)
+BRIDGE_JSON_CLUSTER = "cluster"
+# Tags used during message buffer merge (tag to indicate is selected for distribution)
 MERGE_JSON_TAG = "tag"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
@@ -122,28 +128,146 @@ NEXUS_SERVER_IDENTITY = RNS.Identity
 ##########################################################################################
 # Helper functions
 #
+
+##########################################################################################
+# Remove all whitespaces
+#
 def remove_whitespace(in_string: str):
     return in_string.translate(str.maketrans(dict.fromkeys(string.whitespace)))
+
+
+##########################################################################################
+# Save messages to storage file
+#
+def save_messages():
+    # Check if storage file is there
+    try:
+        save_file = open(STORAGE_FILE, "wb")
+        save_file.write(msgpack.packb(MESSAGE_STORE))
+        save_file.close()
+        RNS.log("Messages saved to storage file " + STORAGE_FILE)
+
+    except Exception as err:
+        RNS.log("Could not save message to storage file " + STORAGE_FILE)
+        RNS.log("The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
 
 
 ##########################################################################################
 # Tag message by message ID
 #
 def tag_message(message_id, tag, value):
-    # Bif ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
+    # ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
     for message in MESSAGE_STORE:
         if message[MESSAGE_JSON_ID] == message_id:
             message[tag] = value
+            break
 
 
 ##########################################################################################
 # Untag message by message ID
 #
 def untag_message(message_id, tag):
-    # Bif ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
+    # ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
     for message in MESSAGE_STORE:
         if message[MESSAGE_JSON_ID] == message_id:
             message.pop(tag)
+            break
+
+
+##########################################################################################
+# Drop Message from message store by ID
+#
+def drop_message(message_id):
+    # ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
+    for i in range(len(MESSAGE_STORE)):
+        if MESSAGE_STORE[i][MESSAGE_JSON_ID] == message_id:
+            MESSAGE_STORE.pop(i)
+            break
+
+
+##########################################################################################
+# Add element to given path without duplicates at the end
+#
+# '' + 'bbb' -> ':bbb'
+# ':aaa' + 'bbb' -> ':aaa:bbb'
+# ':aaa:bbb' + 'bbb' -> ':aaa:bbb'
+#
+def extend_path(path, element):
+    path_array = path.split(":")
+    if path_array[len(path_array) - 1] != element:
+        path = path + ":" + element
+    return path
+
+
+##########################################################################################
+# Add actual cluster to distribution path
+#
+def add_cluster_to_message_path(message_id):
+    # ToDo: Refactor message storing to an array with indexed maps (possibly with DB in v2)
+    for message in MESSAGE_STORE:
+        if message[MESSAGE_JSON_ID] == message_id:
+            # Do some logging of the actual message path
+            if MESSAGE_JSON_PATH not in message.keys():
+                # Set this server cluster as root to the message path tag
+                message[MESSAGE_JSON_PATH] = MESSAGE_PATH_SEP + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+                # Log set root path event
+                RNS.log(
+                    "New message " + str(message[MESSAGE_JSON_ID]) + " has root path " + message[MESSAGE_JSON_PATH]
+                )
+            else:
+                # Add this server cluster to message path
+                message[MESSAGE_JSON_PATH] = \
+                    extend_path(message[MESSAGE_JSON_PATH], NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER])
+
+                # Log path extension event
+                RNS.log(
+                    "Path of message " + str(message[MESSAGE_JSON_ID]) + " was extended to " + message[
+                        MESSAGE_JSON_PATH]
+                )
+
+
+##########################################################################################
+# Validate/Drop/Migrate Message
+#
+def is_valid_message(message):
+    # Invalid message if message version tag is missing
+    if MESSAGE_JSON_VERSION not in message.keys():
+        return False
+    # Invalid message if message version tag is below 1
+    elif message[MESSAGE_JSON_VERSION] != __message_version__:
+        return False
+
+    return True
+
+
+##########################################################################################
+# Validate message store
+#
+def validate_message_store():
+    for message in MESSAGE_STORE.copy():
+        if not is_valid_message(message):
+            RNS.log(
+                "Message " + str(message[MESSAGE_JSON_ID]) + " will be dropped due to deprecated message version"
+            )
+            # Drop invalid message from message store
+            drop_message(message[MESSAGE_JSON_ID])
+    # Update saved message store
+    save_messages()
+
+
+##########################################################################################
+# Log message data
+#
+def log_message(message):
+    # Log message data
+    RNS.log("- Message '" + message[MESSAGE_JSON_MSG] + "'")
+    RNS.log("- Version " + str(message[MESSAGE_JSON_VERSION]))
+    RNS.log("- ID      " + str(message[MESSAGE_JSON_ID]))
+    RNS.log("- Time    '" + message[MESSAGE_JSON_TIME] + "'")
+    RNS.log("- Origin  " + message[MESSAGE_JSON_ORIGIN])
+    RNS.log("- Via     " + message[MESSAGE_JSON_ORIGIN])
+    if MESSAGE_JSON_PATH in message.keys():
+        RNS.log("- Path   " + message[MESSAGE_JSON_PATH])
 
 
 ##########################################################################################
@@ -217,7 +341,7 @@ def initialize_server(
         BRIDGE_TARGETS = json.loads(bridge_links)
 
     # Log actually used parameters
-    RNS.log("Nexus Server v" + __version__ + " startup configuration:")
+    RNS.log("Nexus Server v" + __version__ + " using Message v" + __message_version__ + " startup configuration:")
     RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT))
     RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL))
     RNS.log("  --port=" + str(NEXUS_SERVER_ADDRESS[1]))
@@ -246,6 +370,12 @@ def initialize_server(
         except Exception as e:
             RNS.log("Could not load messages from " + STORAGE_FILE)
             RNS.log("The contained exception was: %s" % (str(e)))
+        # Drop all messages with deprecated or missing message version
+        validate_message_store()
+        # Log how many have survived validation
+        RNS.log(
+            str(len(MESSAGE_STORE)) + " messages left after validation"
+        )
     else:
         RNS.log("No messages to load from " + STORAGE_FILE)
 
@@ -286,62 +416,74 @@ def initialize_server(
     # Register a call back function to process all incoming data packages (aka messages)
     NEXUS_SERVER_DESTINATION.set_packet_callback(packet_callback)
 
-    # Initial synchronisation Part 1
-    # Retrieve and process message buffers from bridged targets
-    # Log sync start
-    RNS.log(
-        "Initial synchronization - GET and digest messages from bridged servers"
-    )
-    # Loop through all bridge targets
-    for bridge_target in BRIDGE_TARGETS:
-        # Use GET Request to pull message buffer from bridge server
-        response = requests.get(
-            url=bridge_target[BRIDGE_JSON_URL],
-            headers={'Content-type': 'application/json'}
-        )
-        # Log GET Request
+    # Check if we have bridge links configured
+    if len(BRIDGE_TARGETS) > 0:
+        # Initial synchronisation Part 1
+        # Retrieve and process message buffers from bridged targets
+        # Log sync start
         RNS.log(
-            "Pulled bridge message buffer with GET request " + bridge_target[BRIDGE_JSON_URL]
+            "Initial synchronization - GET and digest messages from bridged servers"
         )
-        # Check if GET was successful
-        # If so, parse response body into message buffer and digest it
-        if response.ok:
-            # Parse json bytes into message array of json maps
-            remote_buffer = json.loads(response.content)
-            # Log GET result
-            RNS.log(
-                "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
-            )
-            # Digest received messages
-            digest_messages(remote_buffer, bridge_target[MERGE_JSON_TAG])
-        else:
-            # Log GET failure
-            RNS.log(
-                "GET request has failed with reason " + response.reason
-            )
+        # Loop through all bridge targets
+        for bridge_target in BRIDGE_TARGETS:
+            try:
+                # Use GET Request to pull message buffer from bridge server
+                response = requests.get(
+                    url=bridge_target[BRIDGE_JSON_URL],
+                    headers={'Content-type': 'application/json'}
+                )
+                # Log GET Request
+                RNS.log(
+                    "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                    "' with GET request " + bridge_target[BRIDGE_JSON_URL]
+                )
+                # Check if GET was successful
+                # If so, parse response body into message buffer and digest it
+                if response.ok:
+                    # Parse json bytes into message array of json maps
+                    remote_buffer = json.loads(response.content)
+                    # Log GET result
+                    RNS.log(
+                        "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
+                    )
 
-    # Log start of message distribution after digesting bridge link buffers
-    RNS.log(
-        "Initial synchronization - Distribute messages marked as selected for distribution"
-    )
-    # Distribute all messages marked with merge tag
-    # Loop through massage buffer and distribute all messages that have been tagged
-    for message in copy.deepcopy(MESSAGE_STORE):
-        # Check if message has a merge tag stating the origin bridge tag
-        if MERGE_JSON_TAG in message.keys():
-            # Remove tag at the original buffer (if still there)
-            # Can be invalid in case any incoming message may have caused drop of that message
-            untag_message(message[MESSAGE_JSON_ID], MERGE_JSON_TAG)
-            # Distribute message to distribution targets and other bridge targets
-            # Copy of message still has bridge tan to indicate its origin
-            distribute_message(message)
+                    # Digest received messages
+                    digest_messages(remote_buffer, bridge_target[BRIDGE_JSON_CLUSTER])
+                else:
+                    # Log GET failure
+                    RNS.log(
+                        "GET request has failed with reason: " + response.reason
+                    )
+            except Exception as e:
+                RNS.log("Could not complete GET request " + bridge_target[BRIDGE_JSON_URL])
+                RNS.log("The contained exception was: %s" % (str(e)))
 
-    # Save message buffer after synchronisation
-    save_messages()
-    # Log completion of initial synchronization
-    RNS.log(
-        "Initial synchronization - Distribution completed"
-    )
+        # Log start of message distribution after digesting bridge link buffers
+        RNS.log(
+            "Initial synchronization - Distribute messages marked as selected for distribution"
+        )
+        # Distribute all messages marked with merge tag
+        # Loop through massage buffer and distribute all messages that have been tagged
+        for message in copy.deepcopy(MESSAGE_STORE):
+            # Check if message has a merge tag stating the origin bridge tag
+            if MERGE_JSON_TAG in message.keys():
+                # Remove tag at the original buffer (if still there)
+                # Can be invalid in case any incoming message may have caused drop of that message
+                untag_message(message[MESSAGE_JSON_ID], MERGE_JSON_TAG)
+                # Distribute message to distribution targets and other bridge targets
+                # Copy of message still has bridge tan to indicate its origin
+                distribute_message(message)
+
+        # Save message buffer after synchronisation
+        save_messages()
+        # Log completion of initial synchronization
+        RNS.log(
+            "Initial synchronization - Distribution completed"
+        )
+    else:
+        RNS.log(
+            "No bridge targets configured to use for initial synchronization"
+        )
 
     # Start timer to announce this server after 3 sec
     # All other nexus server with the same aspect will register this server as a distribution target
@@ -363,35 +505,12 @@ def initialize_server(
 
 
 ##########################################################################################
-# Digest an array of messages into the global message store
-#
-# This is used for merging available message buffers into one buffer (Synchronization during server startup)
-#
-def digest_messages(merge_buffer, tag):
-    # Process all messages inside pulled buffer as if they have been standard incoming messages
-    # Distribution however will be performed only for messages that got a tag and are still in the buffer
-    # after all messages has been digested
-    for merge_message in merge_buffer:
-        # Digest the message into the message buffer and return ID if we need to distribute the message
-        message_id = process_incoming_message(merge_message)
-        # If distribution is due, tag message as new (distribution will occur as soon as we have completed
-        # processing of all messages in the pulled remote buffer)
-        if message_id:
-            # Tag message with given tag
-            tag_message(message_id, MERGE_JSON_TAG, tag)
-
-
-##########################################################################################
 # Announce the server to the reticulum network
 #
 # Calling this function will start a timer that will call this function again after the
 # specified re-announce period.
 #
 def single_announce_server():
-    global NEXUS_SERVER_DESTINATION
-    global NEXUS_SERVER_LONGPOLL
-    global NEXUS_SERVER_ROLE
-
     # Announce this server to the network
     # All other nexus server with the same aspect will register this server as a distribution target
     # noinspection PyArgumentList
@@ -407,8 +526,6 @@ def single_announce_server():
 
 
 def announce_server():
-    global NEXUS_SERVER_LONGPOLL
-
     # Announce this server to the network
     # All other nexus server with the same aspect will register this server as a distribution target
     single_announce_server()
@@ -424,9 +541,6 @@ def announce_server():
 # Start up of the threaded HTTP server to handle client json GET/POST requests
 #
 def launch_http_server():
-    global NEXUS_SERVER_ASPECT
-    global NEXUS_SERVER_ADDRESS
-
     # Create multithreading http server with given address and port to listen for json app interaction
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
     # Log launch with aspect and address/port used
@@ -593,7 +707,8 @@ class AnnounceHandler:
                 if last_heard >= NEXUS_SERVER_TIMEOUT:
                     # Log that we removed the destination
                     RNS.log(
-                        "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2]) + " removed"
+                        "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2]) +
+                        " removed because of timeout"
                     )
                     # Actually remove destination from dict
                     DISTRIBUTION_TARGETS.pop(element)
@@ -630,122 +745,30 @@ def packet_callback(data, _packet):
     # In this case it was a python dictionary containing the json message
     message = pickle.loads(data)
 
-    # Log message received by distribution event
-    RNS.log(
-        "Message received via RNS packet: " + str(message)
-    )
+    # Check if message is valid
+    if is_valid_message(message):
+        # Log message received by distribution event
+        RNS.log(
+            "Valid message received via RNS packet"
+        )
+        # Log message data
+        log_message(message)
 
-    # Process, store and distribute message as required
-    if process_incoming_message(message):
-        # Distribute message to all registered or bridged nexus servers
-        distribute_message(message)
+        # Process, store and distribute message as required
+        if process_incoming_message(message):
+            # Distribute message to all registered or bridged nexus servers
+            distribute_message(message)
 
-    # Save message buffer after synchronisation
-    save_messages()
+        # Save message buffer after synchronisation
+        save_messages()
+    else:
+        # Message failed validation and is ignored
+        RNS.log(
+            "Received RNS packet failed version validation and is ignored"
+        )
 
     # Flush pending log
     sys.stdout.flush()
-
-
-##########################################################################################
-# Process incoming message
-#
-# This function is called by the reticulum paket handler (message was received as reticulum message) and by the POST
-# request handler in case it was received from a client or bridge POST request
-# Its Job is to check if we need to add/insert the message in the message buffer or should it be ignored
-def process_incoming_message(message):
-    global MESSAGE_STORE
-
-    # If message is more recent than the oldest message in the buffer
-    # and has not arrived earlier than add/insert message at the correct position and
-    # Get actual timestamp from message
-    message_id = message[MESSAGE_JSON_ID]
-    # Get actual number of messages in the buffer
-    message_store_size = len(MESSAGE_STORE)
-
-    if message_store_size == 0:
-        # First message arrived event
-        RNS.log(
-            "Message is first message in the buffer"
-        )
-        # Append the JSON message map to the message store at last position
-        MESSAGE_STORE.append(message)
-    else:
-        # At least one message is already there and need to be checked for insertion
-        # loop through all messages and check if we have to store and distribute it
-        for i in range(0, message_store_size):
-            # Check if we already have that message at the actual buffer position
-            if message_id == MESSAGE_STORE[i][MESSAGE_JSON_ID]:
-                # Timestamp did match now check if message does too
-                if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
-                    # Log that we have that one already
-                    RNS.log(
-                        "Message storing and distribution not necessary because message is already in the buffer"
-                    )
-                    # Since we consider a message at the buffer has been distributed already we can exit this function
-                    # Flush pending log
-                    sys.stdout.flush()
-                    # Return False to indicate that distribution is not required
-                    return False
-
-                # Message has same time stamp but differs
-                else:
-                    # Log message insertion with same timestamp
-                    RNS.log(
-                        "Message has a duplicate timestamp but differs (Message will be inserted in timeline)"
-                    )
-                    # Insert it at the actual position
-                    MESSAGE_STORE.insert(i, message)
-                    # Message processing completed
-                    # Exit loop
-                    break
-            # Timestamps to not mach
-            # lets check if it is to be inserted here
-            elif message_id < MESSAGE_STORE[i][MESSAGE_JSON_ID]:
-                # Yes it is
-                # Log message insertion with same timestamp
-                RNS.log(
-                    "Message will be inserted in timeline"
-                )
-                # Insert it at the actual position
-                MESSAGE_STORE.insert(i, message)
-                # Message processing completed
-                # Exit loop
-                break
-            # Continue until we find the place to insert it, or
-            # we have checked the latest entry in the buffer (i=size-1)
-            # If we are there than we can append and distribute it
-            # After that has happened we terminate the loop as well
-            # The loop will never be terminated automatically
-            if i == message_store_size - 1:
-                # Log message append
-                RNS.log(
-                    "Message is most recent and will be appended to timeline"
-                )
-                # Append the JSON message map to the message store at last position
-                MESSAGE_STORE.append(message)
-                # Message processing completed
-                # Exit loop
-                break
-
-    # No we are done with adding/inserting
-    # Lets check buffer size if defined limit is exceeded now
-    # and if so pop oldest message until we are back in the limit
-    while True:
-        length = len(MESSAGE_STORE)
-        if length > MESSAGE_BUFFER_SIZE:
-            # Log message pop
-            RNS.log(
-                "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
-                " exceeded. Oldest message is dropped now"
-            )
-            # If limit is exceeded just drop first (oldest) element of list
-            MESSAGE_STORE.pop(0)
-        else:
-            break
-
-    # Return message_id of the processed message that is cleared for distribution
-    return message_id
 
 
 ##########################################################################################
@@ -810,55 +833,61 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Parse JSON
         message = json.loads(body)
 
-        # Log message received event
-        RNS.log(
-            "Message received via HTTP POST: " + str(message)
-        )
-
-        # Check if incoming message was a client sent message and does not have a path tag
-        # Bridged messages have a path tag set, local posts of new messages does not.
-
-        # If message has no 'origin' set use this server as origin
-        if MESSAGE_JSON_ORIGIN not in message.keys():
-            # Set Origin to this server
-            message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
-
-        # If message has no 'via' set use this server as via
-        if MESSAGE_JSON_VIA not in message.keys():
-            # Set Via to this server
-            message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
-
-        # If message has no ID yet create one
-        if MESSAGE_JSON_ID not in message.keys():
-            # Create a timestamp and add that as ID to the message map
-            message[MESSAGE_JSON_ID] = int(time.time() * 100000)
-
         # Do some logging of the outcome of the POST processing so far
-        if BRIDGE_JSON_PATH not in message.keys():
-            RNS.log("Message was posted by a client app (New Message)")
-        else:
-            # Log client message event
+        if MESSAGE_JSON_PATH not in message.keys():
+            # Log new client message received event
             RNS.log(
-                "Message was bridged by a nexus server with path <" + message[BRIDGE_JSON_PATH] + ">"
+                "HTTP POST received from client"
+            )
+            # ToDo Set message version correctly at client side (actually not implemented in client)
+            message[MESSAGE_JSON_VERSION] = __message_version__
+            RNS.log("Message version set to " + __message_version__)
+        else:
+            # Log new client message received event
+            RNS.log(
+                "HTTP POST received from bridge"
             )
 
-        # Log origin and via
-        RNS.log(
-            "Message has Origin " + message[MESSAGE_JSON_ORIGIN] +
-            " and was received via " + message[MESSAGE_JSON_VIA]
-        )
+        # Check if message is valid
+        if is_valid_message(message):
+            # Check if incoming message was a client sent message and does not have a path tag
+            # Bridged messages have a path tag set, local posts of new messages does not.
 
-        # Build and return JSON success response
-        self._set_headers()
-        self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
+            # If message has no 'origin' set use this server as origin
+            if MESSAGE_JSON_ORIGIN not in message.keys():
+                # Set Origin to this server
+                message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
 
-        # Process, store and distribute message as required
-        if process_incoming_message(message):
-            # Distribute message to all registered or bridged nexus servers
-            distribute_message(message)
+            # If message has no 'via' set use this server as via
+            if MESSAGE_JSON_VIA not in message.keys():
+                # Set Via to this server
+                message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
 
-        # Save message buffer after synchronisation
-        save_messages()
+            # If message has no ID yet create one
+            if MESSAGE_JSON_ID not in message.keys():
+                # Create a timestamp and add that as ID to the message map
+                message[MESSAGE_JSON_ID] = int(time.time() * 100000)
+
+            # Log updated message data
+            log_message(message)
+
+            # Build and return JSON success response
+            self._set_headers()
+            self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
+
+            # Process, store and distribute message as required
+            if process_incoming_message(message):
+                # Distribute message to all registered or bridged nexus servers
+                distribute_message(message)
+
+            # Save message buffer after synchronisation
+            save_messages()
+
+        else:
+            # Message failed validation and is ignored
+            RNS.log(
+                "Received POST request failed version validation and is ignored"
+            )
 
         # Flush pending log
         sys.stdout.flush()
@@ -874,6 +903,140 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 
 
 ##########################################################################################
+# Digest an array of messages into the global message store
+#
+# This is used for merging available message buffers into one buffer (Synchronization during server startup)
+#
+def digest_messages(merge_buffer, cluster):
+    # Process all messages inside pulled buffer as if they have been standard incoming messages
+    # Distribution however will be performed only for messages that got a cluster tag and are still in the buffer
+    # after all messages have been digested
+    for message in merge_buffer:
+        # Check if message to digest is valid
+        if is_valid_message(message):
+            # Digest the message into the message buffer and return ID if we need to distribute the message
+            message_id = process_incoming_message(message)
+            # If distribution is due, tag message as new (distribution will occur as soon as we have completed
+            # processing of all messages in the pulled remote buffer)
+            if message_id:
+                # Tag message with given cluster tag
+                tag_message(message_id, BRIDGE_JSON_CLUSTER, cluster)
+        else:
+            RNS.log(
+                "Message " + str(message_id) + " pulled from bridge to cluster '" + cluster +
+                "' has invalid version and is dropped"
+            )
+
+
+##########################################################################################
+# Process incoming message
+#
+# This function is called by the reticulum paket handler (message was received as reticulum message) and by the POST
+# request handler in case it was received from a client or bridge POST request
+# Its Job is to check if we need to add/insert the message in the message buffer or should it be ignored
+def process_incoming_message(message):
+    # If message is more recent than the oldest message in the buffer
+    # and has not arrived earlier, then add/insert message at the correct position and
+    # Get actual timestamp from message
+    message_id = message[MESSAGE_JSON_ID]
+    # Get actual number of messages in the buffer
+    message_store_size = len(MESSAGE_STORE)
+
+    if message_store_size == 0:
+        # First message arrived event
+        RNS.log(
+            "Message " + str(message_id) +
+            " is first message in the buffer"
+        )
+        # Append the JSON message map to the message store at last position
+        MESSAGE_STORE.append(message)
+    else:
+        # At least one message is already there and need to be checked for insertion
+        # loop through all messages and check if we have to store and distribute it
+        for i in range(0, message_store_size):
+            # Check if we already have that message at the actual buffer position
+            if message_id == MESSAGE_STORE[i][MESSAGE_JSON_ID]:
+                # Timestamp did match now check if message does too
+                if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
+                    # Log that we have that one already
+                    RNS.log(
+                        "Message " + str(message_id) +
+                        " storing and distribution not necessary because message is already in the buffer"
+                    )
+                    # Since we consider a message at the buffer has been distributed already we can exit this function
+                    # Flush pending log
+                    sys.stdout.flush()
+                    # Return False to indicate that distribution is not required
+                    return False
+
+                # Message has same time stamp but differs
+                else:
+                    # Log message insertion with same timestamp
+                    RNS.log(
+                        "Message " + str(message_id) +
+                        " has a duplicate timestamp but differs (Message will be inserted in timeline)"
+                    )
+                    # Insert it at the actual position
+                    MESSAGE_STORE.insert(i, message)
+                    # Message processing completed
+                    # Exit loop
+                    break
+            # Timestamps to not mach
+            # lets check if it is to be inserted here
+            elif message_id < MESSAGE_STORE[i][MESSAGE_JSON_ID]:
+                # Yes it is
+                # Log message insertion with same timestamp
+                RNS.log(
+                    "Message " + str(message_id) +
+                    " will be inserted in timeline"
+                )
+                # Insert it at the actual position
+                MESSAGE_STORE.insert(i, message)
+                # Message processing completed
+                # Exit loop
+                break
+            # Continue until we find the place to insert it, or
+            # we have checked the latest entry in the buffer (i=size-1)
+            # If we are there than we can append and distribute it
+            # After that has happened we terminate the loop as well
+            # The loop will never be terminated automatically
+            if i == message_store_size - 1:
+                # Log message append
+                RNS.log(
+                    "Message " + str(message_id) +
+                    " is most recent and will be appended to timeline"
+                )
+                # Append the JSON message map to the message store at last position
+                MESSAGE_STORE.append(message)
+                # Message processing completed
+                # Exit loop
+                break
+
+    # If we pass this point of digestion we have new message received
+    # Update the distribution path of the message
+    add_cluster_to_message_path(message_id)
+
+    # No we are done with adding/inserting
+    # Lets check buffer size if defined limit is exceeded now
+    # and if so pop oldest message until we are back in the limit
+    while True:
+        length = len(MESSAGE_STORE)
+        if length > MESSAGE_BUFFER_SIZE:
+            # Log message pop
+            RNS.log(
+                "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
+                " exceeded. Oldest message is dropped now"
+            )
+            # If limit is exceeded just drop first (oldest) element of list
+            MESSAGE_STORE.pop(0)
+        else:
+            break
+
+    # Return message_id of the processed message that is cleared for distribution
+    return message_id
+
+
+##########################################################################################
 # Message distribution to registered nexus serves
 #
 # The given message (json map) will be distributed to all linked nexus servers that have
@@ -883,41 +1046,41 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 # Additionally, the message is bridged to all registered bridge targets.
 #
 def distribute_message(message):
-    global DISTRIBUTION_TARGETS
-
     # Process bridge targets
 
     # Loop through all registered bridge targets
-    # and remove all targets that have not announced them self within given timeout period
-    # If one target is not expired send message to that target
     for bridge_target in BRIDGE_TARGETS:
-        # Check if actual message was pulled from that target
-        # If so suppress distribution to that target
-        flag = False
-        if MERGE_JSON_TAG in message.keys():
-            flag = True
-        if flag and message[MERGE_JSON_TAG] == bridge_target[MERGE_JSON_TAG]:
-            # Log message received by distribution event
+        # Check if actual message was pulled from that target; aka has the same cluster tag like the bridge target
+        # Check if we have a cluster tag
+        if BRIDGE_JSON_CLUSTER in message.keys():
+            # Check if it is the same as the bridge target
+            if message[BRIDGE_JSON_CLUSTER] == bridge_target[BRIDGE_JSON_CLUSTER]:
+                # Log that this message was actually received from that bridge
+                RNS.log(
+                    "Message distribution to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                    "' was suppressed because message was received from that bridge"
+                )
+                # Continue with next bridge target
+                continue
+
+        # Now lets check if we can find the target cluster in the path of the message
+        # If it is there the message has traveled through that cluster already and does not need to go there again
+        if message[MESSAGE_JSON_PATH].find(bridge_target[BRIDGE_JSON_CLUSTER]) != -1:
+            # Log that this message was actually received from that bridge
             RNS.log(
-                "Distribution to " + message[MERGE_JSON_TAG] +
-                " was suppressed because message originated from that server"
+                "Message distribution to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                "' was suppressed because its path '" + message[MESSAGE_JSON_PATH] +
+                "' contains that cluster already"
             )
             # Continue with next bridge target
-        else:
-            # Remove merge tag from message if it is still there
-            # It should not be sent out
-            if MERGE_JSON_TAG in message.keys():
-                message.pop(MERGE_JSON_TAG)
+            continue
 
-            # Add server cluster to message path tag (mark it as a bridged message)
-            if BRIDGE_JSON_PATH not in message.keys():
-                # Set actual cluster as bridge path root
-                message[BRIDGE_JSON_PATH] = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
-            else:
-                # Add actual cluster to bridge path
-                message[BRIDGE_JSON_PATH] = message[BRIDGE_JSON_PATH] + ":" + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
+        # Remove cluster tag from message
+        if BRIDGE_JSON_CLUSTER in message.keys():
+            message.pop(BRIDGE_JSON_CLUSTER)
 
-            # Use POST to send message to bridge nexus server link
+        # Use POST to send message to bridge nexus server link
+        try:
             response = requests.post(
                 url=bridge_target[BRIDGE_JSON_URL],
                 json=message,
@@ -927,13 +1090,19 @@ def distribute_message(message):
             if response.ok:
                 # Log that we bridged a message
                 RNS.log(
-                    "POST request " + bridge_target[BRIDGE_JSON_URL] + " completed successfully"
+                    "POST request " + bridge_target[BRIDGE_JSON_URL] +
+                    " to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] + "' completed successfully"
                 )
             else:
                 # Log POST failure
                 RNS.log(
-                    "POST request " + bridge_target[BRIDGE_JSON_URL] + " failed with reason:" + response.reason
+                    "POST request " + bridge_target[BRIDGE_JSON_URL] +
+                    " to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                    "' failed with reason: " + response.reason
                 )
+        except Exception as e:
+            RNS.log("Could not complete POST request " + bridge_target[BRIDGE_JSON_URL])
+            RNS.log("The contained exception was: %s" % (str(e)))
 
     # Process distribution targets
 
@@ -998,30 +1167,11 @@ def distribute_message(message):
                 DISTRIBUTION_TARGETS.pop(target)
 
 
-##########################################################################################
-# Save messages to storage file
-#
-def save_messages():
-    global MESSAGE_STORE
-
-    # Check if storage file is there
-    try:
-        save_file = open(STORAGE_FILE, "wb")
-        save_file.write(msgpack.packb(MESSAGE_STORE))
-        save_file.close()
-        RNS.log("Messages saved to storage file:" + STORAGE_FILE)
-
-    except Exception as err:
-        RNS.log("Could not save message to storage file: " + STORAGE_FILE)
-        RNS.log("The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
-
-
 #######################################################
 # Program Startup
 #
 # Default python entrypoint with processing the give commandline parameters
 #
-
 def signal_handler(_signal, _frame):
     print("exiting")
 
