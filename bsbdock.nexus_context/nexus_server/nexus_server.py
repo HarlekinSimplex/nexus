@@ -30,7 +30,7 @@ __version__ = "1.3.0.1"
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
 # New messages will be tagged with 'v': __message_version__
-__message_version__ = "1"
+__message_version__ = "2"
 
 # Trigger some Debug only related log entries
 DEBUG = False
@@ -234,7 +234,7 @@ def is_valid_message(message):
     if MESSAGE_JSON_VERSION not in message.keys():
         return False
     # Invalid message if message version tag is below 1
-    elif message[MESSAGE_JSON_VERSION] < __message_version__:
+    elif message[MESSAGE_JSON_VERSION] != __message_version__:
         return False
 
     return True
@@ -1055,44 +1055,48 @@ def distribute_message(message):
                     " was suppressed because message was received from that bridge"
                 )
                 # Continue with next bridge target
-            # Now lets check if we can find the target cluster in the path of the message
-            # If it is there the message has traveled through that cluster already and does not need to go there again
-            elif message[MESSAGE_JSON_PATH].find(bridge_target[BRIDGE_JSON_CLUSTER]) != -1:
-                # Log that this message was actually received from that bridge
+                continue
+
+        # Now lets check if we can find the target cluster in the path of the message
+        # If it is there the message has traveled through that cluster already and does not need to go there again
+        if message[MESSAGE_JSON_PATH].find(bridge_target[BRIDGE_JSON_CLUSTER]) != -1:
+            # Log that this message was actually received from that bridge
+            RNS.log(
+                "Message distribution to bridge " + bridge_target[BRIDGE_JSON_CLUSTER] +
+                " was suppressed because its path '" + message[MESSAGE_JSON_PATH] +
+                "' contains that cluster already"
+            )
+            # Continue with next bridge target
+            continue
+
+        # Remove cluster tag from message
+        if BRIDGE_JSON_CLUSTER in message.keys():
+            message.pop(BRIDGE_JSON_CLUSTER)
+
+        # Use POST to send message to bridge nexus server link
+        try:
+            response = requests.post(
+                url=bridge_target[BRIDGE_JSON_URL],
+                json=message,
+                headers={'Content-type': 'application/json'}
+            )
+            # Check if request was successful
+            if response.ok:
+                # Log that we bridged a message
                 RNS.log(
-                    "Message distribution to bridge " + bridge_target[BRIDGE_JSON_CLUSTER] +
-                    " was suppressed because its path '" + message[MESSAGE_JSON_PATH] +
-                    "' contains that cluster already"
+                    "POST request " + bridge_target[BRIDGE_JSON_URL] +
+                    " to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] + "' completed successfully"
                 )
             else:
-                # Remove cluster tag from message
-                if BRIDGE_JSON_CLUSTER in message.keys():
-                    message.pop(BRIDGE_JSON_CLUSTER)
-
-                # Use POST to send message to bridge nexus server link
-                try:
-                    response = requests.post(
-                        url=bridge_target[BRIDGE_JSON_URL],
-                        json=message,
-                        headers={'Content-type': 'application/json'}
-                    )
-                    # Check if request was successful
-                    if response.ok:
-                        # Log that we bridged a message
-                        RNS.log(
-                            "POST request " + bridge_target[BRIDGE_JSON_URL] +
-                            " to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] + "' completed successfully"
-                        )
-                    else:
-                        # Log POST failure
-                        RNS.log(
-                            "POST request " + bridge_target[BRIDGE_JSON_URL] +
-                            " to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
-                            "' failed with reason: " + response.reason
-                        )
-                except Exception as e:
-                    RNS.log("Could not complete POST request " + bridge_target[BRIDGE_JSON_URL])
-                    RNS.log("The contained exception was: %s" % (str(e)))
+                # Log POST failure
+                RNS.log(
+                    "POST request " + bridge_target[BRIDGE_JSON_URL] +
+                    " to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                    "' failed with reason: " + response.reason
+                )
+        except Exception as e:
+            RNS.log("Could not complete POST request " + bridge_target[BRIDGE_JSON_URL])
+            RNS.log("The contained exception was: %s" % (str(e)))
 
     # Process distribution targets
 
