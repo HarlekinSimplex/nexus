@@ -30,7 +30,7 @@ __version__ = "1.3.0.1"
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
 # New messages will be tagged with 'v': __message_version__
-__message_version__ = "2"
+__message_version__ = "3"
 
 # Trigger some Debug only related log entries
 DEBUG = False
