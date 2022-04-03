@@ -1057,8 +1057,8 @@ def distribute_message(message):
             if message[BRIDGE_JSON_CLUSTER] == bridge_target[BRIDGE_JSON_CLUSTER]:
                 # Log that this message was actually received from that bridge
                 RNS.log(
-                    "Message distribution to bridge " + bridge_target[BRIDGE_JSON_CLUSTER] +
-                    " was suppressed because message was received from that bridge"
+                    "Message distribution to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                    "' was suppressed because message was received from that bridge"
                 )
                 # Continue with next bridge target
                 continue
@@ -1068,8 +1068,8 @@ def distribute_message(message):
         if message[MESSAGE_JSON_PATH].find(bridge_target[BRIDGE_JSON_CLUSTER]) != -1:
             # Log that this message was actually received from that bridge
             RNS.log(
-                "Message distribution to bridge " + bridge_target[BRIDGE_JSON_CLUSTER] +
-                " was suppressed because its path '" + message[MESSAGE_JSON_PATH] +
+                "Message distribution to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                "' was suppressed because its path '" + message[MESSAGE_JSON_PATH] +
                 "' contains that cluster already"
             )
             # Continue with next bridge target
