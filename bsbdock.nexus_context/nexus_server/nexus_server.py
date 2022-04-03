@@ -923,7 +923,8 @@ def digest_messages(merge_buffer, cluster):
                 tag_message(message_id, BRIDGE_JSON_CLUSTER, cluster)
         else:
             RNS.log(
-                "Message pulled from bridge to cluster '" + cluster + "' has invalid version and is dropped"
+                "Message " + str(message_id) + " pulled from bridge to cluster '" + cluster +
+                "' has invalid version and is dropped"
             )
 
 
@@ -944,7 +945,8 @@ def process_incoming_message(message):
     if message_store_size == 0:
         # First message arrived event
         RNS.log(
-            "Message is first message in the buffer"
+            "Message " + str(message_id) +
+            " is first message in the buffer"
         )
         # Append the JSON message map to the message store at last position
         MESSAGE_STORE.append(message)
@@ -958,7 +960,8 @@ def process_incoming_message(message):
                 if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
                     # Log that we have that one already
                     RNS.log(
-                        "Message storing and distribution not necessary because message is already in the buffer"
+                        "Message " + str(message_id) +
+                        " storing and distribution not necessary because message is already in the buffer"
                     )
                     # Since we consider a message at the buffer has been distributed already we can exit this function
                     # Flush pending log
@@ -970,7 +973,8 @@ def process_incoming_message(message):
                 else:
                     # Log message insertion with same timestamp
                     RNS.log(
-                        "Message has a duplicate timestamp but differs (Message will be inserted in timeline)"
+                        "Message " + str(message_id) +
+                        " has a duplicate timestamp but differs (Message will be inserted in timeline)"
                     )
                     # Insert it at the actual position
                     MESSAGE_STORE.insert(i, message)
@@ -983,7 +987,8 @@ def process_incoming_message(message):
                 # Yes it is
                 # Log message insertion with same timestamp
                 RNS.log(
-                    "Message will be inserted in timeline"
+                    "Message " + str(message_id) +
+                    " will be inserted in timeline"
                 )
                 # Insert it at the actual position
                 MESSAGE_STORE.insert(i, message)
@@ -998,7 +1003,8 @@ def process_incoming_message(message):
             if i == message_store_size - 1:
                 # Log message append
                 RNS.log(
-                    "Message is most recent and will be appended to timeline"
+                    "Message " + str(message_id) +
+                    " is most recent and will be appended to timeline"
                 )
                 # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
