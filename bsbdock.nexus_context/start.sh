@@ -38,7 +38,7 @@ rnstatus
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Direwulf startup
+echo " Direwulf startup"
 echo "-------------------------------------------------------------"
 direwulf -t 0 &
 
