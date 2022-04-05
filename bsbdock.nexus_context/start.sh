@@ -29,10 +29,22 @@ ${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
 ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
 ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
 ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
-echo ""
 
+#echo ""
+#echo "-------------------------------------------------------------"
+#echo " Direwolf startup"
+#echo "-------------------------------------------------------------"
+#direwolf -t 0
+
+echo ""
 echo "-------------------------------------------------------------"
 echo " Actual Reticulum interface configuration:"
+echo "-------------------------------------------------------------"
+cat /root/.reticulum/config
+
+echo ""
+echo "-------------------------------------------------------------"
+echo " Actual Reticulum interface status:"
 echo "-------------------------------------------------------------"
 rnstatus
 

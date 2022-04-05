@@ -25,7 +25,7 @@ import vendor.umsgpack as msgpack
 #
 
 # Server Version
-__version__ = "1.3.0.1"
+__version__ = "1.3.0.2"
 
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
@@ -71,11 +71,12 @@ BRIDGE_TARGETS = []
 # Message Examples:
 # {"id": Integer, "time": "String", "msg": "MessageBody"}
 # {'id': 1646174919000. 'time': '2022-03-01 23:48:39', 'msg': 'Test Message #1'}
-# Tags used in messages
+# Tags and constants used in messages
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
 MESSAGE_JSON_VERSION = "v"
+MESSAGE_ID_NOT_SET = 'ID_NOT_SET'
 # Tags used with normal distribution management
 MESSAGE_JSON_ORIGIN = "origin"
 MESSAGE_JSON_VIA = "via"
@@ -521,7 +522,7 @@ def single_announce_server():
     # Log announcement / long poll announcement
     RNS.log(
         # Log entry does not use bytes but a string representation
-        "Server announce sent with app_data: " + str(NEXUS_SERVER_ROLE)
+        "Server announcement sent with app_data: " + str(NEXUS_SERVER_ROLE)
     )
 
 
@@ -912,6 +913,11 @@ def digest_messages(merge_buffer, cluster):
     # Distribution however will be performed only for messages that got a cluster tag and are still in the buffer
     # after all messages have been digested
     for message in merge_buffer:
+        # Get message id for logging
+        if MESSAGE_JSON_ID in message.keys():
+            message_id = message[MESSAGE_JSON_ID]
+        else:
+            message_id = MESSAGE_ID_NOT_SET
         # Check if message to digest is valid
         if is_valid_message(message):
             # Digest the message into the message buffer and return ID if we need to distribute the message
