@@ -30,6 +30,12 @@ ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
 ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
 ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
 
+#echo ""
+#echo "-------------------------------------------------------------"
+#echo " Direwolf startup"
+#echo "-------------------------------------------------------------"
+#direwolf -t 0
+
 echo ""
 echo "-------------------------------------------------------------"
 echo " Actual Reticulum interface configuration:"
@@ -42,13 +48,6 @@ echo " Actual Reticulum interface status:"
 echo "-------------------------------------------------------------"
 rnstatus
 
-#echo ""
-#echo "-------------------------------------------------------------"
-#echo " Direwolf startup"
-#echo "-------------------------------------------------------------"
-#direwolf -t 0
-
-echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus Server startup"
 echo "-------------------------------------------------------------"
