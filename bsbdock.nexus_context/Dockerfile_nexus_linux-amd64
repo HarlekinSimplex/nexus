@@ -33,7 +33,10 @@ RUN pip3 install requests
 # Install personal helper tools
 RUN apt -y install mc nano
 
-# Expose port for Reticulum server TCP Interface (disable as default) 
+# Install direwolf
+RUN apt -y install direwolf
+
+# Expose port for Reticulum server TCP Interface (disable as default)
 EXPOSE 4242
 # Expose ports for Nexus Server Web and API Interface
 EXPOSE 4280
