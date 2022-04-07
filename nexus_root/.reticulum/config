@@ -20,7 +20,7 @@
 
   [[TCP Client Interface]]
     type = TCPClientInterface
-    interface_enabled = False
+    interface_enabled = True
     outgoing = True
     target_host = reticulum.deltamatrix.org
     target_port = 4251

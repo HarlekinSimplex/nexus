@@ -2,9 +2,9 @@
 # bsbdock/reticulum Dockerfile
 #
 # How to build this container:
-# docker build --tag bsbdock/nexus -f Dockerfile_nexus1.3.0.1.2_linux-amd64 .
-# docker build --tag bsbdock/nexus:1.3.0.1_linux-amd64 -f Dockerfile_nexus1.3.0.1.2_linux-amd64 .
-# docker push bsbdock/nexus:1.3.0.1_linux-amd64
+# docker build --tag bsbdock/nexus -f Dockerfile_nexusdev_linux-amd64 .
+# docker build --tag bsbdock/nexus:dev_linux-amd64 -f Dockerfile_nexusdev_linux-amd64 .
+# docker push bsbdock/nexus:dev_linux-amd64
 #
 # How to invoke a shell into this container:
 # docker run -it bsbdock/nexus bash
