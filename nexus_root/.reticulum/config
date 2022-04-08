@@ -35,7 +35,7 @@
     txpower = 7
     spreadingfactor = 7
     codingrate = 5
-    id_callsign = DD8SB-0
+    id_callsign = NO1CLL
     id_interval = 600
     flow_control = False
 
