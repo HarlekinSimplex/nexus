@@ -22,7 +22,7 @@
     type = TCPClientInterface
     interface_enabled = True
     outgoing = True
-    target_host = reticulum.deltamatrix.org
+    target_host = nexus.deltamatrix.org
     target_port = 4251
 
   [[RNode LoRa Interface]]
