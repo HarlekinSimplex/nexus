@@ -129,6 +129,7 @@ if __name__ == "__main__":
     # Parse commandline arguments
     try:
 
+        time.sleep(3)
         __do_something()
         launch_http_server()
 
