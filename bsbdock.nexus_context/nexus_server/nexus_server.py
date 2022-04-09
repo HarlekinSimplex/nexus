@@ -645,6 +645,13 @@ class AnnounceHandler:
             RNS.prettyhexrep(destination_hash)
         )
 
+        # Check if we have app data received
+        if app_data is None:
+            # Log app data missing
+            RNS.log("The announce contained no valid data but nexus role dictionary was expected")
+            RNS.log("The announce is ignored")
+            return
+
         # Recreate nexus role dict from received app data
         announced_role = pickle.loads(app_data)
         # Log role
