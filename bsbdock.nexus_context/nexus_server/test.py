@@ -32,36 +32,34 @@ def __do_something():
         RNS.log("Created storage path " + lxm_storage)
 
     lxm_router = LXMF.LXMRouter(storagepath=lxm_storage)
+    lxm_router.register_delivery_callback(lxmf_delivery_callback)
 
     identity_a = RNS.Identity()
     identity_b = RNS.Identity()
 
-    destination_a = RNS.Destination(
+    source = RNS.Destination(
         identity_a,
         RNS.Destination.OUT,
         RNS.Destination.SINGLE,
         "nexus",
         "cockpit"
     )
-    RNS.log("destination_a full address: " + str(destination_a))
-    RNS.log("destination_a address (hash): " + RNS.prettyhexrep(destination_a.hash))
-    destination_a.announce()
+    RNS.log("source full address: " + str(source))
+    RNS.log("source address (hash): " + RNS.prettyhexrep(source.hash))
+    source.announce()
 
-    destination_b = RNS.Destination(
+    destination = RNS.Destination(
         identity_b,
-        RNS.Destination.OUT,
+        RNS.Destination.IN,
         RNS.Destination.SINGLE,
         "nexus",
         "cockpit"
     )
-    RNS.log("destination_b full address: " + str(destination_b))
-    RNS.log("destination_b address (hash): " + RNS.prettyhexrep(destination_b.hash))
-    destination_b.announce()
+    RNS.log("destination full address: " + str(destination))
+    RNS.log("destination address (hash): " + RNS.prettyhexrep(destination.hash))
+    destination.announce()
 
-    lxm_message = LXMF.LXMessage(destination_b, destination_a, "Content String A->B", "Title Sting")
-    lxm_router.handle_outbound(lxm_message)
-
-    lxm_message = LXMF.LXMessage(destination_a, destination_b, "Content String B->A", "Title Sting")
+    lxm_message = LXMF.LXMessage(destination, source, "Content String A->B", "Title Sting")
     lxm_router.handle_outbound(lxm_message)
 
     launch_http_server()
