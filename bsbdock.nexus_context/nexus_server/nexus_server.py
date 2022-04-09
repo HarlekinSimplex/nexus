@@ -648,8 +648,7 @@ class AnnounceHandler:
         # Check if we have app data received
         if app_data is None:
             # Log app data missing
-            RNS.log("The announce contained no valid data but nexus role dictionary was expected")
-            RNS.log("The announce is ignored")
+            RNS.log("The announce is ignored because it contained no valid nexus role dictionary")
             return
 
         # Recreate nexus role dict from received app data
