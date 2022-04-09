@@ -22,6 +22,12 @@ loglevel = LOG_EXTREME
 
 def __do_something():
     # Pull up Reticulum stack as configured
+    time.sleep(3)
+    RNS.log(
+        "... GO !"
+    )
+
+
     RNS.Reticulum()
 
     lxm_storage = os.path.expanduser("~") + "/.nexus/storage_lxm"
