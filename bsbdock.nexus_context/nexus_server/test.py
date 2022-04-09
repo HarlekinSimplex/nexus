@@ -70,6 +70,11 @@ def __do_something():
 
     launch_http_server()
 
+    while True:
+        time.sleep(3)
+        destination.announce()
+        source.announce()
+
 
 # noinspection DuplicatedCode
 def lxmf_delivery_callback(message):
