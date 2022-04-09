@@ -9,10 +9,7 @@ import signal
 import threading
 import sys
 import argparse
-
 import RNS
-import LXMF
-
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from http import HTTPStatus
 import requests
@@ -28,7 +25,7 @@ import vendor.umsgpack as msgpack
 #
 
 # Server Version
-__version__ = "1.4.0.2"
+__version__ = "1.3.0.2"
 
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
@@ -127,9 +124,6 @@ INITIAL_ANNOUNCEMENT_DELAY = 5
 NEXUS_SERVER_DESTINATION = RNS.Destination
 # The identity use by this server
 NEXUS_SERVER_IDENTITY = RNS.Identity
-# The LXMF router to be used from sending messages
-NEXUS_LXMF_ROUTER = LXMF.LXMRouter
-NEXUS_LXMF_DESTINATION = RNS.Destination
 
 
 ##########################################################################################
@@ -308,9 +302,6 @@ def initialize_server(
     global MESSAGE_STORE
     global BRIDGE_TARGETS
 
-    global NEXUS_LXMF_ROUTER
-    global NEXUS_LXMF_DESTINATION
-
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
 
@@ -410,25 +401,6 @@ def initialize_server(
 
     # Approve all packages received (no handler necessary)
     NEXUS_SERVER_DESTINATION.set_proof_strategy(RNS.Destination.PROVE_ALL)
-
-    # Initialize LXMF router
-    NEXUS_LXMF_ROUTER = LXMF.LXMRouter(NEXUS_SERVER_IDENTITY, STORAGE_DIR, autopeer=True)
-    NEXUS_LXMF_ROUTER.register_delivery_callback(lxmf_delivery)
-
-    NEXUS_LXMF_DESTINATION = NEXUS_LXMF_ROUTER.register_delivery_identity(
-        NEXUS_SERVER_IDENTITY,
-        display_name="Nexus Server " + RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
-    )
-
-    #    self.lxmf_destination.set_default_app_data(self.get_display_name_bytes)
-
-    RNS.Identity.remember(
-        packet_hash=None,
-        destination_hash=NEXUS_LXMF_DESTINATION,
-        public_key=NEXUS_SERVER_IDENTITY.get_public_key(),
-        app_data=None
-    )
-    RNS.log("LXMF Router ready to receive on: " + RNS.prettyhexrep(NEXUS_LXMF_DESTINATION.hash))
 
     # Create a handler to process all incoming announcements with the aspect of this nexus server
     announce_handler = AnnounceHandler(
@@ -543,9 +515,7 @@ def single_announce_server():
     # Announce this server to the network
     # All other nexus server with the same aspect will register this server as a distribution target
     # noinspection PyArgumentList
-
-    # NEXUS_SERVER_DESTINATION.announce(
-    NEXUS_LXMF_DESTINATION.announce(
+    NEXUS_SERVER_DESTINATION.announce(
         # Serialize the nexus server role dict to bytes and set it as app_date to the announcement
         app_data=pickle.dumps(NEXUS_SERVER_ROLE)
     )
@@ -581,23 +551,6 @@ def launch_http_server():
     # Invoke server loop
     # (infinite)
     httpd.serve_forever()
-
-
-# noinspection DuplicatedCode
-def lxmf_delivery(message):
-    time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
-    signature_string = "Signature is invalid, reason undetermined"
-    if message.signature_validated:
-        signature_string = "Validated"
-    else:
-        if message.unverified_reason == LXMF.LXMessage.SIGNATURE_INVALID:
-            signature_string = "Invalid signature"
-        if message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
-            signature_string = "Cannot verify, source is unknown"
-
-    RNS.log(
-        "Received LXMF Package " + time_string + " " + signature_string
-    )
 
 
 ##########################################################################################
@@ -1099,9 +1052,6 @@ def process_incoming_message(message):
 # Additionally, the message is bridged to all registered bridge targets.
 #
 def distribute_message(message):
-    global NEXUS_LXMF_ROUTER
-    global NEXUS_LXMF_DESTINATION
-
     # Process bridge targets
 
     # Loop through all registered bridge targets
@@ -1208,21 +1158,8 @@ def distribute_message(message):
 
             # Check if target has not expired yet
             if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
-
                 # Send message to destination
-                # RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
-
-                # Destination, Source
-                desired_method = LXMF.LXMessage.DIRECT
-                lxm = LXMF.LXMessage(
-                    DISTRIBUTION_TARGETS[target][1],
-                    NEXUS_LXMF_DESTINATION,
-                    content="Hello World",
-                    title="Hello Title",
-                    desired_method=desired_method
-                )
-                NEXUS_LXMF_ROUTER.handle_outbound(lxm)
-
+                RNS.Packet(remote_server, pickle.dumps(message), create_receipt=False).send()
                 # Log that we send something to this destination
                 RNS.log(
                     "Message sent to destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[target][2])

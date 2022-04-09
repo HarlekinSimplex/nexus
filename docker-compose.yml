@@ -30,7 +30,7 @@ services:
 # Port of the nexus server web admin (not yet served)
       - ${NEXUS_PORT_WEB:-4280}:4280
 # Port of the nexus server web client and mobile app JSON TCP/IP API
-      - ${NEXUS_PORT_JSONAPI:-4281}:4281
+      - ${NEXUS_PORT_JSONAPI:-4380}:4380
     devices:
 # USB Port mapped to container to be used by RNode LoRa interface
       - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyACM0
