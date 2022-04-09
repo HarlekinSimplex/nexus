@@ -45,6 +45,7 @@ def __do_something():
     )
     RNS.log("destination_a full address: " + str(destination_a))
     RNS.log("destination_a address (hash): " + RNS.prettyhexrep(destination_a.hash))
+    destination_a.announce()
 
     destination_b = RNS.Destination(
         identity_b,
