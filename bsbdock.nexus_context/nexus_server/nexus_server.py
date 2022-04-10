@@ -9,6 +9,8 @@ import signal
 import threading
 import sys
 import argparse
+
+import LXMF
 import RNS
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from http import HTTPStatus
@@ -36,9 +38,11 @@ __message_version__ = "3"
 DEBUG = False
 
 # Message storage
-STORAGE_DIR = os.path.expanduser("~") + "/.nexus/storage"
-# Message storage
-STORAGE_FILE = STORAGE_DIR + "/messages.umsgpack"
+MESSAGE_STORAGE_PATH = os.path.expanduser("~") + "/.nexus/storage"
+MESSAGE_STORAGE_FILE = MESSAGE_STORAGE_PATH + "/messages.umsgpack"
+
+# LXMF storage
+LXMF_STORAGE_PATH = os.path.expanduser("~") + "/.nexus/lxmf"
 
 # Message buffer used for actually server messages
 MESSAGE_STORE = []
@@ -124,6 +128,9 @@ INITIAL_ANNOUNCEMENT_DELAY = 5
 NEXUS_SERVER_DESTINATION = RNS.Destination
 # The identity use by this server
 NEXUS_SERVER_IDENTITY = RNS.Identity
+# Nexus LXM Socket
+# noinspection PyTypeChecker
+NEXUS_LXM_SOCKET = None  # type: NexusLXMSocket
 
 
 ##########################################################################################
@@ -143,13 +150,13 @@ def remove_whitespace(in_string: str):
 def save_messages():
     # Check if storage file is there
     try:
-        save_file = open(STORAGE_FILE, "wb")
+        save_file = open(MESSAGE_STORAGE_FILE, "wb")
         save_file.write(msgpack.packb(MESSAGE_STORE))
         save_file.close()
-        RNS.log("Messages saved to storage file " + STORAGE_FILE)
+        RNS.log("Messages saved to storage file " + MESSAGE_STORAGE_FILE)
 
     except Exception as err:
-        RNS.log("Could not save message to storage file " + STORAGE_FILE)
+        RNS.log("Could not save message to storage file " + MESSAGE_STORAGE_FILE)
         RNS.log("The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
 
 
@@ -272,6 +279,45 @@ def log_message(message):
 
 
 ##########################################################################################
+# LXM router socket for LXMF message handling
+#
+class NexusLXMSocket:
+    def __init__(self, identity, storage_path):
+        if not os.path.isdir(storage_path):
+            # Create storage path
+            os.makedirs(storage_path)
+            # Log that storage directory was created
+            RNS.log("Created storage path " + storage_path)
+        # Initialize lxm router
+        self.lxm_router = LXMF.LXMRouter(storagepath=storage_path)
+
+        self.lxm_router.register_delivery_identity(identity)
+
+        # Register callback to process received lxm deliverables
+        self.lxm_router.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
+
+    # noinspection DuplicatedCode
+    @staticmethod
+    def lxmf_delivery_callback(message):
+        time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
+        signature_string = "Signature is invalid, reason undetermined"
+        if message.signature_validated:
+            signature_string = "Validated"
+        else:
+            if message.unverified_reason == LXMF.LXMessage.SIGNATURE_INVALID:
+                signature_string = "Invalid signature"
+            if message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
+                signature_string = "Cannot verify, source is unknown"
+
+        RNS.log(
+            "Received LXMF Package " + time_string + " " + signature_string
+        )
+
+    def send_lxm_hello(self, destination_hash, announced_identity, app_data):
+        pass
+
+
+##########################################################################################
 # Initialize Nexus Server
 # Parameters:
 #   configpath<str>:        Alternate config path to be used for initialization of reticulum
@@ -301,6 +347,7 @@ def initialize_server(
     global NEXUS_SERVER_TIMEOUT
     global MESSAGE_STORE
     global BRIDGE_TARGETS
+    global NEXUS_LXM_SOCKET
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
@@ -352,24 +399,24 @@ def initialize_server(
 
     # Load messages from storage
     # Check if storage path is available
-    if not os.path.isdir(STORAGE_DIR):
+    if not os.path.isdir(MESSAGE_STORAGE_PATH):
         # Create storage path
-        os.makedirs(STORAGE_DIR)
+        os.makedirs(MESSAGE_STORAGE_PATH)
         # Log that storage directory was created
         RNS.log(
-            "Created storage path " + STORAGE_DIR
+            "Created storage path " + MESSAGE_STORAGE_PATH
         )
     # Check if we can read some messages from storage
-    if os.path.isfile(STORAGE_FILE):
+    if os.path.isfile(MESSAGE_STORAGE_FILE):
         try:
-            file = open(STORAGE_FILE, "rb")
+            file = open(MESSAGE_STORAGE_FILE, "rb")
             MESSAGE_STORE = msgpack.unpackb(file.read())
             file.close()
             RNS.log(
-                str(len(MESSAGE_STORE)) + " messages loaded from storage: " + STORAGE_FILE
+                str(len(MESSAGE_STORE)) + " messages loaded from storage: " + MESSAGE_STORAGE_FILE
             )
         except Exception as e:
-            RNS.log("Could not load messages from " + STORAGE_FILE)
+            RNS.log("Could not load messages from " + MESSAGE_STORAGE_FILE)
             RNS.log("The contained exception was: %s" % (str(e)))
         # Drop all messages with deprecated or missing message version
         validate_message_store()
@@ -378,7 +425,7 @@ def initialize_server(
             str(len(MESSAGE_STORE)) + " messages left after validation"
         )
     else:
-        RNS.log("No messages to load from " + STORAGE_FILE)
+        RNS.log("No messages to load from " + MESSAGE_STORAGE_FILE)
 
     # Create the identity of this server
     # Each time the server starts a new identity with new keys is created
@@ -416,6 +463,9 @@ def initialize_server(
 
     # Register a call back function to process all incoming data packages (aka messages)
     NEXUS_SERVER_DESTINATION.set_packet_callback(packet_callback)
+
+    # Create LXMF router socket with this server id
+    NEXUS_LXM_SOCKET = NexusLXMSocket(NEXUS_SERVER_IDENTITY, LXMF_STORAGE_PATH)
 
     # Check if we have bridge links configured
     if len(BRIDGE_TARGETS) > 0:
@@ -622,6 +672,7 @@ def launch_http_server():
 #
 class AnnounceHandler:
     global NEXUS_SERVER_ROLE
+    global NEXUS_LXM_SOCKET
 
     # The initialisation method takes the optional
     # aspect_filter argument. If aspect_filter is set to
@@ -687,6 +738,8 @@ class AnnounceHandler:
                 # Announce this server once out of sequence to accelerate distribution list build up at that new
                 # server destination subscription list
                 single_announce_server()
+                # Say Hello via LXM router
+                NEXUS_LXM_SOCKET.send_lxm_hello(destination_hash, announced_identity, app_data)
                 # Log that we added new subscription
                 RNS.log(
                     "Subscription for " + RNS.prettyhexrep(destination_hash) +

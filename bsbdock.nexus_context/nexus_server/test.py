@@ -65,7 +65,7 @@ def __do_something():
     RNS.log("destination address (hash): " + RNS.prettyhexrep(destination.hash))
     destination.announce()
 
-    lxm_message = LXMF.LXMessage(destination, source, "Content String A->B", "Title Sting")
+    lxm_message = LXMF.LXMessage(destination, destination, "Content String A->B", "Title Sting")
     lxm_router.handle_outbound(lxm_message)
 
     launch_http_server()
