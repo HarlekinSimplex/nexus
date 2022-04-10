@@ -325,7 +325,7 @@ class NexusLXMSocket:
             NEXUS_SERVER_ASPECT
         )
         # Assemble Hello World message
-        message_text = "Hello Server " + RNS.prettyhexrep(destination_hash)
+        message_text = "Hello Server 012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789 " + RNS.prettyhexrep(destination_hash)
         message_title = "Hello Nexus Server"
         # Create lxmessage and handle outbound to the target Nexus server with the lxm router
         lxm_message = LXMF.LXMessage(destination, self.source, message_text, message_title)
