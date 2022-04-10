@@ -314,7 +314,9 @@ class NexusLXMSocket:
         )
 
     def send_lxm_hello(self, destination_hash, announced_identity, app_data):
-        pass
+        RNS.log(
+            "Call to LXMF Send Hello"
+        )
 
 
 ##########################################################################################
