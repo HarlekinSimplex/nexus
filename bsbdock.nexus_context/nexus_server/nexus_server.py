@@ -290,9 +290,9 @@ class NexusLXMSocket:
             RNS.log("Created storage path " + storage_path)
         # Initialize lxm router
         self.lxm_router = LXMF.LXMRouter(storagepath=storage_path)
-
+        # Register server id as delivery id
+        # With this server announces are distributing the IDs required by LXM transport
         self.lxm_router.register_delivery_identity(identity)
-
         # Register callback to process received lxm deliverables
         self.lxm_router.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
 
@@ -313,7 +313,8 @@ class NexusLXMSocket:
             "Received LXMF Package " + time_string + " " + signature_string
         )
 
-    def send_lxm_hello(self, destination_hash, announced_identity, app_data):
+    @staticmethod
+    def send_lxm_hello(destination_hash, announced_identity, app_data):
         RNS.log(
             "Call to LXMF Send Hello"
         )
