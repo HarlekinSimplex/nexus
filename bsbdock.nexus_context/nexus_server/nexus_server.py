@@ -296,7 +296,7 @@ class NexusLXMSocket:
         # With this server announces are distributing the IDs required by LXM transport
         self.lxm_router.register_delivery_identity(self.source.identity)
         # Register callback to process received lxm deliverables
-        self.lxm_router.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
+        # self.lxm_router.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
 
     # noinspection DuplicatedCode
     @staticmethod
@@ -329,6 +329,8 @@ class NexusLXMSocket:
         message_title = "Hello Nexus Server"
         # Create lxmessage and handle outbound to the target Nexus server with the lxm router
         lxm_message = LXMF.LXMessage(destination, self.source, message_text, message_title)
+        lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
+
         self.lxm_router.handle_outbound(lxm_message)
 
         RNS.log(
