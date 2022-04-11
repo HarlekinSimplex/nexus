@@ -637,7 +637,7 @@ def single_announce_server():
     NEXUS_LXM_SOCKET.announce()
     RNS.log(
         # Log LXM destination
-        "Announced LXM destination " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
+        "Announced LXM messaging destination " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
     )
 
 
