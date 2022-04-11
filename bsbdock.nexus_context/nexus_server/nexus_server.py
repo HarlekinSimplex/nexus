@@ -343,7 +343,7 @@ class NexusLXMSocket:
             "Received LXMF message " + time_string + " " + signature_string
         )
 
-    def send_lxm_hello(self, destination_hash):
+    def send_lxm_hello(self, to_destination_hash):
         # Create destination from hash with announced identity
         to_destination = RNS.Destination(
             self.socket_identity,
@@ -374,7 +374,8 @@ class NexusLXMSocket:
         message_title = 'Hello Nexus Server'
         # Create lxmessage and handle outbound to the target Nexus server with the lxm router
         lxm_message = LXMF.LXMessage(
-            to_destination, self.from_destination,
+            destination=to_destination,
+            source=self.from_destination,
             content=message_text, title=message_title,
             desired_method=LXMF.LXMessage.DIRECT
         )
@@ -383,7 +384,7 @@ class NexusLXMSocket:
         self.lxm_router.handle_outbound(lxm_message)
 
         RNS.log(
-            "Hello Message sent to " + RNS.prettyhexrep(destination_hash) +
+            "LXM Hello message sent to " + RNS.prettyhexrep(to_destination_hash) +
             " from " + RNS.prettyhexrep(self.from_destination.hash)
         )
 
@@ -824,7 +825,7 @@ class AnnounceHandler:
                 # Say Hello via LXM router
                 NEXUS_LXM_SOCKET.send_lxm_hello(lxm_messaging_destination)
                 RNS.log(
-                    "Send Hello to lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
+                    "Hello sent to lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
                 )
 
             else:
