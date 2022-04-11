@@ -432,8 +432,8 @@ class NexusLXMSocket:
             destination_hash=to_destination_hash,
             source=self.from_destination,
             content=message_text,
-            title=message_title,
-            desired_method=LXMF.LXMessage.OPPORTUNISTIC
+            title=message_title #,
+#            desired_method=LXMF.LXMessage.OPPORTUNISTIC
         )
         # lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
         RNS.log(
