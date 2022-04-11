@@ -365,7 +365,7 @@ class NexusLXMSocket:
 
     @staticmethod
     def packet_received(message, packet):
-        data = umsgpack.unpackb(packet)
+        data = msgpack.unpackb(packet)
         RNS.log("LXM Link paket received " + str(data))
 
     ##########################################################################################
