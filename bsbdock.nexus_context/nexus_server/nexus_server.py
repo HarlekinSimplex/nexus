@@ -35,6 +35,8 @@ __version__ = "1.3.0.3"
 __message_version__ = "3"
 
 # Trigger some Debug only related log entries
+from Reticulum.RNS.vendor import umsgpack
+
 DEBUG = False
 
 # Message storage
@@ -365,7 +367,8 @@ class NexusLXMSocket:
 
     @staticmethod
     def packet_received(message, packet):
-        RNS.log("LXM Link paket received " + str(message))
+        data = umsgpack.unpackb(packet)
+        RNS.log("LXM Link paket received " + str(data))
 
     ##########################################################################################
     # Announce the server to the reticulum network
@@ -455,6 +458,7 @@ def lxmf_delivery_callback(message):
     RNS.log("-     Content: " + str(message.content))
     RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
     RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
+
 
 ##########################################################################################
 # Reticulum handler class to process received announces
