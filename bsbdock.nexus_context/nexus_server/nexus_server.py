@@ -836,7 +836,7 @@ class AnnounceHandler:
                 RNS.log(
                     "Send Hello to lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
                 )
-                NEXUS_LXM_SOCKET.send_lxm_hello(lxm_messaging_destination)
+                NEXUS_LXM_SOCKET.send_lxm_hello(lxm_messaging_destination, announced_identity)
 
             else:
                 # Log that we just updated new subscription
