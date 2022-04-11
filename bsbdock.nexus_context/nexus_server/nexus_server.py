@@ -777,15 +777,18 @@ class AnnounceHandler:
         announced_role = pickle.loads(app_data)
         # Log role
         RNS.log(
-            "The announce contained the following nexus role: " +
-            str(announced_role)
+            "The announce contained the following nexus role: " + str(announced_role)
         )
 
         # Get dict key and timestamp for distribution identity registration
         dict_key = RNS.prettyhexrep(destination_hash)
         dict_time = int(time.time())
         # Get lxm messaging destination out of role dict
-        lxm_messaging_destination = announced_role[ROLE_JSON_LXM_DESTINATION]
+        if ROLE_JSON_LXM_DESTINATION in announced_role.keys():
+            lxm_messaging_destination = announced_role[ROLE_JSON_LXM_DESTINATION]
+            RNS.log(
+                "The announce contained the lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
+            )
 
         # Add announced nexus distribution target to distribution dict if it has the same cluster or gateway name.
         # This is to enable that servers of the actual cluster are subscribed for distribution as well as serves
@@ -814,6 +817,7 @@ class AnnounceHandler:
                 # Log that we added new subscription
                 RNS.log(
                     "Subscription for " + RNS.prettyhexrep(destination_hash) +
+                    " with LXM address " + RNS.prettyhexrep(lxm_messaging_destination) +
                     " will be added"
                 )
 
@@ -827,6 +831,7 @@ class AnnounceHandler:
                 # Log that we just updated new subscription
                 RNS.log(
                     "Subscription for " + RNS.prettyhexrep(destination_hash) +
+                    " with LXM address " + RNS.prettyhexrep(lxm_messaging_destination) +
                     " will be updated"
                 )
             # Register for update destination as valid distribution target
@@ -864,7 +869,7 @@ class AnnounceHandler:
             # Announce should be ignored since it belongs to a different cluster, and we are not eligible to
             # link with that cluster as gateway too
             RNS.log(
-                "Announced nexus target was ignored"
+                "Announced nexus role was ignored because role did not match role " + str(NEXUS_SERVER_ROLE)
             )
 
     # Flush pending log
