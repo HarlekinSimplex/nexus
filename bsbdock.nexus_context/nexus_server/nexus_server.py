@@ -316,7 +316,8 @@ class NexusLXMSocket:
         self.lxm_router.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
         # Log updated server role
         RNS.log(
-            "LXM messaging destination added to server role " + str(NEXUS_SERVER_ROLE)
+            "LXM messaging destination " + RNS.prettyhexrep(NEXUS_SERVER_ROLE[ROLE_JSON_LXM_DESTINATION]) +
+            " added to server role"
         )
 
     def destination_hash(self):
