@@ -309,7 +309,8 @@ class NexusLXMSocket:
             self.socket_identity,
             RNS.Destination.IN,
             RNS.Destination.SINGLE,
-            "lxmf", "messaging"
+            APP_NAME,
+            NEXUS_SERVER_ASPECT
         )
         # Log the crated lxm destination
         RNS.log("LXM from destination " + str(self.from_destination))
@@ -360,7 +361,8 @@ class NexusLXMSocket:
             announced_identity,
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
-            APP_NAME, "messaging"
+            APP_NAME,
+            NEXUS_SERVER_ASPECT
         )
 
         # Assemble Hello World message
@@ -390,7 +392,7 @@ class NexusLXMSocket:
             source=self.from_destination,
             content=message_text,
             title=message_title,
-            desired_method=LXMF.LXMessage.DIRECT
+            desired_method=LXMF.LXMessage.OPPORTUNISTIC
         )
         # lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
         RNS.log(
@@ -518,9 +520,8 @@ def initialize_server(
         NEXUS_SERVER_IDENTITY,
         RNS.Destination.IN,
         RNS.Destination.SINGLE,
-        #    APP_NAME,
-        #    NEXUS_SERVER_ASPECT
-        "lxmf", "messaging"
+        APP_NAME,
+        NEXUS_SERVER_ASPECT
     )
     # Log server address
     RNS.log(
