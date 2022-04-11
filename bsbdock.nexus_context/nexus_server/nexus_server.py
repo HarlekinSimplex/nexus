@@ -370,7 +370,7 @@ class NexusLXMSocket:
         message_title = 'Hello Nexus Server'
         # Create lxmessage and handle outbound to the target Nexus server with the lxm router
         lxm_message = LXMF.LXMessage(
-            destination=None,
+            None,
             destination_hash=to_destination_hash,
             source=self.from_destination,
             content=message_text, title=message_title,
