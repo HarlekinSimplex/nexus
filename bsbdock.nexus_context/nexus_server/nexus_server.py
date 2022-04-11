@@ -101,7 +101,7 @@ ROLE_JSON_GATEWAY = "g"
 
 # Some Server default values used to announce nexus servers to reticulum
 # APP_NAME = "nexus"
-APP_NAME = "lxmf"
+APP_NAME = "nexus"
 NEXUS_SERVER_ASPECT = "server"
 
 # Default server cluster that is announced to be subscribed to
@@ -283,10 +283,10 @@ def log_message(message):
 # LXM router socket for LXMF message handling
 #
 class NexusLXMSocket:
-    def __init__(self, source_identity=None, storage_path=None):
+    def __init__(self, destination_identity=None, storage_path=None):
         # If identity was not given create a new for this lxm socket
-        if source_identity is None:
-            source_identity = RNS.Identity()
+        if destination_identity is None:
+            destination_identity = RNS.Identity()
         # If storage path was not set use default storage path
         if storage_path is None:
             storage_path = LXMF_STORAGE_PATH
@@ -298,16 +298,13 @@ class NexusLXMSocket:
             RNS.log("Created storage path " + storage_path)
         # Initialize lxm router
         self.lxm_router = LXMF.LXMRouter(storagepath=storage_path)
-        # Initialize source destination to be used when sending nexus messages to other nexus servers
-        self.source = destination = RNS.Destination(
-            source_identity,
+        # Initialize destination to be used as from destination when sending nexus messages to other nexus servers
+        self.from_destination = RNS.Destination(
+            destination_identity,
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
-            APP_NAME, "delivery"
+            APP_NAME, "messaging"
         )
-        # Register server id as delivery id
-        # With this server announces are distributing the IDs required by LXM transport
-        self.lxm_router.register_delivery_identity(self.source.identity)
         # Register callback to process received lxm deliverables
         self.lxm_router.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
 
@@ -330,11 +327,11 @@ class NexusLXMSocket:
 
     def send_lxm_hello(self, destination_hash, announced_identity, app_data):
         # Create destination from hash with announced identity
-        destination = RNS.Destination(
+        to_destination = RNS.Destination(
             announced_identity,
-            RNS.Destination.IN,
+            RNS.Destination.OUT,
             RNS.Destination.SINGLE,
-            APP_NAME, "delivery"
+            APP_NAME, "messaging"
         )
         # Assemble Hello World message
         message_text = 'Hello Server ' + \
@@ -358,14 +355,18 @@ class NexusLXMSocket:
                        '012345678901234567890123456789012345678901234567890'
         message_title = 'Hello Nexus Server'
         # Create lxmessage and handle outbound to the target Nexus server with the lxm router
-        lxm_message = LXMF.LXMessage(destination, self.source, message_text, message_title)
+        lxm_message = LXMF.LXMessage(
+            to_destination, self.from_destination,
+            content=message_text, title=message_title,
+            desired_method=LXMF.LXMessage.DIRECT
+        )
         # lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
 
         self.lxm_router.handle_outbound(lxm_message)
 
         RNS.log(
             "Hello Message sent to " + RNS.prettyhexrep(destination_hash) +
-            " from " + RNS.prettyhexrep(self.source.hash)
+            " from " + RNS.prettyhexrep(self.from_destination.hash)
         )
 
 
@@ -517,7 +518,7 @@ def initialize_server(
     NEXUS_SERVER_DESTINATION.set_packet_callback(packet_callback)
 
     # Create LXMF router socket with this server as source endpoint
-    NEXUS_LXM_SOCKET = NexusLXMSocket(source_identity=NEXUS_SERVER_DESTINATION)
+    NEXUS_LXM_SOCKET = NexusLXMSocket()
 
     # Check if we have bridge links configured
     if len(BRIDGE_TARGETS) > 0:

@@ -37,7 +37,6 @@ def __do_something():
         RNS.log("Created storage path " + lxm_storage)
 
     lxm_router = LXMF.LXMRouter(storagepath=lxm_storage)
-    lxm_router.register_delivery_callback(lxmf_delivery_callback)
 
     identity_a = RNS.Identity()
     identity_b = RNS.Identity()
@@ -46,7 +45,7 @@ def __do_something():
         identity_a,
         RNS.Destination.OUT,
         RNS.Destination.SINGLE,
-        "lxmf", "delivery"
+        "app", "my_aspect"
     )
     RNS.log("source full address: " + str(source))
     RNS.log("source address (hash): " + RNS.prettyhexrep(source.hash))
@@ -56,16 +55,22 @@ def __do_something():
         identity_b,
         RNS.Destination.IN,
         RNS.Destination.SINGLE,
-        "lxmf", "delivery"
+        "app", "my_aspect"
     )
     RNS.log("destination full address: " + str(destination))
     RNS.log("destination address (hash): " + RNS.prettyhexrep(destination.hash))
     destination.announce()
 
-    lxm_message = LXMF.LXMessage(destination, destination, "Content String A->B", "Title String")
+    lxm_message = LXMF.LXMessage(
+        destination, source,
+        "Content String A->B", "Title String",
+        desired_method=LXMF.LXMessage.DIRECT
+    )
+    lxm_message.register_delivery_callback(lxmf_delivery_callback)
+    lxm_message.register_failed_callback(lxmf_delivery_callback)
     lxm_router.handle_outbound(lxm_message)
 
-    launch_http_server()
+    # launch_http_server()
 
     while True:
         time.sleep(3)
