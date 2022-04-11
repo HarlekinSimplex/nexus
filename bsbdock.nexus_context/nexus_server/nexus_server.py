@@ -294,16 +294,16 @@ class NexusLXMSocket:
             # Create storage path
             os.makedirs(self.storage_path)
             # Log that storage directory was created
-            RNS.log("LXM storage path was created")
+            RNS.log("LXM Storage path was created")
         # Log storage path
-        RNS.log("LXM socket storage path is " + self.storage_path)
+        RNS.log("LXM Socket storage path is " + self.storage_path)
 
         # If identity was not given create a new for this lxm socket
         self.socket_identity = socket_identity
         if self.socket_identity is None:
             self.socket_identity = RNS.Identity()
         # Log that storage directory was created
-        RNS.log("LXM socket identity is " + str(self.socket_identity))
+        RNS.log("LXM Socket identity is " + str(self.socket_identity))
 
         # Initialize from destination to be used when sending nexus messages to other nexus servers
         self.from_destination = RNS.Destination(
@@ -326,12 +326,12 @@ class NexusLXMSocket:
             storagepath=self.storage_path
         )
         # Log updated server role
-        RNS.log("LXM router initialized with identity " + str(self.socket_identity))
+        RNS.log("LXM Router initialized with identity " + str(self.socket_identity))
 
         # Register callback to process received lxm deliverables
         self.lxm_router.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
         # Log updated server role
-        RNS.log("LXM delivery callback registered")
+        RNS.log("LXM Delivery callback registered")
 
         # Create a handler to process all incoming announcements with the aspect of this nexus server
         announce_handler = NexusLXMAnnounceHandler(aspect_filter=app_name + '.' + server_aspect)
