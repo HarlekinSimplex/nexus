@@ -646,6 +646,13 @@ def single_announce_server():
         # Log entry does not use bytes but a string representation
         "Server announcement sent with app_data: " + str(NEXUS_SERVER_ROLE)
     )
+    # Log lxm messaging destination announcement
+    NEXUS_LXM_SOCKET.announce()
+    RNS.log(
+        # Log entry does not use bytes but a string representation
+        "LXM message destination announcement sent for " +
+        RNS.prettyhexrep(NexusLXMSocket.destination_hash(NEXUS_LXM_SOCKET))
+    )
 
 
 def announce_server():
