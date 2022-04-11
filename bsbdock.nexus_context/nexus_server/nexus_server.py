@@ -303,7 +303,7 @@ class NexusLXMSocket:
             source_identity,
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
-            "lxmf", "delivery"
+            APP_NAME, "delivery"
         )
         # Register server id as delivery id
         # With this server announces are distributing the IDs required by LXM transport
@@ -334,7 +334,7 @@ class NexusLXMSocket:
             announced_identity,
             RNS.Destination.IN,
             RNS.Destination.SINGLE,
-            "lxmf", "delivery"
+            APP_NAME, "delivery"
         )
         # Assemble Hello World message
         message_text = 'Hello Server ' + \
