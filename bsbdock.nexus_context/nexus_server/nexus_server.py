@@ -518,8 +518,8 @@ def initialize_server(
         NEXUS_SERVER_IDENTITY,
         RNS.Destination.IN,
         RNS.Destination.SINGLE,
-    #    APP_NAME,
-    #    NEXUS_SERVER_ASPECT
+        #    APP_NAME,
+        #    NEXUS_SERVER_ASPECT
         "lxmf", "messaging"
     )
     # Log server address
