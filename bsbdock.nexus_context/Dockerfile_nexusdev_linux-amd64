@@ -28,7 +28,7 @@ RUN apt -y install python3-pip
 RUN pip3 install rns lxmf nomadnet rnodeconf
 
 # Install additional python packages
-RUN pip3 install requests
+RUN pip3 install requests umsgpack
 
 # Install personal helper tools
 RUN apt -y install mc nano
