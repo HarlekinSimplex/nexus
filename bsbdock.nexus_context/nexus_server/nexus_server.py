@@ -415,6 +415,7 @@ class NexusLXMSocket:
         # Create lxmessage and handle outbound to the target Nexus server with the lxm router
         lxm_message = LXMF.LXMessage(
             to_destination,
+            destination_hash=to_destination_hash,
             source=self.from_destination,
             content=message_text,
             title=message_title,
@@ -536,9 +537,9 @@ class NexusLXMAnnounceHandler:
 
         # Say Hello via LXM router
         RNS.log(
-            "DUMMY Send Hello to lxm messaging destination " + RNS.prettyhexrep(destination_hash)
+            "Send Hello to lxm messaging destination " + RNS.prettyhexrep(destination_hash)
         )
-        # NEXUS_LXM_SOCKET.send_lxm_hello(destination_hash, announced_identity)
+        NEXUS_LXM_SOCKET.send_lxm_hello(destination_hash, announced_identity)
 
     # Flush pending log
     sys.stdout.flush()
