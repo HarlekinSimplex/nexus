@@ -27,7 +27,6 @@ def __do_something():
         "... GO !"
     )
 
-
     RNS.Reticulum()
 
     lxm_storage = os.path.expanduser("~") + "/.nexus/storage_lxm"
@@ -47,8 +46,7 @@ def __do_something():
         identity_a,
         RNS.Destination.OUT,
         RNS.Destination.SINGLE,
-        "nexus",
-        "cockpit"
+        "lxmf", "delivery"
     )
     RNS.log("source full address: " + str(source))
     RNS.log("source address (hash): " + RNS.prettyhexrep(source.hash))
@@ -58,14 +56,13 @@ def __do_something():
         identity_b,
         RNS.Destination.IN,
         RNS.Destination.SINGLE,
-        "nexus",
-        "cockpit"
+        "lxmf", "delivery"
     )
     RNS.log("destination full address: " + str(destination))
     RNS.log("destination address (hash): " + RNS.prettyhexrep(destination.hash))
     destination.announce()
 
-    lxm_message = LXMF.LXMessage(destination, destination, "Content String A->B", "Title Sting")
+    lxm_message = LXMF.LXMessage(destination, destination, "Content String A->B", "Title String")
     lxm_router.handle_outbound(lxm_message)
 
     launch_http_server()
