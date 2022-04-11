@@ -309,7 +309,7 @@ class NexusLXMSocket:
             self.socket_identity,
             RNS.Destination.IN,
             RNS.Destination.SINGLE,
-            APP_NAME, "messaging"
+            "lxmf", "messaging"
         )
         # Log the crated lxm destination
         RNS.log("LXM from destination " + str(self.from_destination))
@@ -518,8 +518,9 @@ def initialize_server(
         NEXUS_SERVER_IDENTITY,
         RNS.Destination.IN,
         RNS.Destination.SINGLE,
-        APP_NAME,
-        NEXUS_SERVER_ASPECT
+    #    APP_NAME,
+    #    NEXUS_SERVER_ASPECT
+        "lxmf", "messaging"
     )
     # Log server address
     RNS.log(
