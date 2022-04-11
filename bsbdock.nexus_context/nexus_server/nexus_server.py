@@ -352,6 +352,8 @@ class NexusLXMSocket:
         RNS.log("LXM Link Resource strategy set to ACCEPT_ALL")
         link.set_resource_concluded_callback(NexusLXMSocket.resource_concluded)
         RNS.log("LXM Resource concluded callback set")
+        link.set_packet_callback(NexusLXMSocket.packet_received)
+        RNS.log("LXM Packet callback set")
 
     @staticmethod
     def resource_concluded(resource):
@@ -360,6 +362,10 @@ class NexusLXMSocket:
     @staticmethod
     def client_disconnect(link):
         RNS.log("LXM Client disconnected " + str(link))
+
+    @staticmethod
+    def packet_received(message, packet):
+        RNS.log("LXM Link paket received " + str(message))
 
     ##########################################################################################
     # Announce the server to the reticulum network
