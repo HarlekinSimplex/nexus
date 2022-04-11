@@ -409,6 +409,8 @@ class NexusLXMSocket:
             "LXM handle outbound for Hello message sent to " + RNS.prettyhexrep(to_destination_hash) +
             " from " + RNS.prettyhexrep(self.from_destination.hash)
         )
+
+        lxm_message.register_delivery_callback(lxmf_delivery_callback)
         self.lxm_router.handle_outbound(lxm_message)
 
 
@@ -424,10 +426,11 @@ def lxmf_delivery_callback(message):
         if message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
             signature_string = "Cannot verify, source is unknown"
     # Log LXM message received event
-    RNS.log(
-        "Received LXMF message " + time_string + " " + signature_string
-    )
-
+    RNS.log("Delivered LXMF message " + time_string + " " + signature_string)
+    RNS.log("-       Title: " + str(message.title))
+    RNS.log("-     Content: " + str(message.content))
+    RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
+    RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
 
 ##########################################################################################
 # Reticulum handler class to process received announces
