@@ -788,10 +788,7 @@ class AnnounceHandler:
         dict_key = RNS.prettyhexrep(destination_hash)
         dict_time = int(time.time())
         # Get lxm messaging destination out of role dict
-        if ROLE_JSON_LXM_DESTINATION in announced_role.keys():
-            lxm_messaging_destination = announced_role[ROLE_JSON_LXM_DESTINATION]
-        else:
-            lxm_messaging_destination = None
+        lxm_messaging_destination = announced_role[ROLE_JSON_LXM_DESTINATION]
         # Log provided lxm messaging destination
         RNS.log(
             "The announce contained the lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
