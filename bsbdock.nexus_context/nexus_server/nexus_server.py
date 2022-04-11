@@ -347,13 +347,6 @@ class NexusLXMSocket:
         )
 
     def send_lxm_hello(self, to_destination_hash):
-        # Create destination from hash with announced identity
-        to_destination = RNS.Destination(
-            self.socket_identity,
-            RNS.Destination.OUT,
-            RNS.Destination.SINGLE,
-            APP_NAME, "messaging"
-        )
         # Assemble Hello World message
         message_text = 'Hello Server ' + \
                        '012345678901234567890123456789012345678901234567890' + \
@@ -377,19 +370,19 @@ class NexusLXMSocket:
         message_title = 'Hello Nexus Server'
         # Create lxmessage and handle outbound to the target Nexus server with the lxm router
         lxm_message = LXMF.LXMessage(
-            destination=to_destination,
+            destination=None,
+            destination_hash=to_destination_hash,
             source=self.from_destination,
             content=message_text, title=message_title,
             desired_method=LXMF.LXMessage.DIRECT
         )
         # lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
 
-        self.lxm_router.handle_outbound(lxm_message)
-
         RNS.log(
-            "LXM Hello message sent to " + RNS.prettyhexrep(to_destination_hash) +
+            "LXM handle outbound for Hello message sent to " + RNS.prettyhexrep(to_destination_hash) +
             " from " + RNS.prettyhexrep(self.from_destination.hash)
         )
+        self.lxm_router.handle_outbound(lxm_message)
 
 
 ##########################################################################################
@@ -797,9 +790,12 @@ class AnnounceHandler:
         # Get lxm messaging destination out of role dict
         if ROLE_JSON_LXM_DESTINATION in announced_role.keys():
             lxm_messaging_destination = announced_role[ROLE_JSON_LXM_DESTINATION]
-            RNS.log(
-                "The announce contained the lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
-            )
+        else:
+            lxm_messaging_destination = None
+        # Log provided lxm messaging destination
+        RNS.log(
+            "The announce contained the lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
+        )
 
         # Add announced nexus distribution target to distribution dict if it has the same cluster or gateway name.
         # This is to enable that servers of the actual cluster are subscribed for distribution as well as serves
@@ -833,10 +829,10 @@ class AnnounceHandler:
                 )
 
                 # Say Hello via LXM router
-                NEXUS_LXM_SOCKET.send_lxm_hello(lxm_messaging_destination)
                 RNS.log(
-                    "Hello sent to lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
+                    "Send Hello to lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
                 )
+                NEXUS_LXM_SOCKET.send_lxm_hello(lxm_messaging_destination)
 
             else:
                 # Log that we just updated new subscription
