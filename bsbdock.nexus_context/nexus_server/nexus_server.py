@@ -35,8 +35,6 @@ __version__ = "1.3.0.3"
 __message_version__ = "3"
 
 # Trigger some Debug only related log entries
-from Reticulum.RNS.vendor import umsgpack
-
 DEBUG = False
 
 # Message storage
