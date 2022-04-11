@@ -308,6 +308,12 @@ class NexusLXMSocket:
         # Register callback to process received lxm deliverables
         self.lxm_router.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
 
+    def destination_hash(self):
+        return self.from_destination.hash
+
+    def announce(self):
+        self.from_destination.announce()
+
     # noinspection DuplicatedCode
     @staticmethod
     def lxmf_delivery_callback(message):
@@ -626,6 +632,12 @@ def single_announce_server():
     RNS.log(
         # Log entry does not use bytes but a string representation
         "Server announcement sent with app_data: " + str(NEXUS_SERVER_ROLE)
+    )
+    # Announce LXM messaging destination
+    NEXUS_LXM_SOCKET.announce()
+    RNS.log(
+        # Log LXM destination
+        "Announced LXM destination " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
     )
 
 
