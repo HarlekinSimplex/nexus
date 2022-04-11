@@ -96,9 +96,10 @@ MERGE_JSON_TAG = "tag"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # The LXM Destination is added with the LXM socket instantiation
-# Role Example: {'c':'ClusterName','g':'GatewayName'}
+# Role Example: {'c':'ClusterName','g':'GatewayName','m':destination_hash}
 ROLE_JSON_CLUSTER = "c"
 ROLE_JSON_GATEWAY = "g"
+ROLE_JSON_LXM_DESTINATION = "m"
 
 # Some Server default values used to announce nexus servers to reticulum
 # APP_NAME = "nexus"
@@ -125,6 +126,11 @@ NEXUS_SERVER_LONGPOLL = int(NEXUS_SERVER_TIMEOUT / 2.5)
 # Delay of initial announcement of this server to the network
 INITIAL_ANNOUNCEMENT_DELAY = 5
 
+# Global Reticulum Instances to be used by server functions
+# The reticulum target of this server
+NEXUS_SERVER_DESTINATION = RNS.Destination
+# The identity use by this server
+NEXUS_SERVER_IDENTITY = RNS.Identity
 # Nexus LXM Socket
 # noinspection PyTypeChecker
 NEXUS_LXM_SOCKET = None  # type: NexusLXMSocket
@@ -279,11 +285,13 @@ def log_message(message):
 # LXM router socket for LXMF message handling
 #
 class NexusLXMSocket:
-    def __init__(self, socket_identity=None, storage_path=None, app_name=APP_NAME, server_aspect=NEXUS_SERVER_ASPECT):
-
-        # Initialize members
-        self.app_name = app_name
-        self.server_aspect = server_aspect
+    def __init__(self, socket_identity=None, storage_path=None):
+        # If identity was not given create a new for this lxm socket
+        self.socket_identity = socket_identity
+        if self.socket_identity is None:
+            self.socket_identity = RNS.Identity()
+        # Log that storage directory was created
+        RNS.log("LXM socket identity " + str(self.socket_identity))
 
         # If storage path was not set use default storage path
         self.storage_path = storage_path
@@ -294,91 +302,41 @@ class NexusLXMSocket:
             # Create storage path
             os.makedirs(self.storage_path)
             # Log that storage directory was created
-            RNS.log("LXM storage path was created")
-        # Log storage path
-        RNS.log("LXM socket storage path is " + self.storage_path)
-
-        # If identity was not given create a new for this lxm socket
-        self.socket_identity = socket_identity
-        if self.socket_identity is None:
-            self.socket_identity = RNS.Identity()
-        # Log that storage directory was created
-        RNS.log("LXM socket identity is " + str(self.socket_identity))
+            RNS.log("Created storage path " + self.storage_path)
 
         # Initialize from destination to be used when sending nexus messages to other nexus servers
         self.from_destination = RNS.Destination(
             self.socket_identity,
             RNS.Destination.IN,
             RNS.Destination.SINGLE,
-            self.app_name,
-            self.server_aspect
+            APP_NAME,
+            NEXUS_SERVER_ASPECT
         )
-        # Set proof strategy to PROVE_ALL
-        self.from_destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
-
         # Log the crated lxm destination
-        RNS.log("LXM Nexus Server from destination is " + str(self.from_destination))
-        RNS.log("LXM Nexus Server hash is " + RNS.prettyhexrep(self.destination_hash()))
+        RNS.log("LXM from destination " + str(self.from_destination))
 
         # Initialize lxm router
         self.lxm_router = LXMF.LXMRouter(
             identity=self.socket_identity,
             storagepath=self.storage_path
         )
-        # Log updated server role
-        RNS.log("LXM router initialized with identity " + str(self.socket_identity))
+        # Add LXM destination to server role
+        # With that it is distributed with the nexus server announce and can be stored with the subscription targets
+        NEXUS_SERVER_ROLE[ROLE_JSON_LXM_DESTINATION] = self.from_destination.hash
 
         # Register callback to process received lxm deliverables
         self.lxm_router.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
         # Log updated server role
-        RNS.log("LXM delivery callback registered")
-
-        # Create a handler to process all incoming announcements with the aspect of this nexus server
-        announce_handler = NexusLXMAnnounceHandler(aspect_filter=app_name + '.' + server_aspect)
-        # Log announce filter
-        RNS.log("LXM AnnounceHandler listens to " + app_name + '.' + server_aspect)
-        # Register the handler with the reticulum transport layer
-        RNS.Transport.register_announce_handler(announce_handler)
-
-        # Flush pending log
-        sys.stdout.flush()
-
-    ##########################################################################################
-    # Announce the server to the reticulum network
-    #
-    # Calling this function will start a timer that will call this function again after the
-    # specified re-announce period.
-    #
-    @staticmethod
-    def announce():
-        # Announce this server to the network
-        # All other nexus server with the same aspect will register this server as a distribution target
-        # noinspection PyArgumentList
-        NEXUS_LXM_SOCKET.from_destination.announce(
-            # Serialize the nexus server role dict to bytes and set it as app_date to the announcement
-            app_data=pickle.dumps(NEXUS_SERVER_ROLE)
-        )
-        # Log announcement / long poll announcement
         RNS.log(
-            # Log entry does not use bytes but a string representation
-            "LXM Nexus Server " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash()) +
-            " announced with app_data: " + str(NEXUS_SERVER_ROLE)
+            "LXM messaging destination " + RNS.prettyhexrep(NEXUS_SERVER_ROLE[ROLE_JSON_LXM_DESTINATION]) +
+            " added to server role"
         )
-
-    @staticmethod
-    def long_poll():
-        # Announce this server to the network
-        # All other nexus server with the same aspect will register this server as a distribution target
-        NEXUS_LXM_SOCKET.announce()
-
-        # Start timer to re announce this server in due time as specified
-        t = threading.Timer(NEXUS_SERVER_LONGPOLL, NEXUS_LXM_SOCKET.long_poll)
-        # Start as daemon so it terminates with main thread
-        t.daemon = True
-        t.start()
 
     def destination_hash(self):
         return self.from_destination.hash
+
+    def announce(self):
+        self.from_destination.announce()
 
     # noinspection DuplicatedCode
     @staticmethod
@@ -403,8 +361,8 @@ class NexusLXMSocket:
             announced_identity,
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
-            self.app_name,
-            self.server_aspect
+            APP_NAME,
+            NEXUS_SERVER_ASPECT
         )
 
         # Assemble Hello World message
@@ -426,6 +384,299 @@ class NexusLXMSocket:
             " from " + RNS.prettyhexrep(self.from_destination.hash)
         )
         self.lxm_router.handle_outbound(lxm_message)
+
+
+##########################################################################################
+# Initialize Nexus Server
+# Parameters:
+#   configpath<str>:        Alternate config path to be used for initialization of reticulum
+#   server_port<str>:       HTTP port to listen for POST/GET client app requests
+#   server_aspect<str>:     Reticulum target aspect to filter announces along with app name like
+#                           <app_name>.<server_aspect>
+#   server_role<jsonStr>:   Nexus Server role specification to specify automatic subscription handling
+#                           e.g. {"c":"cluster","g":"gateway"}
+#   long_poll<str>:         Period in sec between announcements of this server
+#   time_out<str>:          Period in sec until distribution link expires in case it is not updated by an announcement
+#
+# The parameters are parsed by __main__ and then passed to this function.
+# Example call with all parameters given with their actual default values:
+#
+# python3 nexus_server.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
+#
+def initialize_server(
+        configpath,
+        server_port=None, server_aspect=None, server_role=None, long_poll=None, time_out=None, bridge_links=None
+):
+    global NEXUS_SERVER_ADDRESS
+    global NEXUS_SERVER_ASPECT
+    global NEXUS_SERVER_IDENTITY
+    global NEXUS_SERVER_DESTINATION
+    global NEXUS_SERVER_ROLE
+    global NEXUS_SERVER_LONGPOLL
+    global NEXUS_SERVER_TIMEOUT
+    global MESSAGE_STORE
+    global BRIDGE_TARGETS
+    global NEXUS_LXM_SOCKET
+
+    # Pull up Reticulum stack as configured
+    RNS.Reticulum(configpath)
+
+    # Set default server port if not specified otherwise
+    if server_port is not None:
+        NEXUS_SERVER_ADDRESS = ('', int(server_port))
+
+    # Set default nexus aspect if not specified otherwise
+    # Announcement with that aspects are evaluated for possible automatic subscription
+    if server_aspect is not None:
+        # Overwrite default aspect
+        NEXUS_SERVER_ASPECT = server_aspect
+
+    # Role configuration of the server
+    # Announcement with similar cluster oder gateway names are considered as message subscriptions
+    if server_role is not None:
+        # Overwrite default role with specified role
+        NEXUS_SERVER_ROLE = json.loads(server_role)
+
+    # Time out configuration
+    # Expiration of distribution link occurs after this many seconds without another announcement
+    if time_out is not None:
+        # Update long poll to its default value according the actual default configuration
+        NEXUS_SERVER_LONGPOLL = int(float(time_out) / (NEXUS_SERVER_TIMEOUT / NEXUS_SERVER_LONGPOLL))
+        # Overwrite default time out with specified value
+        NEXUS_SERVER_TIMEOUT = int(time_out)
+
+    # Long poll configuration
+    # Announcement of this server is repeated after the specified seconds
+    if long_poll is not None:
+        # Overwrite default long poll default with specified value
+        NEXUS_SERVER_LONGPOLL = int(long_poll)
+
+    # Bridge link configuration
+    # Valid server link urls as used in the client for POST/GET HTTP requests
+    if bridge_links is not None:
+        # Overwrite default role with specified role
+        BRIDGE_TARGETS = json.loads(bridge_links)
+
+    # Log actually used parameters
+    RNS.log("Nexus Server v" + __version__ + " using Message v" + __message_version__ + " startup configuration:")
+    RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT))
+    RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL))
+    RNS.log("  --port=" + str(NEXUS_SERVER_ADDRESS[1]))
+    RNS.log("  --aspect=" + NEXUS_SERVER_ASPECT)
+    RNS.log("  --role=" + str(NEXUS_SERVER_ROLE))
+    RNS.log("  --bridge=" + str(BRIDGE_TARGETS))
+
+    # Load messages from storage
+    # Check if storage path is available
+    if not os.path.isdir(MESSAGE_STORAGE_PATH):
+        # Create storage path
+        os.makedirs(MESSAGE_STORAGE_PATH)
+        # Log that storage directory was created
+        RNS.log(
+            "Created storage path " + MESSAGE_STORAGE_PATH
+        )
+    # Check if we can read some messages from storage
+    if os.path.isfile(MESSAGE_STORAGE_FILE):
+        try:
+            file = open(MESSAGE_STORAGE_FILE, "rb")
+            MESSAGE_STORE = msgpack.unpackb(file.read())
+            file.close()
+            RNS.log(
+                str(len(MESSAGE_STORE)) + " messages loaded from storage: " + MESSAGE_STORAGE_FILE
+            )
+        except Exception as e:
+            RNS.log("Could not load messages from " + MESSAGE_STORAGE_FILE)
+            RNS.log("The contained exception was: %s" % (str(e)))
+        # Drop all messages with deprecated or missing message version
+        validate_message_store()
+        # Log how many have survived validation
+        RNS.log(
+            str(len(MESSAGE_STORE)) + " messages left after validation"
+        )
+    else:
+        RNS.log("No messages to load from " + MESSAGE_STORAGE_FILE)
+
+    # Create the identity of this server
+    # Each time the server starts a new identity with new keys is created
+    NEXUS_SERVER_IDENTITY = RNS.Identity()
+    # Create and register this server as a Reticulum target so that other nexus server can distribute message hereto
+    NEXUS_SERVER_DESTINATION = RNS.Destination(
+        NEXUS_SERVER_IDENTITY,
+        RNS.Destination.IN,
+        RNS.Destination.SINGLE,
+        APP_NAME,
+        NEXUS_SERVER_ASPECT
+    )
+    # Log server address
+    RNS.log(
+        "Server full address: " + str(NEXUS_SERVER_DESTINATION)
+    )
+    RNS.log(
+        "Server address (hash): " + RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
+    )
+
+    # Approve all packages received (no handler necessary)
+    NEXUS_SERVER_DESTINATION.set_proof_strategy(RNS.Destination.PROVE_ALL)
+
+    # Create a handler to process all incoming announcements with the aspect of this nexus server
+    announce_handler = AnnounceHandler(
+        aspect_filter=APP_NAME + '.' + NEXUS_SERVER_ASPECT
+    )
+    # Log announce filter
+    RNS.log(
+        "Announce filter set to: " + APP_NAME + '.' + NEXUS_SERVER_ASPECT
+    )
+
+    # Register the handler with the reticulum transport layer
+    RNS.Transport.register_announce_handler(announce_handler)
+
+    # Register a call back function to process all incoming data packages (aka messages)
+    NEXUS_SERVER_DESTINATION.set_packet_callback(packet_callback)
+
+    # Create LXMF router socket with this server as source endpoint
+    NEXUS_LXM_SOCKET = NexusLXMSocket()
+
+    # Check if we have bridge links configured
+    if len(BRIDGE_TARGETS) > 0:
+        # Initial synchronisation Part 1
+        # Retrieve and process message buffers from bridged targets
+        # Log sync start
+        RNS.log(
+            "Initial synchronization - GET and digest messages from bridged servers"
+        )
+        # Loop through all bridge targets
+        for bridge_target in BRIDGE_TARGETS:
+            try:
+                # Use GET Request to pull message buffer from bridge server
+                response = requests.get(
+                    url=bridge_target[BRIDGE_JSON_URL],
+                    headers={'Content-type': 'application/json'}
+                )
+                # Log GET Request
+                RNS.log(
+                    "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                    "' with GET request " + bridge_target[BRIDGE_JSON_URL]
+                )
+                # Check if GET was successful
+                # If so, parse response body into message buffer and digest it
+                if response.ok:
+                    # Parse json bytes into message array of json maps
+                    remote_buffer = json.loads(response.content)
+                    # Log GET result
+                    RNS.log(
+                        "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
+                    )
+
+                    # Digest received messages
+                    digest_messages(remote_buffer, bridge_target[BRIDGE_JSON_CLUSTER])
+                else:
+                    # Log GET failure
+                    RNS.log(
+                        "GET request has failed with reason: " + response.reason
+                    )
+            except Exception as e:
+                RNS.log("Could not complete GET request " + bridge_target[BRIDGE_JSON_URL])
+                RNS.log("The contained exception was: %s" % (str(e)))
+
+        # Log start of message distribution after digesting bridge link buffers
+        RNS.log(
+            "Initial synchronization - Distribute messages marked as selected for distribution"
+        )
+        # Distribute all messages marked with merge tag
+        # Loop through massage buffer and distribute all messages that have been tagged
+        for message in copy.deepcopy(MESSAGE_STORE):
+            # Check if message has a merge tag stating the origin bridge tag
+            if MERGE_JSON_TAG in message.keys():
+                # Remove tag at the original buffer (if still there)
+                # Can be invalid in case any incoming message may have caused drop of that message
+                untag_message(message[MESSAGE_JSON_ID], MERGE_JSON_TAG)
+                # Distribute message to distribution targets and other bridge targets
+                # Copy of message still has bridge tan to indicate its origin
+                distribute_message(message)
+
+        # Save message buffer after synchronisation
+        save_messages()
+        # Log completion of initial synchronization
+        RNS.log(
+            "Initial synchronization - Distribution completed"
+        )
+    else:
+        RNS.log(
+            "No bridge targets configured to use for initial synchronization"
+        )
+
+    # Start timer to announce this server after 3 sec
+    # All other nexus server with the same aspect will register this server as a distribution target
+    # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
+    # Using a 3sec delay is useful while debugging oder development since dev servers need to be listening prior
+    # announcements may link them to a testing cluster or like subscription topology
+    t = threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, announce_server)
+    # Star as daemon so it terminates with main thread
+    t.daemon = True
+    t.start()
+
+    # Launch HTTP GET/POST processing
+    # This is an endless loop
+    # Termination by ctrl-c or like process termination
+    launch_http_server()
+
+    # Flush pending log
+    sys.stdout.flush()
+
+
+##########################################################################################
+# Announce the server to the reticulum network
+#
+# Calling this function will start a timer that will call this function again after the
+# specified re-announce period.
+#
+def single_announce_server():
+    # Announce this server to the network
+    # All other nexus server with the same aspect will register this server as a distribution target
+    # noinspection PyArgumentList
+    NEXUS_SERVER_DESTINATION.announce(
+        # Serialize the nexus server role dict to bytes and set it as app_date to the announcement
+        app_data=pickle.dumps(NEXUS_SERVER_ROLE)
+    )
+    # Log announcement / long poll announcement
+    RNS.log(
+        # Log entry does not use bytes but a string representation
+        "Server announcement sent with app_data: " + str(NEXUS_SERVER_ROLE)
+    )
+    # Log lxm messaging destination announcement
+    NEXUS_LXM_SOCKET.announce()
+    RNS.log(
+        # Log entry does not use bytes but a string representation
+        "LXM message destination announcement sent for " +
+        RNS.prettyhexrep(NexusLXMSocket.destination_hash(NEXUS_LXM_SOCKET))
+    )
+
+
+def announce_server():
+    # Announce this server to the network
+    # All other nexus server with the same aspect will register this server as a distribution target
+    single_announce_server()
+
+    # Start timer to re announce this server in due time as specified
+    t = threading.Timer(NEXUS_SERVER_LONGPOLL, announce_server)
+    # Start as daemon so it terminates with main thread
+    t.daemon = True
+    t.start()
+
+
+##########################################################################################
+# Start up of the threaded HTTP server to handle client json GET/POST requests
+#
+def launch_http_server():
+    # Create multithreading http server with given address and port to listen for json app interaction
+    httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
+    # Log launch with aspect and address/port used
+    RNS.log(
+        "Serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS
+    )
+    # Invoke server loop
+    # (infinite)
+    httpd.serve_forever()
 
 
 ##########################################################################################
@@ -495,7 +746,7 @@ class NexusLXMSocket:
 # All linked nexus servers that have updated their availability by an re-announcement prior the expiration period will
 # be kept as valid distribution targets.
 #
-class NexusLXMAnnounceHandler:
+class AnnounceHandler:
     global NEXUS_SERVER_ROLE
     global NEXUS_LXM_SOCKET
 
@@ -534,130 +785,143 @@ class NexusLXMAnnounceHandler:
             "The announce contained the following nexus role: " + str(announced_role)
         )
 
-        # Say Hello via LXM router
+        # Get dict key and timestamp for distribution identity registration
+        dict_key = RNS.prettyhexrep(destination_hash)
+        dict_time = int(time.time())
+        # Get lxm messaging destination out of role dict
+        lxm_messaging_destination = announced_role[ROLE_JSON_LXM_DESTINATION]
+        # Log provided lxm messaging destination
         RNS.log(
-            "DUMMY Send Hello to lxm messaging destination " + RNS.prettyhexrep(destination_hash)
+            "The announce contained the lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
         )
-        # NEXUS_LXM_SOCKET.send_lxm_hello(destination_hash, announced_identity)
+
+        # Add announced nexus distribution target to distribution dict if it has the same cluster or gateway name.
+        # This is to enable that servers of the actual cluster are subscribed for distribution as well as serves
+        # that announce themselves with a secondary cluster aka gateway cluster name.
+
+        # Check if we have cluster match
+        # with check if key is at both maps
+        link_flag1 = (ROLE_JSON_CLUSTER in NEXUS_SERVER_ROLE and ROLE_JSON_CLUSTER in announced_role)
+        if link_flag1:
+            link_flag1 = NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER] == announced_role[ROLE_JSON_CLUSTER]
+        # Check if we have gateway match
+        # with check if key is at both maps
+        link_flag2 = (ROLE_JSON_GATEWAY in NEXUS_SERVER_ROLE and ROLE_JSON_GATEWAY in announced_role)
+        if link_flag2:
+            link_flag2 = NEXUS_SERVER_ROLE[ROLE_JSON_GATEWAY] == announced_role[ROLE_JSON_GATEWAY]
+
+        # If we had a cluster or gateway match subscribe announced target
+        if link_flag1 or link_flag2:
+
+            # Check if destination is a new destination
+            if dict_key not in DISTRIBUTION_TARGETS.keys():
+                # Destination is new
+                # Announce this server once out of sequence to accelerate distribution list build up at that new
+                # server destination subscription list
+                single_announce_server()
+                # Log that we added new subscription
+                RNS.log(
+                    "Subscription for " + RNS.prettyhexrep(destination_hash) +
+                    " with LXM address " + RNS.prettyhexrep(lxm_messaging_destination) +
+                    " will be added"
+                )
+
+                # Say Hello via LXM router
+                RNS.log(
+                    "Send Hello to lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
+                )
+                NEXUS_LXM_SOCKET.send_lxm_hello(lxm_messaging_destination, announced_identity)
+
+            else:
+                # Log that we just updated new subscription
+                RNS.log(
+                    "Subscription for " + RNS.prettyhexrep(destination_hash) +
+                    " with LXM address " + RNS.prettyhexrep(lxm_messaging_destination) +
+                    " will be updated"
+                )
+            # Register for update destination as valid distribution target
+            DISTRIBUTION_TARGETS[dict_key] = (
+                dict_time,
+                announced_identity,
+                destination_hash,
+                lxm_messaging_destination
+            )
+
+            # Log list of severs with seconds it was last heard
+            for element in DISTRIBUTION_TARGETS.copy():
+                # Get timestamp and destination hash from dict
+                timestamp = DISTRIBUTION_TARGETS[element][0]
+                destination = RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2])
+                # Calculate seconds since last announce
+                last_heard = int(time.time()) - timestamp
+
+                # If destination is expired remove it from dict
+                # (This check and cleanup is done at the distribution function as well)
+                if last_heard >= NEXUS_SERVER_TIMEOUT:
+                    # Log that we removed the destination
+                    RNS.log(
+                        "Distribution destination " + RNS.prettyhexrep(DISTRIBUTION_TARGETS[element][2]) +
+                        " removed because of timeout"
+                    )
+                    # Actually remove destination from dict
+                    DISTRIBUTION_TARGETS.pop(element)
+
+                # If actual is still valid log it
+                RNS.log(
+                    "Registered Server " + destination + " last heard " + str(last_heard) + "sec ago"
+                )
+        else:
+            # Announce should be ignored since it belongs to a different cluster, and we are not eligible to
+            # link with that cluster as gateway too
+            RNS.log(
+                "Announced nexus role was ignored because role did not match role " + str(NEXUS_SERVER_ROLE)
+            )
 
     # Flush pending log
     sys.stdout.flush()
 
 
 ##########################################################################################
-# Initialize Nexus Server
-# Parameters:
-#   configpath<str>:        Alternate config path to be used for initialization of reticulum
-#   server_port<str>:       HTTP port to listen for POST/GET client app requests
-#   server_aspect<str>:     Reticulum target aspect to filter announces along with app name like
-#                           <app_name>.<server_aspect>
-#   server_role<jsonStr>:   Nexus Server role specification to specify automatic subscription handling
-#                           e.g. {"c":"cluster","g":"gateway"}
-#   long_poll<str>:         Period in sec between announcements of this server
-#   time_out<str>:          Period in sec until distribution link expires in case it is not updated by an announcement
+# Reticulum callback to handle incoming data packets
 #
-# The parameters are parsed by __main__ and then passed to this function.
-# Example call with all parameters given with their actual default values:
+# This function is called as soon as a data packet is received by this server target
+# Actually all packets are treated as messages.
+# ToDo: Implement server commands
+#           Digest message
+#           Remove message
+#           Get messages (since)
+#           Get last messages (number of messages)
+# The received message is processed and the forwarded to distribution
 #
-# python3 nexus_server.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
-#
-def initialize_server(
-        configpath,
-        server_port=None, server_aspect=None, server_role=None, long_poll=None, time_out=None, bridge_links=None
-):
-    global NEXUS_SERVER_ADDRESS
-    global NEXUS_SERVER_ASPECT
-    global NEXUS_SERVER_ROLE
-    global NEXUS_SERVER_LONGPOLL
-    global NEXUS_SERVER_TIMEOUT
-    global MESSAGE_STORE
-    global BRIDGE_TARGETS
-    global NEXUS_LXM_SOCKET
+def packet_callback(data, _packet):
+    # Reconstruct original python object
+    # In this case it was a python dictionary containing the json message
+    message = pickle.loads(data)
 
-    # Pull up Reticulum stack as configured
-    RNS.Reticulum(configpath)
+    # Check if message is valid
+    if is_valid_message(message):
+        # Log message received by distribution event
+        RNS.log(
+            "Valid message received via RNS packet"
+        )
+        # Log message data
+        log_message(message)
 
-    # Set default server port if not specified otherwise
-    if server_port is not None:
-        NEXUS_SERVER_ADDRESS = ('', int(server_port))
+        # Process, store and distribute message as required
+        if process_incoming_message(message):
+            # Distribute message to all registered or bridged nexus servers
+            distribute_message(message)
 
-    # Set default nexus aspect if not specified otherwise
-    # Announcement with that aspects are evaluated for possible automatic subscription
-    if server_aspect is not None:
-        # Overwrite default aspect
-        NEXUS_SERVER_ASPECT = server_aspect
-
-    # Role configuration of the server
-    # Announcement with similar cluster oder gateway names are considered as message subscriptions
-    if server_role is not None:
-        # Overwrite default role with specified role
-        NEXUS_SERVER_ROLE = json.loads(server_role)
-
-    # Time out configuration
-    # Expiration of distribution link occurs after this many seconds without another announcement
-    if time_out is not None:
-        # Update long poll to its default value according the actual default configuration
-        NEXUS_SERVER_LONGPOLL = int(float(time_out) / (NEXUS_SERVER_TIMEOUT / NEXUS_SERVER_LONGPOLL))
-        # Overwrite default time out with specified value
-        NEXUS_SERVER_TIMEOUT = int(time_out)
-
-    # Long poll configuration
-    # Announcement of this server is repeated after the specified seconds
-    if long_poll is not None:
-        # Overwrite default long poll default with specified value
-        NEXUS_SERVER_LONGPOLL = int(long_poll)
-
-    # Bridge link configuration
-    # Valid server link urls as used in the client for POST/GET HTTP requests
-    if bridge_links is not None:
-        # Overwrite default role with specified role
-        BRIDGE_TARGETS = json.loads(bridge_links)
-
-    # Log actually used parameters
-    RNS.log("Nexus Server v" + __version__ + " using Message v" + __message_version__ + " startup configuration:")
-    RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT))
-    RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL))
-    RNS.log("  --port=" + str(NEXUS_SERVER_ADDRESS[1]))
-    RNS.log("  --aspect=" + NEXUS_SERVER_ASPECT)
-    RNS.log("  --role=" + str(NEXUS_SERVER_ROLE))
-    RNS.log("  --bridge=" + str(BRIDGE_TARGETS))
-
-    # Create LXMF router socket with this server as source endpoint
-    NEXUS_LXM_SOCKET = NexusLXMSocket()
-    # Start timer to initially announce this socket after 3 sec
-    # All other nexus server with the same aspect will register this server as a distribution target
-    # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
-    # Using a 3sec delay is useful while debugging oder development since dev servers need to be listening prior
-    # announcements may link them to a testing cluster or like subscription topology
-    t = threading.Timer(INITIAL_ANNOUNCEMENT_DELAY, NexusLXMSocket.announce)
-    # Start as daemon so it terminates with main thread
-    t.daemon = True
-    t.start()
-    # Start long poll to announce server regularly
-    NexusLXMSocket.long_poll()
-
-    # Launch HTTP GET/POST processing
-    # This is an endless loop
-    # Termination by ctrl-c or like process termination
-    launch_http_server()
+        # Save message buffer after synchronisation
+        save_messages()
+    else:
+        # Message failed validation and is ignored
+        RNS.log(
+            "Received RNS packet failed version validation and is ignored"
+        )
 
     # Flush pending log
     sys.stdout.flush()
-
-
-##########################################################################################
-# Start up of the threaded HTTP server to handle client json GET/POST requests
-#
-def launch_http_server():
-    # Create multithreading http server with given address and port to listen for json app interaction
-    httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
-    # Log launch with aspect and address/port used
-    RNS.log(
-        "Serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS
-    )
-    # Invoke server loop
-    # (infinite)
-    httpd.serve_forever()
 
 
 ##########################################################################################
@@ -745,12 +1009,12 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             # If message has no 'origin' set use this server as origin
             if MESSAGE_JSON_ORIGIN not in message.keys():
                 # Set Origin to this server
-                message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
+                message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
 
             # If message has no 'via' set use this server as via
             if MESSAGE_JSON_VIA not in message.keys():
                 # Set Via to this server
-                message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
+                message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
 
             # If message has no ID yet create one
             if MESSAGE_JSON_ID not in message.keys():
@@ -1037,7 +1301,7 @@ def distribute_message(message):
         else:
             # Set new forwarder (VIA) id to message
             # Overwrite previous forwarder id
-            message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
+            message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_SERVER_DESTINATION.hash)
 
             # Get time stamp from target dict
             timestamp = DISTRIBUTION_TARGETS[target][0]
