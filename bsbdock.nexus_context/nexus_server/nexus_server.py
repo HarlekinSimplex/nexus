@@ -290,6 +290,7 @@ class NexusLXMSocket:
         self.socket_identity = socket_identity
         if self.socket_identity is None:
             self.socket_identity = RNS.Identity()
+
         # If storage path was not set use default storage path
         self.storage_path = storage_path
         if self.storage_path is None:
@@ -300,16 +301,18 @@ class NexusLXMSocket:
             os.makedirs(self.storage_path)
             # Log that storage directory was created
             RNS.log("Created storage path " + self.storage_path)
-        # Initialize lxm router
-        self.lxm_router = LXMF.LXMRouter(storagepath=self.storage_path)
-        # Initialize destination to be used as from destination when sending nexus messages to other nexus servers
+
+        # Initialize from destination to be used when sending nexus messages to other nexus servers
         self.from_destination = RNS.Destination(
             self.socket_identity,
-            RNS.Destination.OUT,
+            RNS.Destination.IN,
             RNS.Destination.SINGLE,
             APP_NAME, "messaging"
         )
-        # Add XM destination to server role
+
+        # Initialize lxm router
+        self.lxm_router = LXMF.LXMRouter(storagepath=self.storage_path)
+        # Add LXM destination to server role
         # With that it is distributed with the nexus server announce and can be stored with the subscription targets
         NEXUS_SERVER_ROLE[ROLE_JSON_LXM_DESTINATION] = self.from_destination.hash
         # Register callback to process received lxm deliverables
