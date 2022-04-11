@@ -287,10 +287,12 @@ def log_message(message):
 class NexusLXMSocket:
     def __init__(self, socket_identity=None, storage_path=None):
         # If identity was not given create a new for this lxm socket
-        if socket_identity is None:
+        self.socket_identity = socket_identity
+        if self.socket_identity is None:
             self.socket_identity = RNS.Identity()
         # If storage path was not set use default storage path
-        if storage_path is None:
+        self.storage_path = storage_path
+        if self.storage_path is None:
             self.storage_path = LXMF_STORAGE_PATH
         # Check and create storage path if necessary
         if not os.path.isdir(self.storage_path):
