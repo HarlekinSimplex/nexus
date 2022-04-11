@@ -328,10 +328,10 @@ class NexusLXMSocket:
         # Log updated server role
         RNS.log("LXM Router initialized with identity " + str(self.socket_identity))
 
-        # Register callback to process received lxm deliverables
-        self.lxm_router.register_delivery_callback(lxmf_delivery_callback)
-        # Log updated server role
-        RNS.log("LXM Delivery callback registered")
+        # Register callback to process incoming links
+        self.from_destination.set_link_established_callback(NexusLXMSocket.client_connected)
+        # Log callback for incoming link registered
+        RNS.log("LXM Link established callback registered")
 
         # Create a handler to process all incoming announcements with the aspect of this nexus server
         announce_handler = NexusLXMAnnounceHandler(aspect_filter=app_name + '.' + server_aspect)
@@ -342,6 +342,10 @@ class NexusLXMSocket:
 
         # Flush pending log
         sys.stdout.flush()
+
+    @staticmethod
+    def client_connected():
+        RNS.log("LXM Client connected")
 
     ##########################################################################################
     # Announce the server to the reticulum network
