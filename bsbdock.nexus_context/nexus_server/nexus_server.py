@@ -346,7 +346,15 @@ class NexusLXMSocket:
             "Received LXMF message " + time_string + " " + signature_string
         )
 
-    def send_lxm_hello(self, to_destination_hash):
+    def send_lxm_hello(self, to_destination_hash, announced_identity):
+        # Create destination
+        to_destination = RNS.Destination(
+            announced_identity,
+            RNS.Destination.OUT,
+            RNS.Destination.SINGLE,
+            APP_NAME, "messaging"
+        )
+
         # Assemble Hello World message
         message_text = 'Hello Server ' + \
                        '012345678901234567890123456789012345678901234567890' + \
@@ -370,14 +378,13 @@ class NexusLXMSocket:
         message_title = 'Hello Nexus Server'
         # Create lxmessage and handle outbound to the target Nexus server with the lxm router
         lxm_message = LXMF.LXMessage(
-            None,
-            destination_hash=to_destination_hash,
+            to_destination,
             source=self.from_destination,
-            content=message_text, title=message_title,
+            content=message_text,
+            title=message_title,
             desired_method=LXMF.LXMessage.DIRECT
         )
         # lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
-
         RNS.log(
             "LXM handle outbound for Hello message sent to " + RNS.prettyhexrep(to_destination_hash) +
             " from " + RNS.prettyhexrep(self.from_destination.hash)
