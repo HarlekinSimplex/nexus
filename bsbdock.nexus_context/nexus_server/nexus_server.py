@@ -301,7 +301,7 @@ class NexusLXMSocket:
             # Log that storage directory was created
             RNS.log("Created storage path " + self.storage_path)
         # Initialize lxm router
-        self.lxm_router = LXMF.LXMRouter(storagepath=storage_path)
+        self.lxm_router = LXMF.LXMRouter(storagepath=self.storage_path)
         # Initialize destination to be used as from destination when sending nexus messages to other nexus servers
         self.from_destination = RNS.Destination(
             self.socket_identity,
