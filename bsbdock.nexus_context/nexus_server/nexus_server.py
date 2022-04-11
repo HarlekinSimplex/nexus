@@ -95,9 +95,11 @@ BRIDGE_JSON_CLUSTER = "cluster"
 MERGE_JSON_TAG = "tag"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
-# Role Example: {"c": "ClusterName", "g": "GatewayName"}
+# The LXM Destination is added with the LXM socket instantiation
+# Role Example: {'c':'ClusterName','g':'GatewayName','m':destination_hash}
 ROLE_JSON_CLUSTER = "c"
 ROLE_JSON_GATEWAY = "g"
+ROLE_JSON_LXM_DESTINATION = "m"
 
 # Some Server default values used to announce nexus servers to reticulum
 # APP_NAME = "nexus"
@@ -283,30 +285,37 @@ def log_message(message):
 # LXM router socket for LXMF message handling
 #
 class NexusLXMSocket:
-    def __init__(self, destination_identity=None, storage_path=None):
+    def __init__(self, socket_identity=None, storage_path=None):
         # If identity was not given create a new for this lxm socket
-        if destination_identity is None:
-            destination_identity = RNS.Identity()
+        if socket_identity is None:
+            self.socket_identity = RNS.Identity()
         # If storage path was not set use default storage path
         if storage_path is None:
-            storage_path = LXMF_STORAGE_PATH
+            self.storage_path = LXMF_STORAGE_PATH
         # Check and create storage path if necessary
-        if not os.path.isdir(storage_path):
+        if not os.path.isdir(self.storage_path):
             # Create storage path
-            os.makedirs(storage_path)
+            os.makedirs(self.storage_path)
             # Log that storage directory was created
-            RNS.log("Created storage path " + storage_path)
+            RNS.log("Created storage path " + self.storage_path)
         # Initialize lxm router
         self.lxm_router = LXMF.LXMRouter(storagepath=storage_path)
         # Initialize destination to be used as from destination when sending nexus messages to other nexus servers
         self.from_destination = RNS.Destination(
-            destination_identity,
+            self.socket_identity,
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
             APP_NAME, "messaging"
         )
+        # Add XM destination to server role
+        # With that it is distributed with the nexus server announce and can be stored with the subscription targets
+        NEXUS_SERVER_ROLE[ROLE_JSON_LXM_DESTINATION] = self.from_destination.hash
         # Register callback to process received lxm deliverables
         self.lxm_router.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
+        # Log updated server role
+        RNS.log(
+            "LXM messaging destination added to server role " + str(NEXUS_SERVER_ROLE)
+        )
 
     def destination_hash(self):
         return self.from_destination.hash
@@ -326,15 +335,15 @@ class NexusLXMSocket:
                 signature_string = "Invalid signature"
             if message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
                 signature_string = "Cannot verify, source is unknown"
-
+        # Log LXM message received event
         RNS.log(
             "Received LXMF message " + time_string + " " + signature_string
         )
 
-    def send_lxm_hello(self, destination_hash, announced_identity, app_data):
+    def send_lxm_hello(self, destination_hash):
         # Create destination from hash with announced identity
         to_destination = RNS.Destination(
-            announced_identity,
+            self.socket_identity,
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
             APP_NAME, "messaging"
@@ -633,12 +642,6 @@ def single_announce_server():
         # Log entry does not use bytes but a string representation
         "Server announcement sent with app_data: " + str(NEXUS_SERVER_ROLE)
     )
-    # Announce LXM messaging destination
-    NEXUS_LXM_SOCKET.announce()
-    RNS.log(
-        # Log LXM destination
-        "Announced LXM messaging destination " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
-    )
 
 
 def announce_server():
@@ -778,6 +781,8 @@ class AnnounceHandler:
         # Get dict key and timestamp for distribution identity registration
         dict_key = RNS.prettyhexrep(destination_hash)
         dict_time = int(time.time())
+        # Get lxm messaging destination out of role dict
+        lxm_messaging_destination = announced_role[ROLE_JSON_LXM_DESTINATION]
 
         # Add announced nexus distribution target to distribution dict if it has the same cluster or gateway name.
         # This is to enable that servers of the actual cluster are subscribed for distribution as well as serves
@@ -803,13 +808,18 @@ class AnnounceHandler:
                 # Announce this server once out of sequence to accelerate distribution list build up at that new
                 # server destination subscription list
                 single_announce_server()
-                # Say Hello via LXM router
-                NEXUS_LXM_SOCKET.send_lxm_hello(destination_hash, announced_identity, app_data)
                 # Log that we added new subscription
                 RNS.log(
                     "Subscription for " + RNS.prettyhexrep(destination_hash) +
                     " will be added"
                 )
+
+                # Say Hello via LXM router
+                NEXUS_LXM_SOCKET.send_lxm_hello(lxm_messaging_destination)
+                RNS.log(
+                    "Send Hello to lxm messaging destination " + RNS.prettyhexrep(lxm_messaging_destination)
+                )
+
             else:
                 # Log that we just updated new subscription
                 RNS.log(
@@ -817,7 +827,12 @@ class AnnounceHandler:
                     " will be updated"
                 )
             # Register for update destination as valid distribution target
-            DISTRIBUTION_TARGETS[dict_key] = (dict_time, announced_identity, destination_hash)
+            DISTRIBUTION_TARGETS[dict_key] = (
+                dict_time,
+                announced_identity,
+                destination_hash,
+                lxm_messaging_destination
+            )
 
             # Log list of severs with seconds it was last heard
             for element in DISTRIBUTION_TARGETS.copy():
