@@ -363,10 +363,15 @@ class NexusLXMSocket:
     @staticmethod
     def client_disconnect(link):
         RNS.log("LXM Client disconnected " + str(link))
+        if link.teardown_reason == RNS.Link.TIMEOUT:
+            RNS.log("The link timed out, exiting now")
+        elif link.teardown_reason == RNS.Link.DESTINATION_CLOSED:
+            RNS.log("The link was closed by the server, exiting now")
+        else:
+            RNS.log("Link closed")
 
     @staticmethod
     def packet_received(message, packet):
-        data = umsgpack.unpackb(message)
         RNS.log("LXM Link paket received " + str(data))
 
     ##########################################################################################
