@@ -372,7 +372,7 @@ class NexusLXMSocket:
 
     @staticmethod
     def packet_received(message, packet):
-        RNS.log("LXM Link paket received " + str(data))
+        RNS.log("LXM Link paket received " + str(message))
 
     ##########################################################################################
     # Announce the server to the reticulum network
