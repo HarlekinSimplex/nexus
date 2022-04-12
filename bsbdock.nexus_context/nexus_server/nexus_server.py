@@ -449,33 +449,32 @@ class NexusLXMSocket:
             title=message_title,
             desired_method=LXMF.LXMessage.DIRECT
         )
-        lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
         RNS.log(
             "LXM handle outbound for Hello message sent to " + RNS.prettyhexrep(to_destination_hash) +
             " from " + RNS.prettyhexrep(self.from_destination.hash)
         )
 
-        lxm_message.register_delivery_callback(lxmf_delivery_callback)
+        lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
+        lxm_message.register_failed_callback(NexusLXMSocket.lxmf_delivery_callback)
         self.lxm_router.handle_outbound(lxm_message)
 
-
-# noinspection DuplicatedCode
-def lxmf_delivery_callback(message):
-    time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
-    signature_string = "Signature is invalid, reason undetermined"
-    if message.signature_validated:
-        signature_string = "Validated"
-    else:
-        if message.unverified_reason == LXMF.LXMessage.SIGNATURE_INVALID:
-            signature_string = "Invalid signature"
-        if message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
-            signature_string = "Cannot verify, source is unknown"
-    # Log LXM message received event
-    RNS.log("Delivered LXMF message " + time_string + " " + signature_string)
-    RNS.log("-       Title: " + str(message.title))
-    RNS.log("-     Content: " + str(message.content))
-    RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
-    RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
+    # noinspection DuplicatedCode
+    def lxmf_delivery_callback(message):
+        time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
+        signature_string = "Signature is invalid, reason undetermined"
+        if message.signature_validated:
+            signature_string = "Validated"
+        else:
+            if message.unverified_reason == LXMF.LXMessage.SIGNATURE_INVALID:
+                signature_string = "Invalid signature"
+            if message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
+                signature_string = "Cannot verify, source is unknown"
+        # Log LXM message received event
+        RNS.log("Delivered LXMF message " + time_string + " " + signature_string)
+        RNS.log("-       Title: " + str(message.title))
+        RNS.log("-     Content: " + str(message.content))
+        RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
+        RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
 
 
 ##########################################################################################
