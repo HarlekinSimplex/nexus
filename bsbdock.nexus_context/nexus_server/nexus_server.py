@@ -422,7 +422,8 @@ class NexusLXMSocket:
         )
 
         # Assemble Hello World message
-        message_text = 'Hello Server ' + \
+        message_text = 'Hello World - Time: ' + time.ctime(time.time())
+        '''
                        '012345678901234567890123456789012345678901234567890' + \
                        '012345678901234567890123456789012345678901234567890' + \
                        '012345678901234567890123456789012345678901234567890' + \
@@ -435,6 +436,7 @@ class NexusLXMSocket:
                        '012345678901234567890123456789012345678901234567890' + \
                        '012345678901234567890123456789012345678901234567890' + \
                        '012345678901234567890123456789012345678901234567890'
+        '''
         message_title = 'Hello Nexus Server'
         # Create lxmessage and handle outbound to the target Nexus server with the lxm router
         lxm_message = LXMF.LXMessage(
