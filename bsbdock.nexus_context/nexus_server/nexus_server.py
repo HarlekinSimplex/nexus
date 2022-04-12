@@ -424,7 +424,7 @@ class NexusLXMSocket:
         )
 
         # Assemble Hello World message
-        message_text = 'Hello World - Time: ' + time.ctime(time.time())
+        message_text = 'Hello World - Time: ' + time.ctime(time.time()) + \
                        '012345678901234567890123456789012345678901234567890' + \
                        '012345678901234567890123456789012345678901234567890' + \
                        '012345678901234567890123456789012345678901234567890' + \
