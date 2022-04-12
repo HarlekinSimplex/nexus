@@ -459,6 +459,7 @@ class NexusLXMSocket:
         self.lxm_router.handle_outbound(lxm_message)
 
     # noinspection DuplicatedCode
+    @staticmethod
     def lxmf_delivery_callback(message):
         time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
         signature_string = "Signature is invalid, reason undetermined"
