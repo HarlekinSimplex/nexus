@@ -329,17 +329,20 @@ class NexusLXMSocket:
         # Log updated server role
         RNS.log("LXM Router initialized with identity " + str(self.socket_identity))
 
+        '''
         # Register callback to process incoming links
         self.from_destination.set_link_established_callback(NexusLXMSocket.client_connected)
         # Log callback for incoming link registered
         RNS.log("LXM Link established callback registered")
-
+        '''
+        '''
         # Create a handler to process all incoming announcements with the aspect of this nexus server
         announce_handler = NexusLXMAnnounceHandler(aspect_filter=app_name + '.' + server_aspect)
         # Log announce filter
         RNS.log("LXM AnnounceHandler listens to " + app_name + '.' + server_aspect)
         # Register the handler with the reticulum transport layer
         RNS.Transport.register_announce_handler(announce_handler)
+        '''
 
         # Flush pending log
         sys.stdout.flush()
@@ -672,6 +675,7 @@ def initialize_server(
 
     # Create LXMF router socket with this server as source endpoint
     NEXUS_LXM_SOCKET = NexusLXMSocket()
+
     # Start timer to initially announce this socket after 3 sec
     # All other nexus server with the same aspect will register this server as a distribution target
     # This function activates the longpoll re announcement loop to prevent subscription timeouts at linked servers
