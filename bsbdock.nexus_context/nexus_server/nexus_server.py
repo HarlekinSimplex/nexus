@@ -20,7 +20,8 @@ import pickle
 import time
 import string
 
-import vendor.umsgpack as msgpack
+import RNS.vendor.umsgpack as umsgpack
+
 
 ##########################################################################################
 # Global variables
@@ -148,7 +149,7 @@ def save_messages():
     # Check if storage file is there
     try:
         save_file = open(MESSAGE_STORAGE_FILE, "wb")
-        save_file.write(msgpack.packb(MESSAGE_STORE))
+        save_file.write(umsgpack.packb(MESSAGE_STORE))
         save_file.close()
         RNS.log("Messages saved to storage file " + MESSAGE_STORAGE_FILE)
 
@@ -365,7 +366,7 @@ class NexusLXMSocket:
 
     @staticmethod
     def packet_received(message, packet):
-        data = msgpack.unpackb(packet)
+        data = umsgpack.unpackb(message)
         RNS.log("LXM Link paket received " + str(data))
 
     ##########################################################################################
