@@ -371,8 +371,25 @@ class NexusLXMSocket:
             RNS.log("Link closed")
 
     @staticmethod
-    def packet_received(message, packet):
-        RNS.log("LXM Link paket received " + str(message))
+    def packet_received(lxmf_bytes, packet):
+        # Unpack message received
+        message = LXMF.LXMessage.unpack_from_bytes(lxmf_bytes)
+        # Log Message
+        time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
+        signature_string = "Signature is invalid, reason undetermined"
+        if message.signature_validated:
+            signature_string = "Validated"
+        else:
+            if message.unverified_reason == LXMF.LXMessage.SIGNATURE_INVALID:
+                signature_string = "Invalid signature"
+            if message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
+                signature_string = "Cannot verify, source is unknown"
+        # Log LXM message received event
+        RNS.log("Received LXMF message " + time_string + " " + signature_string)
+        RNS.log("-       Title: " + message.title.decode('utf-8'))
+        RNS.log("-     Content: " + message.content.decode('utf-8'))
+        RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
+        RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
 
     ##########################################################################################
     # Announce the server to the reticulum network
@@ -503,8 +520,8 @@ class NexusLXMSocket:
                 signature_string = "Cannot verify, source is unknown"
         # Log LXM message received event
         RNS.log("Delivered LXMF message " + time_string + " " + signature_string)
-        RNS.log("-       Title: " + str(message.title))
-        RNS.log("-     Content: " + str(message.content))
+        RNS.log("-       Title: " + message.title.decode('utf-8'))
+        RNS.log("-     Content: " + message.content.decode('utf-8'))
         RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
         RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
 
