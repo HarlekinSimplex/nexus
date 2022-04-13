@@ -351,8 +351,8 @@ class NexusLXMSocket:
         # RNS.log("LXM Client disconnect callback set")
         link.set_resource_strategy(RNS.Link.ACCEPT_ALL)
         RNS.log("LXM Link Resource strategy set to ACCEPT_ALL")
-        # link.set_resource_concluded_callback(NexusLXMSocket.resource_concluded)
-        # RNS.log("LXM Resource concluded callback set")
+        link.set_resource_concluded_callback(NexusLXMSocket.resource_concluded)
+        RNS.log("LXM Resource concluded callback set")
         link.set_packet_callback(NexusLXMSocket.packet_received)
         RNS.log("LXM Packet callback set")
 
