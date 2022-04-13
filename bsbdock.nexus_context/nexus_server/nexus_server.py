@@ -22,7 +22,6 @@ import string
 
 import RNS.vendor.umsgpack as umsgpack
 
-
 ##########################################################################################
 # Global variables
 #
@@ -358,7 +357,46 @@ class NexusLXMSocket:
 
     @staticmethod
     def resource_concluded(resource):
-        RNS.log("LXM Resource data transfer delivered " + str(resource.data))
+        RNS.log("LXM Resource data transfer delivered " + str(resource))
+        if resource.status == RNS.Resource.COMPLETE:
+            destination_type = resource.link.type
+            lxmf_data = resource.data.read()
+            try:
+                message = LXMF.LXMessage.unpack_from_bytes(lxmf_data)
+                if destination_type == RNS.Destination.SINGLE:
+                    message.transport_encrypted = True
+                    message.transport_encryption = LXMF.LXMessage.ENCRYPTION_DESCRIPTION_EC
+                elif destination_type == RNS.Destination.GROUP:
+                    message.transport_encrypted = True
+                    message.transport_encryption = LXMF.LXMessage.ENCRYPTION_DESCRIPTION_AES
+                elif destination_type == RNS.Destination.LINK:
+                    message.transport_encrypted = True
+                    message.transport_encryption = LXMF.LXMessage.ENCRYPTION_DESCRIPTION_EC
+                else:
+                    message.transport_encrypted = False
+                    message.transport_encryption = None
+            except Exception as e:
+                RNS.log("Could not assemble LXMF message from received data", RNS.LOG_NOTICE)
+                RNS.log("The contained exception was: " + str(e), RNS.LOG_DEBUG)
+                return
+            # Log Message
+            time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
+            signature_string = "Signature is invalid, reason undetermined"
+            if message.signature_validated:
+                signature_string = "Validated"
+            else:
+                if message.unverified_reason == LXMF.LXMessage.SIGNATURE_INVALID:
+                    signature_string = "Invalid signature"
+                if message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
+                    signature_string = "Cannot verify, source is unknown"
+            # Log LXM message received event
+            RNS.log("Received LXMF resource message " + time_string + " " + signature_string)
+            RNS.log("-       Title: " + message.title.decode('utf-8'))
+            RNS.log("-     Content: " + message.content.decode('utf-8'))
+            RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
+            RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
+        else:
+            RNS.log("Received LXMF resource message is not complete")
 
     @staticmethod
     def client_disconnect(link):
