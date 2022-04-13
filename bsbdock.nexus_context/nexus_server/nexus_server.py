@@ -306,7 +306,7 @@ class NexusLXMSocket:
         RNS.log("LXM Socket identity is " + str(self.socket_identity))
 
         # Initialize from destination to be used when sending nexus messages to other nexus servers
-        self.from_destination = RNS.Destination(
+        self.socket_destination = RNS.Destination(
             self.socket_identity,
             RNS.Destination.IN,
             RNS.Destination.SINGLE,
@@ -314,10 +314,10 @@ class NexusLXMSocket:
             self.server_aspect
         )
         # Set proof strategy to PROVE_ALL
-        self.from_destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
+        self.socket_destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
         # Log the crated lxm destination
-        RNS.log("LXM Nexus Server from destination is " + str(self.from_destination))
+        RNS.log("LXM Nexus Server from destination is " + str(self.socket_destination))
         RNS.log("LXM Nexus Server hash is " + RNS.prettyhexrep(self.destination_hash()))
 
         # Initialize lxm router
@@ -329,7 +329,7 @@ class NexusLXMSocket:
         RNS.log("LXM Router initialized with identity " + str(self.socket_identity))
 
         # Register callback to process incoming links
-        self.from_destination.set_link_established_callback(NexusLXMSocket.client_connected)
+        self.socket_destination.set_link_established_callback(NexusLXMSocket.client_connected)
         # Log callback for incoming link registered
         RNS.log("LXM Link established callback registered")
 
@@ -342,6 +342,83 @@ class NexusLXMSocket:
 
         # Flush pending log
         sys.stdout.flush()
+
+    ##########################################################################################
+    # Announce the server to the reticulum network
+    #
+    # Calling this function will start a timer that will call this function again after the
+    # specified re-announce period.
+    #
+    @staticmethod
+    def announce():
+        # Announce this server to the network
+        # All other nexus server with the same aspect will register this server as a distribution target
+        # noinspection PyArgumentList
+        NEXUS_LXM_SOCKET.socket_destination.announce(
+            # Serialize the nexus server role dict to bytes and set it as app_date to the announcement
+            app_data=pickle.dumps(NEXUS_SERVER_ROLE)
+        )
+        # Log announcement / long poll announcement
+        RNS.log(
+            # Log entry does not use bytes but a string representation
+            "LXM Nexus Server " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash()) +
+            " announced with app_data: " + str(NEXUS_SERVER_ROLE)
+        )
+
+    def destination_hash(self):
+        return self.socket_destination.hash
+
+    def send_lxm_hello(self, destination_hash, announced_identity):
+        # Send two test messages to announced nexus server to test LXMF message processing
+        # One single packet message
+        # One multi packet message
+
+        # Send single packet 'Hello World' message
+        title = 'Hello Nexus Server'
+        content = 'Hello World (Single Packet) - Time: ' + time.ctime(time.time())
+        self.send_message(title, content, destination_hash, announced_identity)
+
+        # Send Multi Packet Hello World message
+        title = 'Hello Nexus Server'
+        content = 'Hello World (Multi Packet) - Time: ' + time.ctime(time.time()) + \
+                  '012345678901234567890123456789012345678901234567890' + \
+                  '012345678901234567890123456789012345678901234567890' + \
+                  '012345678901234567890123456789012345678901234567890' + \
+                  '012345678901234567890123456789012345678901234567890' + \
+                  '012345678901234567890123456789012345678901234567890'
+        self.send_message(title, content, destination_hash, announced_identity)
+
+    def send_message(self, title, content, destination_hash, identity):
+        # Create destination
+        to_destination = RNS.Destination(
+            identity,
+            RNS.Destination.OUT,
+            RNS.Destination.SINGLE,
+            self.app_name,
+            self.server_aspect
+        )
+        # Create lxmessage and handle outbound to the target Nexus server with the lxm router
+        lxm_message = LXMF.LXMessage(
+            to_destination,
+            destination_hash=destination_hash,
+            source=self.socket_destination,
+            content=content,
+            title=title,
+            desired_method=LXMF.LXMessage.DIRECT
+        )
+
+        # Register message handler
+        # This is the good case - message is processed successfully
+        lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
+        # Log delivery failure
+        lxm_message.register_failed_callback(NexusLXMSocket.lxmf_delivery_callback)
+
+        # Transfer handling of the message to LXMF
+        RNS.log(
+            "LXM handle outbound for message sent to " + RNS.prettyhexrep(destination_hash) +
+            " from " + RNS.prettyhexrep(self.socket_destination.hash)
+        )
+        self.lxm_router.handle_outbound(lxm_message)
 
     @staticmethod
     def client_connected(link):
@@ -394,6 +471,16 @@ class NexusLXMSocket:
             RNS.log("The contained exception was: " + str(e), RNS.LOG_DEBUG)
             return
 
+        # Log message as delivery receipt
+        NexusLXMSocket.log_message(message, "LXMF message received")
+
+    @staticmethod
+    def lxmf_delivery_callback(message):
+        # Log message as delivery receipt
+        NexusLXMSocket.log_message(message, "LXMF delivery receipt")
+
+    @staticmethod
+    def log_message(message, message_tag="LXMF Message log"):
         # Log Message
         # Create time stamp for logging
         time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
@@ -410,35 +497,13 @@ class NexusLXMSocket:
         # Log LXM message received event
         title = message.title.decode('utf-8')
         content = message.content.decode('utf-8')
-        RNS.log("Received LXMF message " + time_string + " " + signature_string)
+        RNS.log(message_tag + " - " + time_string)
         RNS.log("-       Title: " + title)
         RNS.log("-     Content: " + content)
         RNS.log("-        Size: " + str(len(content)) + " bytes")
         RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
         RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
         RNS.log("-   Signature: " + signature_string)
-
-    ##########################################################################################
-    # Announce the server to the reticulum network
-    #
-    # Calling this function will start a timer that will call this function again after the
-    # specified re-announce period.
-    #
-    @staticmethod
-    def announce():
-        # Announce this server to the network
-        # All other nexus server with the same aspect will register this server as a distribution target
-        # noinspection PyArgumentList
-        NEXUS_LXM_SOCKET.from_destination.announce(
-            # Serialize the nexus server role dict to bytes and set it as app_date to the announcement
-            app_data=pickle.dumps(NEXUS_SERVER_ROLE)
-        )
-        # Log announcement / long poll announcement
-        RNS.log(
-            # Log entry does not use bytes but a string representation
-            "LXM Nexus Server " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash()) +
-            " announced with app_data: " + str(NEXUS_SERVER_ROLE)
-        )
 
     @staticmethod
     def long_poll():
@@ -451,113 +516,6 @@ class NexusLXMSocket:
         # Start as daemon so it terminates with main thread
         t.daemon = True
         t.start()
-
-    def destination_hash(self):
-        return self.from_destination.hash
-
-    def send_lxm_hello(self, to_destination_hash, announced_identity):
-        # Create destination
-        to_destination = RNS.Destination(
-            announced_identity,
-            RNS.Destination.OUT,
-            RNS.Destination.SINGLE,
-            self.app_name,
-            self.server_aspect
-        )
-
-        # Assemble Hello World message
-        message_text = 'Hello World - Time: ' + time.ctime(time.time()) + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890' + \
-                       '012345678901234567890123456789012345678901234567890'
-        message_title = 'Hello Nexus Server'
-        # Create lxmessage and handle outbound to the target Nexus server with the lxm router
-        lxm_message = LXMF.LXMessage(
-            to_destination,
-            destination_hash=to_destination_hash,
-            source=self.from_destination,
-            content=message_text,
-            title=message_title,
-            desired_method=LXMF.LXMessage.DIRECT
-        )
-        RNS.log(
-            "LXM handle outbound for Hello message sent to " + RNS.prettyhexrep(to_destination_hash) +
-            " from " + RNS.prettyhexrep(self.from_destination.hash)
-        )
-
-        lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
-        lxm_message.register_failed_callback(NexusLXMSocket.lxmf_delivery_callback)
-        self.lxm_router.handle_outbound(lxm_message)
-
-    # noinspection DuplicatedCode
-    @staticmethod
-    def lxmf_delivery_callback(message):
-        # Log Message
-        # Create time stamp for logging
-        time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
-        # Check and log signature status
-        if message.signature_validated:
-            signature_string = "Validated"
-        else:
-            if message.unverified_reason == LXMF.LXMessage.SIGNATURE_INVALID:
-                signature_string = "Invalid signature"
-            elif message.unverified_reason == LXMF.LXMessage.SOURCE_UNKNOWN:
-                signature_string = "Cannot verify, source is unknown"
-            else:
-                signature_string = "Signature is invalid, reason undetermined"
-        # Log LXM message received event
-        title = message.title.decode('utf-8')
-        content = message.content.decode('utf-8')
-        RNS.log("Delivered LXMF message " + time_string + " " + signature_string)
-        RNS.log("-       Title: " + title)
-        RNS.log("-     Content: " + content)
-        RNS.log("-        Size: " + str(len(content)) + " bytes")
-        RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
-        RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
-        RNS.log("-   Signature: " + signature_string)
-
 
 
 ##########################################################################################
