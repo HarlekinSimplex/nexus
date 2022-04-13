@@ -472,12 +472,12 @@ class NexusLXMSocket:
             return
 
         # Log message as delivery receipt
-        NexusLXMSocket.log_message(message, "LXMF message received")
+        NexusLXMSocket.log_message(message, "LXMF Message received")
 
     @staticmethod
     def lxmf_delivery_callback(message):
         # Log message as delivery receipt
-        NexusLXMSocket.log_message(message, "LXMF delivery receipt")
+        NexusLXMSocket.log_message(message, "LXMF Delivery receipt")
 
     @staticmethod
     def log_message(message, message_tag="LXMF Message log"):
