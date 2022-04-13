@@ -276,7 +276,7 @@ def log_message(message):
 
 
 ##########################################################################################
-# LXM router socket for LXMF message handling
+# Nexus LXM router socket for LXMF message handling
 #
 class NexusLXMSocket:
     def __init__(self, socket_identity=None, storage_path=None, app_name=APP_NAME, server_aspect=NEXUS_SERVER_ASPECT):
@@ -343,28 +343,6 @@ class NexusLXMSocket:
         # Flush pending log
         sys.stdout.flush()
 
-    ##########################################################################################
-    # Announce the server to the reticulum network
-    #
-    # Calling this function will start a timer that will call this function again after the
-    # specified re-announce period.
-    #
-    @staticmethod
-    def announce():
-        # Announce this server to the network
-        # All other nexus server with the same aspect will register this server as a distribution target
-        # noinspection PyArgumentList
-        NEXUS_LXM_SOCKET.socket_destination.announce(
-            # Serialize the nexus server role dict to bytes and set it as app_date to the announcement
-            app_data=pickle.dumps(NEXUS_SERVER_ROLE)
-        )
-        # Log announcement / long poll announcement
-        RNS.log(
-            # Log entry does not use bytes but a string representation
-            "LXM Nexus Server " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash()) +
-            " announced with app_data: " + str(NEXUS_SERVER_ROLE)
-        )
-
     def destination_hash(self):
         return self.socket_destination.hash
 
@@ -420,11 +398,30 @@ class NexusLXMSocket:
         )
         self.lxm_router.handle_outbound(lxm_message)
 
+    ##########################################################################################
+    # Announce the server to the reticulum network
+    #
+    # Calling this function will start a timer that will call this function again after the
+    # specified re-announce period.
+    #
+    @staticmethod
+    def announce():
+        # Announce this server to the network
+        # All other nexus server with the same aspect will register this server as a distribution target
+        # noinspection PyArgumentList
+        NEXUS_LXM_SOCKET.socket_destination.announce(
+            # Serialize the nexus server role dict to bytes and set it as app_date to the announcement
+            app_data=pickle.dumps(NEXUS_SERVER_ROLE)
+        )
+        # Log announcement / long poll announcement
+        RNS.log(
+            # Log entry does not use bytes but a string representation
+            "LXM Nexus Server " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash()) +
+            " announced with app_data: " + str(NEXUS_SERVER_ROLE)
+        )
+
     @staticmethod
     def client_connected(link):
-        # RNS.log("LXM Client connected " + str(link))
-        # link.set_link_closed_callback(NexusLXMSocket.client_disconnect)
-        # RNS.log("LXM Client disconnect callback set")
         link.set_resource_strategy(RNS.Link.ACCEPT_ALL)
         RNS.log("LXM Link Resource strategy set to ACCEPT_ALL")
         link.set_resource_concluded_callback(NexusLXMSocket.resource_concluded)
