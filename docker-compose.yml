@@ -23,6 +23,7 @@ services:
       dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile_nexus_linux-arm-v7}
 
     restart: unless-stopped
+    command: ${NEXUS_COMMAND:_/bsb/start.sh}
     ports:
 # Port for the reticulum server API for reticulum client access if required
 # Can be set to 127.0.0.1:4242:4242 to permit access other than from localhost
