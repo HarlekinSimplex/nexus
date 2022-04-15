@@ -103,7 +103,7 @@ ROLE_JSON_GATEWAY = "g"
 # Some Server default values used to announce nexus servers to reticulum
 # APP_NAME = "nexus"
 APP_NAME = "nexus"
-NEXUS_SERVER_ASPECT = "server"
+NEXUS_SERVER_ASPECT = "home"
 
 # Default server cluster that is announced to be subscribed to
 # This one can be used to run not connected server names by just giving all servers different cluster names
