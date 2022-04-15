@@ -395,6 +395,11 @@ def log_nexus_message(message):
 # Nexus LXM router socket for LXMF message handling
 #
 class NexusLXMSocket:
+
+    # Call back to handle received messages
+    message_received_callback = None
+
+    # Class constructor
     def __init__(self, socket_identity=None, storage_path=None, app_name=APP_NAME, server_aspect=NEXUS_SERVER_ASPECT):
 
         # Initialize members
@@ -458,6 +463,12 @@ class NexusLXMSocket:
 
         # Flush pending log
         sys.stdout.flush()
+
+    # Register callable to process a received message
+    #    handler_function(lxm_message)
+    #
+    def register_message_received_callback(self, handler_function):
+        self.message_received_callback = handler_function
 
     def destination_hash(self):
         return self.socket_destination.hash
@@ -525,19 +536,22 @@ class NexusLXMSocket:
     # specified re-announce period.
     #
     @staticmethod
-    def announce():
+    def announce(announce_data=None):
+        # noinspection PyArgumentList
+        if announce_data is None:
+            # Set nexus default server role as default announce data
+            announce_data = NEXUS_SERVER_ROLE
         # Announce this server to the network
         # All other nexus server with the same aspect will register this server as a distribution target
-        # noinspection PyArgumentList
         NEXUS_LXM_SOCKET.socket_destination.announce(
             # Serialize the nexus server role dict to bytes and set it as app_date to the announcement
-            app_data=pickle.dumps(NEXUS_SERVER_ROLE)
+            app_data=pickle.dumps(announce_data)
         )
         # Log announcement / long poll announcement
         RNS.log(
             # Log entry does not use bytes but a string representation
             "LXM Nexus Server " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash()) +
-            " announced with app_data: " + str(NEXUS_SERVER_ROLE)
+            " announced with app_data: " + str(announce_data)
         )
 
         # Flush pending log
@@ -627,6 +641,10 @@ class NexusLXMSocket:
         RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
         RNS.log("-   Signature: " + signature_string)
 
+        # Call message handler if one is registered.
+        if NexusLXMSocket.message_received_callback is not None:
+            NexusLXMSocket.message_received_callback(message)
+
     @staticmethod
     def long_poll():
         # Announce this server to the network
@@ -638,6 +656,43 @@ class NexusLXMSocket:
         # Start as daemon so it terminates with main thread
         t.daemon = True
         t.start()
+
+
+##########################################################################################
+# NexusLXMSocket callback to handle incoming data packets
+#
+# This function is called as soon as a data packet is received by this server LXM Socket
+# Actually all packets are treated as messages.
+# ToDo: Implement server commands
+#           Digest message
+#           Remove message
+#           Get messages (since)
+#           Get last messages (number of messages)
+#
+def message_received_callback(lxmessage):
+    # Get the 'fields' parameter from the LXM Message that contains the actual Nexus Message
+    nexus_message = lxmessage.fields
+
+    # Check if message is valid
+    if is_valid_message(nexus_message):
+        # Log message received by distribution event
+        RNS.log("Received LXM Message contains a valid Nexus message")
+
+        # Process, store and distribute message as required
+        if process_incoming_message(nexus_message):
+            # Distribute message to all registered or bridged nexus servers
+            distribute_message(nexus_message)
+
+        # Save message buffer after synchronisation
+        save_messages()
+    else:
+        # Message failed validation and is ignored
+        RNS.log(
+            "Received LXM Message failed Nexus version validation and is ignored"
+        )
+
+    # Flush pending log
+    sys.stdout.flush()
 
 
 ##########################################################################################
@@ -904,6 +959,8 @@ def initialize_server(
 
     # Create LXMF router socket with this server as source endpoint
     NEXUS_LXM_SOCKET = NexusLXMSocket()
+    # Register callback to handle incoming messages
+    NEXUS_LXM_SOCKET.register_message_received_callback(message_received_callback)
 
     # Load and validate messages from storage
     load_messages()
