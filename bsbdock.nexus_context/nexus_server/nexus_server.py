@@ -380,6 +380,7 @@ def validate_message_store():
 #
 def log_nexus_message(message):
     # Log message data
+    RNS.log("Nexus Message Details:")
     RNS.log("- Message '" + message[MESSAGE_JSON_MSG] + "'")
     RNS.log("- Version " + str(message[MESSAGE_JSON_VERSION]))
     RNS.log("- ID      " + str(message[MESSAGE_JSON_ID]))
@@ -481,7 +482,7 @@ class NexusLXMSocket:
                   '012345678901234567890123456789012345678901234567890'
         self.send_message(destination_hash, announced_identity, title=title, content=content)
 
-    def send_message(self, destination_hash, identity, title=None, content=None, fields=None):
+    def send_message(self, destination_hash, identity, title="", content="", fields=None):
         # Create destination
         to_destination = RNS.Destination(
             identity,
@@ -621,7 +622,7 @@ class NexusLXMSocket:
         RNS.log("-       Title: " + title)
         RNS.log("-     Content: " + content)
         RNS.log("-      Fields: " + str(fields))
-        RNS.log("-        Size: " + str(len(content)) + " bytes")
+        RNS.log("-        Size: " + str(len(title)+len(content)+len(title)+len(pickle.dumps(fields))) + " bytes")
         RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
         RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
         RNS.log("-   Signature: " + signature_string)
