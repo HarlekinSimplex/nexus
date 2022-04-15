@@ -108,7 +108,7 @@ NEXUS_SERVER_ASPECT = "home"
 # Default server cluster that is announced to be subscribed to
 # This one can be used to run not connected server names by just giving all servers different cluster names
 # These servers can later be interconnected by using gateway names (see server role)
-DEFAULT_CLUSTER = "root"
+DEFAULT_CLUSTER = "home"
 # The server role has two parts. 'cluster' and 'gateway'. By default, only cluster is used and preset by the global
 # variable above. # If gateway is set as well other nexus server can auto subscribe by announcing the same cluster
 # or same gateway name with their json role specification.
