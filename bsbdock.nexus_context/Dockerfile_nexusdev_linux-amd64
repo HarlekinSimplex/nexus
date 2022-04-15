@@ -23,6 +23,7 @@ RUN apt-get install tzdata
 
 # Install pip3
 RUN apt -y install python3-pip
+RUN pip install --upgrade pip
 
 # Install Reticulum stack and NomadNet messenger application
 RUN pip3 install rns lxmf nomadnet rnodeconf
