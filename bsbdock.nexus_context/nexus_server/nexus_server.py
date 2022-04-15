@@ -642,8 +642,8 @@ class NexusLXMSocket:
         RNS.log("-   Signature: " + signature_string)
 
         # Call message handler if one is registered.
-        if NexusLXMSocket.message_received_callback is not None:
-            NexusLXMSocket.message_received_callback(message)
+        if NEXUS_LXM_SOCKET.message_received_callback is not None:
+            NEXUS_LXM_SOCKET.message_received_callback(message)
 
     @staticmethod
     def long_poll():
