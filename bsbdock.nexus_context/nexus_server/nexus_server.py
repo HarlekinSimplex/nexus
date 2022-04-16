@@ -28,11 +28,14 @@ import RNS.vendor.umsgpack as umsgpack
 
 # Server Version
 __version__ = "1.4.0.0"
-
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
 # New messages will be tagged with 'v': __message_version__
-__message_version__ = "3"
+__message_version__ = 3
+# Increase this number to cause an automatic command drop on incoming commands.
+__command_version__ = 1
+# Full version string
+__full_version__ = __version__ + "-" + str(__command_version__) + "-" + str(__message_version__)
 
 # Trigger some Debug only related log entries
 DEBUG = False
@@ -75,11 +78,17 @@ BRIDGE_TARGETS = []
 # Message Examples:
 # {"id": Integer, "time": "String", "msg": "MessageBody"}
 # {'id': 1646174919000. 'time': '2022-03-01 23:48:39', 'msg': 'Test Message #1'}
+
+# Tags and constants used in nexus command
+COMMAND_JSON_CMD = "cmd"
+COMMAND_JSON_VERSION = "ver"
+COMMAND_JSON_P1 = "p1"
+COMMAND_JSON_P2 = "p2"
 # Tags and constants used in messages
+MESSAGE_JSON_VERSION = "ver"
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
-MESSAGE_JSON_VERSION = "v"
 MESSAGE_ID_NOT_SET = 'ID_NOT_SET'
 # Tags used with normal distribution management
 MESSAGE_JSON_ORIGIN = "origin"
@@ -100,6 +109,7 @@ MERGE_JSON_TAG = "tag"
 ROLE_JSON_CLUSTER = "c"
 ROLE_JSON_GATEWAY = "g"
 ROLE_JSON_LATEST = "l"
+ROLE_JSON_VERSION = "v"
 
 # Some Server default values used to announce nexus servers to reticulum
 # APP_NAME = "nexus"
@@ -350,6 +360,40 @@ def add_cluster_to_message_path(message_id):
 ##########################################################################################
 # Validate/Drop/Migrate Message
 #
+def validate_message(message):
+    # Message signature to invalidate a message
+    invalid_message = {}
+
+    # Invalid message if message version tag is missing
+    if MESSAGE_JSON_VERSION not in message.keys():
+        # Set actual message to invalid message
+        message = invalid_message
+    # Invalid message if message version does not match actual message version
+    elif message[MESSAGE_JSON_VERSION] > __message_version__:
+        # Message has higher version that this can handle
+        RNS.log(
+            "Message is invalidated because message version " + str(message[MESSAGE_JSON_VERSION]) +
+            " is ahead of server message version " + str(__message_version__)
+        )
+        # Set actual message to invalid message
+        message = invalid_message
+    else:
+        # Message version is lower and possibly needs migration
+        RNS.log(
+            "Message version " + str(message[MESSAGE_JSON_VERSION]) +
+            " is below server message version " + str(__message_version__)
+        )
+
+        # Replace this section with migration if one is possible
+        # Actual no migration implemented, message will just be invalidated
+        RNS.log("Message is invalidated because no migration possible")
+        # Set actual message to invalid message
+        message = invalid_message
+
+    # Return invalidated or validated (migrated) message
+    return message
+
+
 def is_valid_message(message):
     # Invalid message if message version tag is missing
     if MESSAGE_JSON_VERSION not in message.keys():
@@ -362,15 +406,57 @@ def is_valid_message(message):
 
 
 ##########################################################################################
+# Validate/Drop/Migrate Announcement
+#
+def validate_role(server_role):
+    # Server role signature to invalidate an announce
+    invalid_role = {}
+
+    # Invalid role if version tag is missing
+    if ROLE_JSON_VERSION not in server_role.keys():
+        # Set actual message to invalid message
+        server_role = invalid_role
+    # Invalid role if role version does not match actual server version
+    elif server_role[ROLE_JSON_VERSION] != __version__:
+        # Server version does not match
+        RNS.log(
+            "Announce version " + server_role[ROLE_JSON_VERSION] +
+            " does not match server version " + __version__
+        )
+
+        # Replace this section with migration if one is possible
+        # Actual no migration implemented, announced role will just be invalidated
+        RNS.log("Announced role is invalidated because no migration possible")
+        # Set actual message to invalid message
+        server_role = invalid_role
+
+    # Return invalidated or validated (migrated) message
+    return server_role
+
+
+def is_valid_role(server_role):
+    # Invalid message if role version tag is missing
+    if ROLE_JSON_VERSION not in server_role.keys():
+        return False
+    # Invalid message if message version tag is below 1
+    elif server_role[ROLE_JSON_VERSION] != __version__:
+        return False
+
+    return True
+
+
+##########################################################################################
 # Validate message store
 #
 def validate_message_store():
+    # Two pass proces 1:Validation 2:Drop invalid
+    # Pass1:
+    for i in range(len(MESSAGE_STORE)):
+        # Validation/Migration of all messages in buffer
+        MESSAGE_STORE[i] = validate_message(MESSAGE_STORE[i])
+    # Pass2:
     for message in MESSAGE_STORE.copy():
         if not is_valid_message(message):
-            RNS.log(
-                "Message " + str(message[MESSAGE_JSON_ID]) + " will be dropped due to deprecated message version"
-            )
-            # Drop invalid message from message store
             drop_message(message[MESSAGE_JSON_ID])
     # Update saved message store
     save_messages()
@@ -550,12 +636,19 @@ class NexusLXMSocket:
     #
     @staticmethod
     def announce(announce_data=None):
-        # noinspection PyArgumentList
+        # Build proper announce data set
+        # Server Role
+        # Timestamp of the latest message in the message buffer
+        # Version of this server, command and message processor
         if announce_data is None:
             # Set nexus default server role as default announce data
             announce_data = NEXUS_SERVER_ROLE
-            # add/update latest message time stamp (id) from message buffer
-            announce_data[MESSAGE_JSON_ID] = latest_message_id()
+        # add/update latest message time stamp (id) from message buffer
+        if ROLE_JSON_LATEST not in announce_data.keys():
+            announce_data[ROLE_JSON_LATEST] = latest_message_id()
+        # add/update latest server-command-message version
+        if ROLE_JSON_VERSION not in announce_data.keys():
+            announce_data[ROLE_JSON_VERSION] = __version__
         # Announce this server to the network
         # All other nexus server with the same aspect will register this server as a distribution target
         NEXUS_LXM_SOCKET.socket_destination.announce(
@@ -688,6 +781,8 @@ def message_received_callback(lxmessage):
     # Get the 'fields' parameter from the LXM Message that contains the actual Nexus Message
     nexus_message = lxmessage.fields
 
+    # Validate/Migrate message
+    nexus_message = validate_message(nexus_message)
     # Check if message is valid
     if is_valid_message(nexus_message):
         # Log message received by distribution event
@@ -703,7 +798,7 @@ def message_received_callback(lxmessage):
     else:
         # Message failed validation and is ignored
         RNS.log(
-            "Received LXM Message failed Nexus version validation and is ignored"
+            "Received LXM Message failed nexus message validation and is ignored"
         )
 
     # Flush pending log
@@ -816,6 +911,12 @@ class NexusLXMAnnounceHandler:
             "The announce contained the following nexus role: " + str(announced_role)
         )
 
+        # Validate/Migrate announced role
+        if not is_valid_role(validate_role(announced_role)):
+            # Log app data missing
+            RNS.log("The announce is ignored because it is no valid nexus server role")
+            return
+
         # Get dict key and timestamp for distribution identity registration
         last_heard = int(time.time())
 
@@ -858,6 +959,7 @@ class NexusLXMAnnounceHandler:
             DISTRIBUTION_TARGETS[destination_hash] = (
                 last_heard,
                 announced_identity,
+                announced_role
             )
 
             # Log list of severs with seconds it was last heard
@@ -964,7 +1066,8 @@ def initialize_server(
         BRIDGE_TARGETS = json.loads(bridge_links)
 
     # Log actually used parameters
-    RNS.log("Nexus Server v" + __version__ + " using Message v" + __message_version__ + " startup configuration:")
+    RNS.log("Nexus Server v" + __full_version__ + " starting...")
+    RNS.log("Startup configuration from commandline:")
     RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT))
     RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL))
     RNS.log("  --port=" + str(NEXUS_SERVER_ADDRESS[1]))
@@ -1081,13 +1184,15 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             )
             # ToDo Set message version correctly at client side (actually not implemented in client)
             message[MESSAGE_JSON_VERSION] = __message_version__
-            RNS.log("Message version set to " + __message_version__)
+            RNS.log("Message version set to " + str(__message_version__))
         else:
             # Log new client message received event
             RNS.log(
                 "HTTP POST received from bridge"
             )
 
+        # Validate/Migrate message
+        message = validate_message(message)
         # Check if message is valid
         if is_valid_message(message):
             # Check if incoming message was a client sent message and does not have a path tag
@@ -1158,6 +1263,9 @@ def digest_messages(merge_buffer, cluster):
         else:
             message_id = MESSAGE_ID_NOT_SET
         # Check if message to digest is valid
+        # Validate/Migrate message
+        message = validate_message(message)
+        # Check if message is valid
         if is_valid_message(message):
             # Digest the message into the message buffer and return ID if we need to distribute the message
             message_id = process_incoming_message(message)
