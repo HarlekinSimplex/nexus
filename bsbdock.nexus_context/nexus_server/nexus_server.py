@@ -380,7 +380,7 @@ def validate_message_store():
 # Validate message store
 #
 def latest_message_id():
-    if len(MESSAGE_STORE) is 0:
+    if len(MESSAGE_STORE) == 0:
         # IF we have no messages yet id is 0 since unix epoch
         return 0
     else:
