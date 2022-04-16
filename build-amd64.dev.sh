@@ -6,10 +6,6 @@ VERSION=dev
 OS=linux
 ARCH=amd64
 
-echo bsbdock/nexus:$VERSION_$OS-$ARCH
-
-exit
-
 cd ./bsbdock.nexus_context
 docker build --no-cache --build-arg CACHEBUST=$(date +%s) --tag bsbdock/nexus:$VERSION_$OS-$ARCH -f Dockerfile_nexus$VERSION_$OS-$ARCH .
 #docker tag bsbdock/nexus:$VERSION_$OS-$ARCH bsbdock/nexus
