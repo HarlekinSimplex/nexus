@@ -2,9 +2,9 @@
 #################################################
 # Build and tag nexus_server2 container
 #
-set VERSION=dev
-set OS=linux
-set ARCH=amd64
+VERSION=dev
+OS=linux
+ARCH=amd64
 
 echo bsbdock/nexus:$VERSION_$OS-$ARCH
 
