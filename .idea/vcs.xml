@@ -3,5 +3,8 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/bsbdock.nexus_context/nexus_web" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/git/LXMF" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/git/NomadNet" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/git/Reticulum" vcs="Git" />
   </component>
 </project>
