@@ -27,7 +27,7 @@ import RNS.vendor.umsgpack as umsgpack
 #
 
 # Server Version
-__version__ = "1.3.0.3"
+__version__ = "1.4.0.0"
 
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
