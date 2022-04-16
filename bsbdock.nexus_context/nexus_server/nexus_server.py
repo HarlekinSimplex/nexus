@@ -96,9 +96,10 @@ MERGE_JSON_TAG = "tag"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # The LXM Destination is added with the LXM socket instantiation
-# Role Example: {'c':'ClusterName','g':'GatewayName'}
+# Role Example: {'c':'ClusterName','g':'GatewayName', 'l': latest_id}
 ROLE_JSON_CLUSTER = "c"
 ROLE_JSON_GATEWAY = "g"
+ROLE_JSON_LATEST = "l"
 
 # Some Server default values used to announce nexus servers to reticulum
 # APP_NAME = "nexus"
@@ -112,7 +113,7 @@ DEFAULT_CLUSTER = "home"
 # The server role has two parts. 'cluster' and 'gateway'. By default, only cluster is used and preset by the global
 # variable above. # If gateway is set as well other nexus server can auto subscribe by announcing the same cluster
 # or same gateway name with their json role specification.
-NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER}
+NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER, ROLE_JSON_LATEST: 0}
 
 # Some Server default values used to announce server to reticulum
 NEXUS_SERVER_ADDRESS = ('', 4281)
@@ -376,6 +377,18 @@ def validate_message_store():
 
 
 ##########################################################################################
+# Validate message store
+#
+def latest_message_id():
+    if len(MESSAGE_STORE) is 0:
+        # IF we have no messages yet id is 0 since unix epoch
+        return 0
+    else:
+        # Return message id which indicates time since unix epoch
+        return MESSAGE_STORE[len(MESSAGE_STORE)-1][MESSAGE_JSON_ID]
+
+
+##########################################################################################
 # Log message data
 #
 def log_nexus_message(message):
@@ -541,6 +554,8 @@ class NexusLXMSocket:
         if announce_data is None:
             # Set nexus default server role as default announce data
             announce_data = NEXUS_SERVER_ROLE
+            # add/update latest message time stamp (id) from message buffer
+            announce_data[MESSAGE_JSON_ID] = latest_message_id()
         # Announce this server to the network
         # All other nexus server with the same aspect will register this server as a distribution target
         NEXUS_LXM_SOCKET.socket_destination.announce(
