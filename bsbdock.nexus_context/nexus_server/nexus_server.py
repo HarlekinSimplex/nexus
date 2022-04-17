@@ -1149,11 +1149,19 @@ def launch_http_server():
 # ]
 #
 class ServerRequestHandler(BaseHTTPRequestHandler):
-    # Borrowing from https://gist.github.com/nitaku/10d0662536f37a087e1b
-    # Set headers of actual request
-    def _set_headers(self):
+    # Set headers for actual request
+    def _set_success_headers(self):
         # Set response result code and data format
         self.send_response(HTTPStatus.OK)
+        self.send_header('Content-type', 'application/json')
+        # Allow requests from any origin, so CORS policies don't
+        # prevent local development.
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+
+    def _set_failure_headers(self):
+        # Set response result code and data format
+        self.send_response(HTTPStatus.NOT_IMPLEMENTED)
         self.send_header('Content-type', 'application/json')
         # Allow requests from any origin, so CORS policies don't
         # prevent local development.
@@ -1164,14 +1172,13 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
     # The actual message buffer list is serialized as json string and encoded as bytes.
     # After that it is sent back to the client as the GET request response.
     def do_GET(self):
-        self._set_headers()
+        self._set_success_headers()
         self.wfile.write(json.dumps(MESSAGE_STORE).encode('utf-8'))
 
     # Simple POST request handler without any URL parameters and the message to be digested as request body
     # The actual message is decoded into a python map, amended by a timestamp and added to the message store.
     # After that it is sent back to the client as the GET request response.
     def do_POST(self):
-        global MESSAGE_STORE
         # ToDo: Need to implement more features:
         #    ClearBuffer command
         #    Delete Message command
@@ -1183,65 +1190,28 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Log message received event
         # RNS.log("HTTP POST Body:" + str(body))
         # Parse JSON
-        message = json.loads(body)
+        post = json.loads(body)
 
-        # Do some logging of the outcome of the POST processing so far
-        if MESSAGE_JSON_PATH not in message.keys():
-            # Log new client message received event
-            RNS.log(
-                "HTTP POST received from client"
-            )
-            # ToDo Set message version correctly at client side (actually not implemented in client)
-            message[MESSAGE_JSON_VERSION] = __message_version__
-            RNS.log("Message version set to " + __message_version__)
+        # Log new client message received event
+        RNS.log(
+            "HTTP POST received with content " + str(post)
+        )
+
+        # Check if post has a cmd key
+        if COMMAND_JSON_CMD in post.keys():
+            # Treat posts as nexus command
+            success = process_command(post)
         else:
-            # Log new client message received event
-            RNS.log(
-                "HTTP POST received from bridge"
-            )
+            # Otherwise, treat is as plan message post (old 1.3 behavior)
+            success = process_message_post(post)
 
-        # Validate/Migrate message
-        message = validate_message(message)
-        # Check if message is valid
-        if is_valid_message(message):
-            # Check if incoming message was a client sent message and does not have a path tag
-            # Bridged messages have a path tag set, local posts of new messages does not.
-
-            # If message has no 'origin' set use this server as origin
-            if MESSAGE_JSON_ORIGIN not in message.keys():
-                # Set Origin to this server
-                message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
-
-            # If message has no 'via' set use this server as via
-            if MESSAGE_JSON_VIA not in message.keys():
-                # Set Via to this server
-                message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
-
-            # If message has no ID yet create one
-            if MESSAGE_JSON_ID not in message.keys():
-                # Create a timestamp and add that as ID to the message map
-                message[MESSAGE_JSON_ID] = int(time.time() * 100000)
-
-            # Log updated message data
-            log_nexus_message(message)
-
-            # Build and return JSON success response
-            self._set_headers()
+        # depending on outcome set response header accordingly
+        if success:
+            self._set_success_headers()
             self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
-
-            # Process, store and distribute message as required
-            if process_incoming_message(message):
-                # Distribute message to all registered or bridged nexus servers
-                distribute_message(message)
-
-            # Save message buffer after synchronisation
-            save_messages()
-
         else:
-            # Message failed validation and is ignored
-            RNS.log(
-                "Received POST request failed version validation and is ignored"
-            )
+            self._set_failure_headers()
+            self.wfile.write(json.dumps({'success': False}).encode('utf-8'))
 
         # Flush pending log
         sys.stdout.flush()
@@ -1254,6 +1224,92 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'GET, POST')
         self.send_header('Access-Control-Allow-Headers', 'content-type')
         self.end_headers()
+
+
+def process_command(command):
+    # Get cmd id from cmd dict
+    cmd = command[COMMAND_JSON_CMD]
+    success = True
+
+    # Check if command is add message to buffer command
+    if cmd == CMD_ADD_MESSAGE:
+        # Retrieve message to add from command dict
+        message = command[COMMAND_JSON_P1]
+        # Process message as message post
+        success = process_message_post(message)
+
+    # Check if command request sending messages received since a given point in time
+    elif CMD == CMD_REQUEST_MESSAGES_SINCE:
+        # Retrieve message to add from command dict
+        since = command[COMMAND_JSON_P1]
+        destination_hash = command[COMMAND_JSON_P2]
+        # Forward messages received to the requested destination
+        success = send_message_update(since, destination_hash)
+
+    # Command not found
+    else:
+        # Command processing failed
+        success = False
+
+    # Return result
+    return success
+
+
+def process_message_post(message):
+    # Check if incoming message was a client sent message and does not have a path tag
+    # Bridged messages have a path tag set, local posts of new messages does not.
+    if MESSAGE_JSON_PATH not in message.keys():
+        # Log new client message received event
+        RNS.log(
+            "HTTP POST received from client"
+        )
+        # ToDo Set message version correctly at client side (actually not implemented in client)
+        message[MESSAGE_JSON_VERSION] = __message_version__
+        RNS.log("Message version set to " + __message_version__)
+    else:
+        # Log new client message received event
+        RNS.log(
+            "HTTP POST received from bridge"
+        )
+
+    # Validate/Migrate message
+    message = validate_message(message)
+    # Check if message is valid
+    if is_valid_message(message):
+        # If message has no 'origin' set use this server as origin
+        if MESSAGE_JSON_ORIGIN not in message.keys():
+            # Set Origin to this server
+            message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
+
+        # If message has no 'via' set use this server as via
+        if MESSAGE_JSON_VIA not in message.keys():
+            # Set Via to this server
+            message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
+
+        # If message has no ID yet create one
+        if MESSAGE_JSON_ID not in message.keys():
+            # Create a timestamp and add that as ID to the message map
+            message[MESSAGE_JSON_ID] = int(time.time() * 100000)
+
+        # Log updated message data
+        log_nexus_message(message)
+
+        # Process, store and distribute message as required
+        if process_incoming_message(message):
+            # Distribute message to all registered or bridged nexus servers
+            distribute_message(message)
+
+        # Save message buffer after synchronisation
+        save_messages()
+        # Return success
+        return True
+
+    else:
+        # Message failed validation and is ignored
+        RNS.log("Received message POST failed validation and is ignored")
+
+        # Return failure
+        return False
 
 
 ##########################################################################################
