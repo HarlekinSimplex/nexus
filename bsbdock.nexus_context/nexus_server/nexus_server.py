@@ -140,6 +140,11 @@ INITIAL_ANNOUNCEMENT_DELAY = 5
 # noinspection PyTypeChecker
 NEXUS_LXM_SOCKET = None  # type: NexusLXMSocket
 
+# Command IDs
+# Check if command is add message to buffer command
+CMD_ADD_MESSAGE = 0
+CMD_REQUEST_MESSAGES_SINCE = 1
+
 
 ##########################################################################################
 # Helper functions
@@ -390,7 +395,7 @@ def validate_message(message):
             # Used to handle old clients still posting v3
             message[MESSAGE_JSON_VERSION] = __message_version__
             # Log message migration
-            RNS.log("Message was forwarded from v3 to v" + __message_version__)
+            RNS.log("Message was elevated from v3 to v" + __message_version__)
 
         else:
             # Actual no migration applied, message will just be invalidated
@@ -1193,25 +1198,28 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         post = json.loads(body)
 
         # Log new client message received event
-        RNS.log(
-            "HTTP POST received with content " + str(post)
-        )
+        RNS.log("HTTP POST received with content " + str(post))
 
         # Check if post has a cmd key
-        if COMMAND_JSON_CMD in post.keys():
-            # Treat posts as nexus command
-            success = process_command(post)
-        else:
-            # Otherwise, treat is as plan message post (old 1.3 behavior)
-            success = process_message_post(post)
+        if COMMAND_JSON_CMD not in post.keys():
+            # Otherwise, treat is as plain message post (old 1.3 behavior) and wrap it into an ADD_MESSAGE signature
+            post = {COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_P1: post, COMMAND_JSON_VERSION: __version__}
+            RNS.log("Post is no valid command and is now forwarded as ADD_MESSAGE command")
 
-        # depending on outcome set response header accordingly
+        # Process received command
+        success = process_command(post)
+        # Build result JSON
+        result = {'success': success}
+
+        # depending on outcome set response header HTTP result value accordingly
         if success:
             self._set_success_headers()
-            self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
         else:
             self._set_failure_headers()
-            self.wfile.write(json.dumps({'success': False}).encode('utf-8'))
+        # Set result JSON to body
+        self.wfile.write(json.dumps(result).encode('utf-8'))
+        # Log result
+        RNS.log("HTTP Post processing result is " + str(result))
 
         # Flush pending log
         sys.stdout.flush()
@@ -1229,47 +1237,51 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 def process_command(command):
     # Get cmd id from cmd dict
     cmd = command[COMMAND_JSON_CMD]
-    success = True
+    success = False
 
     # Check if command is add message to buffer command
     if cmd == CMD_ADD_MESSAGE:
+        RNS.log("ADD_MESSAGE command processing")
         # Retrieve message to add from command dict
         message = command[COMMAND_JSON_P1]
         # Process message as message post
-        success = process_message_post(message)
+        success = cmd_add_message(message)
 
     # Check if command request sending messages received since a given point in time
-    elif CMD == CMD_REQUEST_MESSAGES_SINCE:
+    elif cmd == CMD_REQUEST_MESSAGES_SINCE:
+        RNS.log("REQUEST_MESSAGES_SINCE command processing")
         # Retrieve message to add from command dict
         since = command[COMMAND_JSON_P1]
         destination_hash = command[COMMAND_JSON_P2]
         # Forward messages received to the requested destination
-        success = send_message_update(since, destination_hash)
+        success = cmd_request_message_since(since, destination_hash)
 
     # Command not found
     else:
         # Command processing failed
-        success = False
+        RNS.log("Command id " + str(cmd) + " not implemented")
 
     # Return result
     return success
 
 
-def process_message_post(message):
+def cmd_request_message_since(since, destination_hash):
+    return True
+
+
+def cmd_add_message(message):
     # Check if incoming message was a client sent message and does not have a path tag
     # Bridged messages have a path tag set, local posts of new messages does not.
     if MESSAGE_JSON_PATH not in message.keys():
         # Log new client message received event
-        RNS.log(
-            "HTTP POST received from client"
-        )
+        RNS.log("HTTP message POST received from client")
         # ToDo Set message version correctly at client side (actually not implemented in client)
         message[MESSAGE_JSON_VERSION] = __message_version__
         RNS.log("Message version set to " + __message_version__)
     else:
         # Log new client message received event
         RNS.log(
-            "HTTP POST received from bridge"
+            "HTTP message POST received from bridge"
         )
 
     # Validate/Migrate message
