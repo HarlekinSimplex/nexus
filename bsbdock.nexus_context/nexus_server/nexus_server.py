@@ -31,9 +31,9 @@ __version__ = "1.4.0.0"
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
 # New messages will be tagged with 'v': __message_version__
-__message_version__ = 3
+__message_version__ = "4"
 # Increase this number to cause an automatic command drop on incoming commands.
-__command_version__ = 1
+__command_version__ = "1"
 # Full version string
 __full_version__ = __version__ + "-" + str(__command_version__) + "-" + str(__message_version__)
 
@@ -85,7 +85,7 @@ COMMAND_JSON_VERSION = "ver"
 COMMAND_JSON_P1 = "p1"
 COMMAND_JSON_P2 = "p2"
 # Tags and constants used in messages
-MESSAGE_JSON_VERSION = "ver"
+MESSAGE_JSON_VERSION = "v"
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
@@ -373,22 +373,30 @@ def validate_message(message):
         # Message has higher version that this can handle
         RNS.log(
             "Message is invalidated because message version " + str(message[MESSAGE_JSON_VERSION]) +
-            " is ahead of server message version " + str(__message_version__)
+            " is ahead of server message version " + __message_version__
         )
         # Set actual message to invalid message
         message = invalid_message
-    else:
+    elif message[MESSAGE_JSON_VERSION] < __message_version__:
         # Message version is lower and possibly needs migration
         RNS.log(
             "Message version " + str(message[MESSAGE_JSON_VERSION]) +
-            " is below server message version " + str(__message_version__)
+            " is below server message version " + __message_version__
         )
 
-        # Replace this section with migration if one is possible
-        # Actual no migration implemented, message will just be invalidated
-        RNS.log("Message is invalidated because no migration possible")
-        # Set actual message to invalid message
-        message = invalid_message
+        # Check for message version 3
+        if message[MESSAGE_JSON_VERSION] == "3":
+            # Messages v3 can be forwarded to be actual ones
+            # Used to handle old clients still posting v3
+            message[MESSAGE_JSON_VERSION] = __message_version__
+            # Log message migration
+            RNS.log("Message was forwarded from v3 to v" + __message_version__)
+
+        else:
+            # Actual no migration applied, message will just be invalidated
+            RNS.log("Message is invalidated because no migration possible")
+            # Set actual message to invalid message
+            message = invalid_message
 
     # Return invalidated or validated (migrated) message
     return message
@@ -449,17 +457,18 @@ def is_valid_role(server_role):
 # Validate message store
 #
 def validate_message_store():
-    # Two pass proces 1:Validation 2:Drop invalid
-    # Pass1:
-    for i in range(len(MESSAGE_STORE)):
-        # Validation/Migration of all messages in buffer
-        MESSAGE_STORE[i] = validate_message(MESSAGE_STORE[i])
-    # Pass2:
-    for message in MESSAGE_STORE.copy():
-        if not is_valid_message(message):
-            drop_message(message[MESSAGE_JSON_ID])
-    # Update saved message store
-    save_messages()
+    # Get Store size
+    store_size = len(MESSAGE_STORE)
+    # If we have any message, validate messages
+    if store_size > 0:
+        # Loop through all messages from end to start, so we can pop items securely
+        for i in range(store_size):
+            # Validation/Migration of the actual messages in buffer
+            MESSAGE_STORE[store_size-i-1] = validate_message(MESSAGE_STORE[store_size-i-1])
+            if not is_valid_message(MESSAGE_STORE[store_size-i-1]):
+                MESSAGE_STORE.pop(store_size-i-1)
+        # Update saved message store
+        save_messages()
 
 
 ##########################################################################################
@@ -1184,7 +1193,7 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             )
             # ToDo Set message version correctly at client side (actually not implemented in client)
             message[MESSAGE_JSON_VERSION] = __message_version__
-            RNS.log("Message version set to " + str(__message_version__))
+            RNS.log("Message version set to " + __message_version__)
         else:
             # Log new client message received event
             RNS.log(
