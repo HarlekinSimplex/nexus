@@ -1290,7 +1290,7 @@ def cmd_add_message(message):
     else:
         # Log new client message received event
         RNS.log(
-            RNS.log("Add message received from remote server with path " + message)
+            RNS.log("Add message received from remote server with path " + str(message))
         )
 
     # Validate/Migrate message
