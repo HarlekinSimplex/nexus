@@ -1234,6 +1234,9 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
 
+##########################################################################################
+# Process Nexus Server command
+#
 def process_command(command):
     # Get cmd id from cmd dict
     cmd = command[COMMAND_JSON_CMD]
@@ -1265,10 +1268,16 @@ def process_command(command):
     return success
 
 
+##########################################################################################
+#
+#
 def cmd_request_message_since(since, destination_hash):
     return True
 
 
+##########################################################################################
+# Add Message to Message Buffer
+#
 def cmd_add_message(message):
     # Check if incoming message was a client sent message and does not have a path tag
     # Bridged messages have a path tag set, local posts of new messages does not.
@@ -1325,6 +1334,41 @@ def cmd_add_message(message):
 
 
 ##########################################################################################
+# Post command to remote TCP/IP Nexus peer
+#
+def post_command(url, cmd):
+    # Use POST to send command to TCP/IP nexus peer
+    try:
+        response = requests.post(
+            url=url,
+            json=cmd,
+            headers={'Content-type': 'application/json'}
+        )
+        # Check if request was successful
+        if response.ok:
+            # Log that we bridged a message
+            RNS.log(
+                "POST request " + url +
+                "' completed successfully"
+            )
+            # Return success
+            return True
+        else:
+            # Log POST failure
+            RNS.log(
+                "POST request " + url +
+                "' failed with reason: " + response.reason
+            )
+            # Return failure
+            return False
+
+    except Exception as e:
+        RNS.log("Could not complete POST request " + url)
+        RNS.log("The contained exception was: %s" % (str(e)))
+        return False
+
+
+##########################################################################################
 # Digest an array of messages into the global message store
 #
 # This is used for merging available message buffers into one buffer (Synchronization during server startup)
@@ -1361,9 +1405,9 @@ def digest_messages(merge_buffer, cluster):
 ##########################################################################################
 # Process incoming message
 #
-# This function is called by the reticulum paket handler (message was received as reticulum message) and by the POST
-# request handler in case it was received from a client or bridge POST request
+# This function is called by the nexus add_message command.
 # Its Job is to check if we need to add/insert the message in the message buffer or should it be ignored
+#
 def process_incoming_message(message):
     # If message is more recent than the oldest message in the buffer
     # and has not arrived earlier, then add/insert message at the correct position and
@@ -1509,30 +1553,23 @@ def distribute_message(nexus_message):
         if BRIDGE_JSON_CLUSTER in nexus_message.keys():
             nexus_message.pop(BRIDGE_JSON_CLUSTER)
 
-        # Use POST to send message to bridge nexus server link
-        try:
-            response = requests.post(
-                url=bridge_target[BRIDGE_JSON_URL],
-                json=nexus_message,
-                headers={'Content-type': 'application/json'}
-            )
-            # Check if request was successful
-            if response.ok:
-                # Log that we bridged a message
-                RNS.log(
-                    "POST request " + bridge_target[BRIDGE_JSON_URL] +
-                    " to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] + "' completed successfully"
-                )
-            else:
-                # Log POST failure
-                RNS.log(
-                    "POST request " + bridge_target[BRIDGE_JSON_URL] +
-                    " to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
-                    "' failed with reason: " + response.reason
-                )
-        except Exception as e:
-            RNS.log("Could not complete POST request " + bridge_target[BRIDGE_JSON_URL])
-            RNS.log("The contained exception was: %s" % (str(e)))
+        # Assemble Nexus ad_message command for bridge post
+        cmd = {
+            COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __command_version__,
+            COMMAND_JSON_P1: nexus_message
+        }
+        # Post command to TCP/IP Peer
+        result = post_command(bridge_target[BRIDGE_JSON_URL], cmd)
+        # Check and log if request was successful
+        log_message = "Add message command post to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER]
+        if result:
+            # Log that we bridged a message
+            log_message = log_message + "' completed successfully"
+        else:
+            # Log POST failure
+            log_message = log_message + "' failed"
+        # Post log entry
+        RNS.log(log_message)
 
     # Process distribution targets
 
