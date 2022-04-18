@@ -1283,14 +1283,14 @@ def cmd_add_message(message):
     # Bridged messages have a path tag set, local posts of new messages does not.
     if MESSAGE_JSON_PATH not in message.keys():
         # Log new client message received event
-        RNS.log("HTTP message POST received from client")
+        RNS.log("Add message received from client (no path set yet)")
         # ToDo Set message version correctly at client side (actually not implemented in client)
         message[MESSAGE_JSON_VERSION] = __message_version__
         RNS.log("Message version set to " + __message_version__)
     else:
         # Log new client message received event
         RNS.log(
-            "HTTP message POST received from bridge"
+            RNS.log("Add message received from remote server with path " + message[MESSAGE_JSON_PATH])
         )
 
     # Validate/Migrate message
