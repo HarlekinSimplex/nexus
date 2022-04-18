@@ -1289,9 +1289,7 @@ def cmd_add_message(message):
         RNS.log("Message version set to " + __message_version__)
     else:
         # Log new client message received event
-        RNS.log(
-            RNS.log("Add message received from remote server with path ")
-        )
+        RNS.log("Add message received from remote server with path " + message[MESSAGE_JSON_PATH])
 
     # Validate/Migrate message
     message = validate_message(message)
