@@ -27,15 +27,13 @@ import RNS.vendor.umsgpack as umsgpack
 #
 
 # Server Version
-__version__ = "1.4.0.0"
+__server_version__ = "1.4.0.0"
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
 # New messages will be tagged with 'v': __message_version__
 __message_version__ = "4.1"
 # Increase this number to cause an automatic command drop on incoming commands.
 __command_version__ = "1"
-# Full version string
-__full_version__ = __version__ + "-" + str(__command_version__) + "-" + str(__message_version__)
 
 # Trigger some Debug only related log entries
 DEBUG = False
@@ -79,6 +77,8 @@ BRIDGE_TARGETS = []
 # {"id": Integer, "time": "String", "msg": "MessageBody"}
 # {'id': 1646174919000. 'time': '2022-03-01 23:48:39', 'msg': 'Test Message #1'}
 
+# Tags and constants used in nexus server
+SERVER_JSON_VERSION = "serv"
 # Tags and constants used in nexus command
 COMMAND_JSON_CMD = "cmd"
 COMMAND_JSON_VERSION = "cmdv"
@@ -110,6 +110,13 @@ ROLE_JSON_CLUSTER = "c"
 ROLE_JSON_GATEWAY = "g"
 ROLE_JSON_LATEST = "l"
 ROLE_JSON_VERSION = "v"
+
+# Full version dict
+__full_version__ = {
+    SERVER_JSON_VERSION: __server_version__,
+    COMMAND_JSON_VERSION: __command_version__,
+    MESSAGE_JSON_VERSION: __message_version__
+}
 
 # Some Server default values used to announce nexus servers to reticulum
 # APP_NAME = "nexus"
@@ -500,11 +507,11 @@ def validate_role(server_role):
         # Set actual message to invalid message
         server_role = invalid_role
     # Invalid role if role version does not match actual server version
-    elif server_role[ROLE_JSON_VERSION] != __version__:
+    elif server_role[ROLE_JSON_VERSION] != __server_version__:
         # Server version does not match
         RNS.log(
             "Announce version " + server_role[ROLE_JSON_VERSION] +
-            " does not match server version " + __version__
+            " does not match server version " + __server_version__
         )
 
         # Replace this section with migration if one is possible
@@ -518,11 +525,11 @@ def validate_role(server_role):
 
 
 def is_valid_role(server_role):
-    # Invalid message if role version tag is missing
+    # Invalid role if role version tag is missing
     if ROLE_JSON_VERSION not in server_role.keys():
         return False
-    # Invalid message if message version tag is below 1
-    elif server_role[ROLE_JSON_VERSION] != __version__:
+    # Invalid role if server version does not match actual server version
+    elif server_role[ROLE_JSON_VERSION][SERVER_JSON_VERSION] != __server_version__:
         return False
 
     return True
@@ -732,7 +739,7 @@ class NexusLXMSocket:
             announce_data[ROLE_JSON_LATEST] = latest_message_id()
         # add/update latest server-command-message version
         if ROLE_JSON_VERSION not in announce_data.keys():
-            announce_data[ROLE_JSON_VERSION] = __version__
+            announce_data[ROLE_JSON_VERSION] = __full_version__
         # Announce this server to the network
         # All other nexus server with the same aspect will register this server as a distribution target
         NEXUS_LXM_SOCKET.socket_destination.announce(
@@ -1136,7 +1143,7 @@ def initialize_server(
         BRIDGE_TARGETS = json.loads(bridge_links)
 
     # Log actually used parameters
-    RNS.log("Nexus Server v" + __full_version__ + " starting...")
+    RNS.log("Nexus Server v[" + __server_version__ + "] c[" + __command_version__ + "] m[" + __message_version__ + "]")
     RNS.log("Startup configuration from commandline:")
     RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT))
     RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL))
@@ -1304,7 +1311,7 @@ def process_command(nexus_command):
             # Create proper add_message command from posted message
             RNS.log("WARNING: Deprecated Messaging used: Message is processed as ADD_MESSAGE command")
             command = {
-                COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __version__,
+                COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __server_version__,
                 COMMAND_JSON_P1: message
             }
 
