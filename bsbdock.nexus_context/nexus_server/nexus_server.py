@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # ##########################################################################################
-#
 # Nexus Message Server
+#
 #
 import copy
 import os
