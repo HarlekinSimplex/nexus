@@ -557,12 +557,13 @@ def validate_message_store():
 # Validate message store
 #
 def latest_message_id():
-    if len(MESSAGE_STORE) == 0:
+    store_size = len(MESSAGE_STORE)
+    if store_size < 1:
         # IF we have no messages yet id is 0 since unix epoch
         return 0
     else:
         # Return message id which indicates time since unix epoch
-        return MESSAGE_STORE[len(MESSAGE_STORE)-1][MESSAGE_JSON_ID]
+        return MESSAGE_STORE[store_size-1][MESSAGE_JSON_ID]
 
 
 ##########################################################################################
@@ -726,20 +727,17 @@ class NexusLXMSocket:
     # specified re-announce period.
     #
     @staticmethod
-    def announce(announce_data=None):
+    def announce():
         # Build proper announce data set
         # Server Role
         # Timestamp of the latest message in the message buffer
         # Version of this server, command and message processor
-        if announce_data is None:
-            # Set nexus default server role as default announce data
-            announce_data = NEXUS_SERVER_ROLE
-        # add/update latest message time stamp (id) from message buffer
-        if ROLE_JSON_LATEST not in announce_data.keys():
-            announce_data[ROLE_JSON_LATEST] = latest_message_id()
-        # add/update latest server-command-message version
-        if ROLE_JSON_VERSION not in announce_data.keys():
-            announce_data[ROLE_JSON_VERSION] = __full_version__
+        # Set nexus default server role as default announce data
+        announce_data = NEXUS_SERVER_ROLE
+        # add latest message time stamp (id) from message buffer
+        announce_data[ROLE_JSON_LATEST] = latest_message_id()
+        # add latest server-command-message version
+        announce_data[ROLE_JSON_VERSION] = __full_version__
         # Announce this server to the network
         # All other nexus server with the same aspect will register this server as a distribution target
         NEXUS_LXM_SOCKET.socket_destination.announce(
