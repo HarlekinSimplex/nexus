@@ -1044,7 +1044,7 @@ class NexusLXMAnnounceHandler:
             announced_latest = announced_role[ROLE_JSON_LATEST]
             actual_latest = latest_message_id()
             # Check ich announced timestamp (the latest message id) indicates an aged local buffer
-            if announced_latest >= actual_latest:
+            if announced_latest > actual_latest:
                 # Request update from remote server
                 update_destination = NEXUS_LXM_SOCKET.destination_hash()
                 cmd = {
