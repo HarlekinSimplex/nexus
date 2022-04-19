@@ -1013,6 +1013,7 @@ class NexusLXMAnnounceHandler:
         # If we had a cluster or gateway match subscribe announced target
         if link_flag1 or link_flag2:
 
+            # Add update on announce
             # Check if destination is a new destination
             if destination_hash not in DISTRIBUTION_TARGETS.keys():
                 # Destination is new
@@ -1037,6 +1038,7 @@ class NexusLXMAnnounceHandler:
                 announced_role
             )
 
+            # Sync on announce
             # Get timestamp (the latest message id) from announcement
             announced_latest = announced_role[ROLE_JSON_LATEST]
             actual_latest = latest_message_id()
