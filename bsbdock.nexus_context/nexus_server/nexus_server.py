@@ -1302,7 +1302,7 @@ def process_command(nexus_command):
             return False
         else:
             # Create proper add_message command from posted message
-            RNS.log("WARNING: Deprecated Messaging used: Invalid command but a valid message and is now treated as ADD_MESSAGE command")
+            RNS.log("WARNING: Deprecated Messaging used: Message is processed as ADD_MESSAGE command")
             command = {
                 COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __version__,
                 COMMAND_JSON_P1: message
