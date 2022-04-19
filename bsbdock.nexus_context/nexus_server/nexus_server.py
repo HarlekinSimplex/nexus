@@ -48,6 +48,8 @@ LXMF_STORAGE_PATH = os.path.expanduser("~") + "/.nexus/lxmf"
 MESSAGE_STORE = []  # type: list[dict]
 # Number of messages hold (Size of message buffer)
 MESSAGE_BUFFER_SIZE = 20
+# Number of messages pulled from remote server as update
+MAXIMUM_UPDATE_MESSAGES = 5 # MESSAGE_BUFFER_SIZE
 
 # Distribution links
 # List of subscribed reticulum identities and their target hashes and public keys to distribute messages to
@@ -1050,7 +1052,7 @@ class NexusLXMAnnounceHandler:
                     COMMAND_JSON_CMD: CMD_REQUEST_MESSAGES_SINCE, COMMAND_JSON_VERSION: __command_version__,
                     COMMAND_JSON_P1: actual_latest,
                     COMMAND_JSON_P2: update_destination,
-                    COMMAND_JSON_P3: MESSAGE_BUFFER_SIZE
+                    COMMAND_JSON_P3: MAXIMUM_UPDATE_MESSAGES
                 }
                 # Send nexus message packed as lxm message to destination
                 NEXUS_LXM_SOCKET.send_message(
