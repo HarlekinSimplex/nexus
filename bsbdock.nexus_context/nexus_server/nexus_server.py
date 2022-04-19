@@ -131,7 +131,7 @@ DEFAULT_CLUSTER = "home"
 # The server role has two parts. 'cluster' and 'gateway'. By default, only cluster is used and preset by the global
 # variable above. # If gateway is set as well other nexus server can auto subscribe by announcing the same cluster
 # or same gateway name with their json role specification.
-NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER, ROLE_JSON_LATEST: 0}
+NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER}
 
 # Some Server default values used to announce server to reticulum
 NEXUS_SERVER_ADDRESS = ('', 4281)
@@ -1378,7 +1378,7 @@ def process_command(nexus_command):
 def cmd_request_message_since(since, destination_hash, message_count):
     # Log command execution
     RNS.log(
-        "CMF_REQUEST_MESSAGES_SINCE " + str(since) + " " + RNS.prettyhexrep(destination_hash) + " " + str(message_count)
+        "CMD_REQUEST_MESSAGES_SINCE " + str(since) + " " + RNS.prettyhexrep(destination_hash) + " " + str(message_count)
     )
     return True
 
