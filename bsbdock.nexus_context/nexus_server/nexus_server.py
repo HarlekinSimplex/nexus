@@ -9,7 +9,6 @@ import signal
 import threading
 import sys
 import argparse
-
 import LXMF
 import RNS
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -46,7 +45,7 @@ MESSAGE_STORAGE_FILE = MESSAGE_STORAGE_PATH + "/messages.umsgpack"
 LXMF_STORAGE_PATH = os.path.expanduser("~") + "/.nexus/lxmf"
 
 # Message buffer used for actually server messages
-MESSAGE_STORE = []
+MESSAGE_STORE = []  # type: list[dict]
 # Number of messages hold (Size of message buffer)
 MESSAGE_BUFFER_SIZE = 20
 
@@ -1376,11 +1375,47 @@ def process_command(nexus_command):
 #
 #
 def cmd_request_message_since(since, destination_hash, message_count):
-    # Log command execution
-    RNS.log(
-        "CMD_REQUEST_MESSAGES_SINCE " + str(since) + " " + RNS.prettyhexrep(destination_hash) + " " + str(message_count)
-    )
-    return True
+    # Check if we have destination already registered
+    if destination_hash in DISTRIBUTION_TARGETS.keys():
+        # Get destination identity from registered destination
+        registered_destination_identity = DISTRIBUTION_TARGETS[1]
+        # Init counter and index
+        i = 0
+        index = len(MESSAGE_STORE) - 1
+        # Loop through message buffer
+        while i < message_count and index >= 0:
+            # Get next most recent message from message store
+            message = MESSAGE_STORE[index]
+            # Check if message fulfills filter given criteria
+            if message[MESSAGE_JSON_ID] >= since:
+                # If so send message
+                # Assemble Nexus add_message command with message to be sent to requester
+                cmd = {
+                    COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __command_version__,
+                    COMMAND_JSON_P1: message
+                }
+                # Send nexus message packed as lxm message to destination
+                NEXUS_LXM_SOCKET.send_message(
+                    destination_hash,
+                    registered_destination_identity,
+                    fields=cmd
+                )
+                # Log send message ID
+                RNS.log("Message " + str(message[MESSAGE_JSON_ID]) + " sent")
+                # Increment message sent counter
+                i = i + 1
+
+            # Decrement message store index
+            index = index - 1
+
+        # Done sending update
+        # Log that we don't know the destination for this update
+        RNS.log("Destination " + RNS.prettyhexrep(destination_hash) + " has been updated with " + str(i) + "messages")
+        return True
+    else:
+        # Log that we don't know the destination for this update
+        RNS.log("Destination " + RNS.prettyhexrep(destination_hash) + " for message bulk update unknown")
+        return False
 
 
 ##########################################################################################
