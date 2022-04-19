@@ -507,7 +507,7 @@ def validate_role(server_role):
         # Set actual message to invalid message
         server_role = invalid_role
     # Invalid role if role version does not match actual server version
-    elif server_role[ROLE_JSON_VERSION] != __server_version__:
+    elif server_role[ROLE_JSON_VERSION][SERVER_JSON_VERSION] != __server_version__:
         # Server version does not match
         RNS.log(
             "Announce version " + server_role[ROLE_JSON_VERSION] +
