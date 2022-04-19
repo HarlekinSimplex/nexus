@@ -84,7 +84,7 @@ COMMAND_JSON_VERSION = "cmdv"
 COMMAND_JSON_CMD = "p0"
 COMMAND_JSON_P1 = "p1"
 COMMAND_JSON_P2 = "p2"
-COMMAND_JSON_P3 = "p2"
+COMMAND_JSON_P3 = "p3"
 # Tags and constants used in messages
 MESSAGE_JSON_VERSION = "msgv"
 MESSAGE_JSON_TIME = "time"
@@ -1046,10 +1046,11 @@ class NexusLXMAnnounceHandler:
             # Check ich announced timestamp (the latest message id) indicates an aged local buffer
             if announced_latest >= actual_latest:
                 # Request update from remote server
+                update_destination = NEXUS_LXM_SOCKET.destination_hash()
                 cmd = {
                     COMMAND_JSON_CMD: CMD_REQUEST_MESSAGES_SINCE, COMMAND_JSON_VERSION: __command_version__,
                     COMMAND_JSON_P1: actual_latest,
-                    COMMAND_JSON_P2: NEXUS_LXM_SOCKET.destination_hash(),
+                    COMMAND_JSON_P2: update_destination,
                     COMMAND_JSON_P3: MESSAGE_BUFFER_SIZE
                 }
                 # Send nexus message packed as lxm message to destination
@@ -1376,7 +1377,9 @@ def process_command(nexus_command):
 #
 def cmd_request_message_since(since, destination_hash, message_count):
     # Log command execution
-    RNS.log("CMF_REQUEST_MESSAGES_SINCE " + str(since) + " " + destination_hash + " " + str(message_count))
+    RNS.log(
+        "CMF_REQUEST_MESSAGES_SINCE " + str(since) + " " + RNS.prettyhexrep(destination_hash) + " " + str(message_count)
+    )
     return True
 
 
