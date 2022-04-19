@@ -31,7 +31,7 @@ __version__ = "1.4.0.0"
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
 # New messages will be tagged with 'v': __message_version__
-__message_version__ = "4"
+__message_version__ = "4.1"
 # Increase this number to cause an automatic command drop on incoming commands.
 __command_version__ = "1"
 # Full version string
@@ -81,11 +81,11 @@ BRIDGE_TARGETS = []
 
 # Tags and constants used in nexus command
 COMMAND_JSON_CMD = "cmd"
-COMMAND_JSON_VERSION = "ver"
+COMMAND_JSON_VERSION = "cmdv"
 COMMAND_JSON_P1 = "p1"
 COMMAND_JSON_P2 = "p2"
 # Tags and constants used in messages
-MESSAGE_JSON_VERSION = "v"
+MESSAGE_JSON_VERSION = "msgv"
 MESSAGE_JSON_TIME = "time"
 MESSAGE_JSON_MSG = "msg"
 MESSAGE_JSON_ID = "id"
@@ -363,16 +363,86 @@ def add_cluster_to_message_path(message_id):
 
 
 ##########################################################################################
+# Validate/Drop/Migrate Command
+#
+def validate_command(command):
+    # Command signature to invalidate a message
+    invalid_command = {}
+
+    # Invalid command if command version tag is missing
+    if COMMAND_JSON_VERSION not in command.keys():
+        # Set actual command to invalid command
+        command = invalid_command
+    # Invalid command if command version does not match actual command version
+    elif command[COMMAND_JSON_VERSION] > __command_version__:
+        # Command has higher version that this can handle
+        RNS.log(
+            "Command is invalidated because command version " + str(command[COMMAND_JSON_VERSION]) +
+            " is ahead of server command version " + __command_version__
+        )
+        # Set actual command to invalid command
+        command = invalid_command
+    elif command[COMMAND_JSON_VERSION] < __command_version__:
+        # Command version is lower and possibly needs migration
+        RNS.log(
+            "Command version " + str(command[COMMAND_JSON_VERSION]) +
+            " is below server command version " + __command_version__
+        )
+
+        # Actual no migration applied, message will just be invalidated
+        RNS.log("Command is invalidated because no migration possible")
+        # Set actual command to invalid command
+        command = invalid_command
+
+    # Return invalidated or validated (migrated) message
+    return command
+
+
+def is_valid_command(command):
+    # Invalid message if message version tag is missing
+    if COMMAND_JSON_VERSION not in command.keys():
+        return False
+    # Invalid message if message version tag is not matching actual command version
+    elif command[COMMAND_JSON_VERSION] != __command_version__:
+        return False
+
+    return True
+
+
+##########################################################################################
 # Validate/Drop/Migrate Message
 #
 def validate_message(message):
     # Message signature to invalidate a message
     invalid_message = {}
 
+    # Check for mandatory message key
+    # Without that continuing is pointless
+    if not(MESSAGE_JSON_MSG in message.keys()):
+        # Return invalid message
+        message = invalid_message
+        return message
+
     # Invalid message if message version tag is missing
     if MESSAGE_JSON_VERSION not in message.keys():
-        # Set actual message to invalid message
-        message = invalid_message
+        # If we don't have a message version set actual version
+        message[MESSAGE_JSON_VERSION] = __message_version__
+
+    # If message has no 'origin' set use this server as origin
+    if MESSAGE_JSON_ORIGIN not in message.keys():
+        # Set Origin to this server
+        message[MESSAGE_JSON_ORIGIN] = RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
+
+    # If message has no 'via' set use this server as via
+    if MESSAGE_JSON_VIA not in message.keys():
+        # Set Via to this server
+        message[MESSAGE_JSON_VIA] = RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash())
+
+    # If message has no ID yet create one
+    if MESSAGE_JSON_ID not in message.keys():
+        # Create a timestamp and add that as ID to the message map
+        message[MESSAGE_JSON_ID] = int(time.time() * 100000)
+
     # Invalid message if message version does not match actual message version
     elif message[MESSAGE_JSON_VERSION] > __message_version__:
         # Message has higher version that this can handle
@@ -411,7 +481,7 @@ def is_valid_message(message):
     # Invalid message if message version tag is missing
     if MESSAGE_JSON_VERSION not in message.keys():
         return False
-    # Invalid message if message version tag is below 1
+    # Invalid message if message version tag is not matching actual message version
     elif message[MESSAGE_JSON_VERSION] != __message_version__:
         return False
 
@@ -792,28 +862,14 @@ class NexusLXMSocket:
 #           Get last messages (number of messages)
 #
 def message_received_callback(lxmessage):
-    # Get the 'fields' parameter from the LXM Message that contains the actual Nexus Message
-    nexus_message = lxmessage.fields
+    # Get the 'fields' parameter from the LXM Message and treat them as Nexus Command
+    command_result = process_command(lxmessage.fields)
 
-    # Validate/Migrate message
-    nexus_message = validate_message(nexus_message)
-    # Check if message is valid
-    if is_valid_message(nexus_message):
-        # Log message received by distribution event
-        RNS.log("Received LXM Message contains a valid Nexus message")
-
-        # Process, store and distribute message as required
-        if process_incoming_message(nexus_message):
-            # Distribute message to all registered or bridged nexus servers
-            distribute_message(nexus_message)
-
-        # Save message buffer after synchronisation
-        save_messages()
+    # Log result of command processing
+    if command_result:
+        RNS.log("Received LXM Message was successfully processed as Nexus Command")
     else:
-        # Message failed validation and is ignored
-        RNS.log(
-            "Received LXM Message failed nexus message validation and is ignored"
-        )
+        RNS.log("Received LXM Message could not be precessed")
 
     # Flush pending log
     sys.stdout.flush()
@@ -1200,22 +1256,19 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # Log new client message received event
         RNS.log("HTTP POST received with content " + str(post))
 
-        # Check if post has a cmd key
-        if COMMAND_JSON_CMD not in post.keys():
-            # Otherwise, treat is as plain message post (old 1.3 behavior) and wrap it into an ADD_MESSAGE signature
-            post = {COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_P1: post, COMMAND_JSON_VERSION: __version__}
-            RNS.log("Post is no valid command and is now forwarded as ADD_MESSAGE command")
+        # Try to validate received post as Nexus Command
+        command_result = process_command(post)
 
-        # Process received command
-        success = process_command(post)
         # Build result JSON
-        result = {'success': success}
+        result = {'success': command_result}
 
         # depending on outcome set response header HTTP result value accordingly
-        if success:
+        if command_result:
             self._set_success_headers()
+            RNS.log("Received HTTP Post was successfully processed as Nexus Command")
         else:
             self._set_failure_headers()
+            RNS.log("Received HTTP Post could not be precessed")
         # Set result JSON to body
         self.wfile.write(json.dumps(result).encode('utf-8'))
         # Log result
@@ -1237,8 +1290,25 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
 ##########################################################################################
 # Process Nexus Server command
 #
-def process_command(command):
-    # Get cmd id from cmd dict
+def process_command(nexus_command):
+    # Try to validate command
+    command = validate_command(nexus_command)
+    if not is_valid_command(command):
+        # Try to validate given command as message
+        message = validate_message(nexus_command)
+        if not is_valid_message(message):
+            # Given command was nighter a valid command nor message
+            RNS.log("Invalid command " + str(nexus_command))
+            return False
+        else:
+            # Create proper add_message command from posted message
+            RNS.log("Post is no valid command but a valid message and is now treated as ADD_MESSAGE command")
+            command = {
+                COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __version__,
+                COMMAND_JSON_P1: message
+            }
+
+    # Get cmd id from command dict
     cmd = command[COMMAND_JSON_CMD]
     success = False
 
@@ -1283,13 +1353,13 @@ def cmd_add_message(message):
     # Bridged messages have a path tag set, local posts of new messages does not.
     if MESSAGE_JSON_PATH not in message.keys():
         # Log new client message received event
-        RNS.log("Add message received from client (no path set yet)")
+        RNS.log("Message to add was send from a client (no path set yet)")
         # ToDo Set message version correctly at client side (actually not implemented in client)
         message[MESSAGE_JSON_VERSION] = __message_version__
         RNS.log("Message version set to " + __message_version__)
     else:
         # Log new client message received event
-        RNS.log("Add message received from remote server with path " + message[MESSAGE_JSON_PATH])
+        RNS.log("Message to add was send from a remote server with path " + message[MESSAGE_JSON_PATH])
 
     # Validate/Migrate message
     message = validate_message(message)
@@ -1325,7 +1395,7 @@ def cmd_add_message(message):
 
     else:
         # Message failed validation and is ignored
-        RNS.log("Received message POST failed validation and is ignored")
+        RNS.log("Message to add failed validation and is ignored")
 
         # Return failure
         return False
