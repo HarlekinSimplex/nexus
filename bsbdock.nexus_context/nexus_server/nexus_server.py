@@ -1378,7 +1378,7 @@ def cmd_request_message_since(since, destination_hash, message_count):
     # Check if we have destination already registered
     if destination_hash in DISTRIBUTION_TARGETS.keys():
         # Get destination identity from registered destination
-        registered_destination_identity = DISTRIBUTION_TARGETS[1]
+        registered_destination_identity = DISTRIBUTION_TARGETS[destination_hash][1]
         # Init counter and index
         i = 0
         index = len(MESSAGE_STORE) - 1
