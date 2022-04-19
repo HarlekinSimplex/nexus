@@ -1302,7 +1302,7 @@ def process_command(nexus_command):
             return False
         else:
             # Create proper add_message command from posted message
-            RNS.log("Post is no valid command but a valid message and is now treated as ADD_MESSAGE command")
+            RNS.log("WARNING: Deprecated Messaging used: Invalid command but a valid message and is now treated as ADD_MESSAGE command")
             command = {
                 COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __version__,
                 COMMAND_JSON_P1: message
@@ -1621,7 +1621,7 @@ def distribute_message(nexus_message):
         if BRIDGE_JSON_CLUSTER in nexus_message.keys():
             nexus_message.pop(BRIDGE_JSON_CLUSTER)
 
-        # Assemble Nexus ad_message command for bridge post
+        # Assemble Nexus add_message command for bridge post
         cmd = {
             COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __command_version__,
             COMMAND_JSON_P1: nexus_message
@@ -1681,12 +1681,16 @@ def distribute_message(nexus_message):
 
             # Check if target has not expired yet
             if (actual_time - timestamp) < NEXUS_SERVER_TIMEOUT:
-                # Serialize nexus message into string that can be sent with LXM
+                # Assemble Nexus add_message command for lxm transport
+                cmd = {
+                    COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __command_version__,
+                    COMMAND_JSON_P1: nexus_message
+                }
                 # Send nexus message packed as lxm message to destination
                 NEXUS_LXM_SOCKET.send_message(
                     registered_destination_hash,
                     registered_destination_identity,
-                    fields=nexus_message
+                    fields=cmd
                 )
                 # Log that we send something to this destination
                 RNS.log(
