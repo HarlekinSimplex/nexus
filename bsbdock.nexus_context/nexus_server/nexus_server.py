@@ -80,10 +80,11 @@ BRIDGE_TARGETS = []
 # Tags and constants used in nexus server
 SERVER_JSON_VERSION = "serv"
 # Tags and constants used in nexus command
-COMMAND_JSON_CMD = "cmd"
 COMMAND_JSON_VERSION = "cmdv"
+COMMAND_JSON_CMD = "p0"
 COMMAND_JSON_P1 = "p1"
 COMMAND_JSON_P2 = "p2"
+COMMAND_JSON_P3 = "p2"
 # Tags and constants used in messages
 MESSAGE_JSON_VERSION = "msgv"
 MESSAGE_JSON_TIME = "time"
@@ -1039,6 +1040,30 @@ class NexusLXMAnnounceHandler:
                 announced_role
             )
 
+            # Get timestamp (the latest message id) from announcement
+            announced_latest = announced_role[ROLE_JSON_LATEST]
+            actual_latest = latest_message_id()
+            # Check ich announced timestamp (the latest message id) indicates an aged local buffer
+            if announced_latest >= actual_latest:
+                # Request update from remote server
+                cmd = {
+                    COMMAND_JSON_CMD: CMD_REQUEST_MESSAGES_SINCE, COMMAND_JSON_VERSION: __command_version__,
+                    COMMAND_JSON_P1: actual_latest,
+                    COMMAND_JSON_P2: NEXUS_LXM_SOCKET.destination_hash(),
+                    COMMAND_JSON_P3: MESSAGE_BUFFER_SIZE
+                }
+                # Send nexus message packed as lxm message to destination
+                NEXUS_LXM_SOCKET.send_message(
+                    destination_hash,
+                    announced_identity,
+                    fields=cmd
+                )
+                # Log that we send something to this destination
+                RNS.log(
+                    "CMD_REQUEST_MESSAGES_SINCE " + str(actual_latest) +
+                    " sent to announced destination " + RNS.prettyhexrep(destination_hash)
+                )
+
             # Log list of severs with seconds it was last heard
             for registered_destination_hash in DISTRIBUTION_TARGETS.copy():
                 # Get timestamp and destination hash from dict
@@ -1333,8 +1358,9 @@ def process_command(nexus_command):
         # Retrieve message to add from command dict
         since = command[COMMAND_JSON_P1]
         destination_hash = command[COMMAND_JSON_P2]
+        message_count = command[COMMAND_JSON_P3]
         # Forward messages received to the requested destination
-        success = cmd_request_message_since(since, destination_hash)
+        success = cmd_request_message_since(since, destination_hash, message_count)
 
     # Command not found
     else:
@@ -1348,7 +1374,9 @@ def process_command(nexus_command):
 ##########################################################################################
 #
 #
-def cmd_request_message_since(since, destination_hash):
+def cmd_request_message_since(since, destination_hash, message_count):
+    # Log command execution
+    RNS.log("CMF_REQUEST_MESSAGES_SINCE " + str(since) + " " + destination_hash + " " + str(message_count))
     return True
 
 
