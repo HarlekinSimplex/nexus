@@ -30,7 +30,7 @@ __server_version__ = "1.4.0.0"
 # Message purge version
 # Increase this number to cause an automatic message drop from saved buffers or any incoming message.
 # New messages will be tagged with 'v': __message_version__
-__message_version__ = "4.1"
+__message_version__ = "4.2"
 # Increase this number to cause an automatic command drop on incoming commands.
 __command_version__ = "1"
 
