@@ -1364,6 +1364,9 @@ def process_command(nexus_command):
                 COMMAND_JSON_P1: message
             }
 
+    # Prior to executing a command see if we have still some bridges to update from
+    sync_from_bridges()
+
     # Get cmd id from command dict
     cmd = command[COMMAND_JSON_CMD]
     success = False
