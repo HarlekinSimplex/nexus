@@ -49,7 +49,7 @@ MESSAGE_STORE = []  # type: list[dict]
 # Number of messages hold (Size of message buffer)
 MESSAGE_BUFFER_SIZE = 20
 # Number of messages pulled from remote server as update
-MAXIMUM_UPDATE_MESSAGES = 5 # MESSAGE_BUFFER_SIZE
+MAXIMUM_UPDATE_MESSAGES = 5  # MESSAGE_BUFFER_SIZE
 
 # Distribution links
 # List of subscribed reticulum identities and their target hashes and public keys to distribute messages to
@@ -102,6 +102,7 @@ MESSAGE_PATH_SEP = ":"
 # Tags used with bridge destination management
 BRIDGE_JSON_URL = "url"
 BRIDGE_JSON_CLUSTER = "cluster"
+BRIDGE_JSON_ONLINE = "online"
 # Tags used during message buffer merge (tag to indicate is selected for distribution)
 MERGE_JSON_TAG = "tag"
 
@@ -164,6 +165,14 @@ CMD_REQUEST_MESSAGES_SINCE = 1
 #
 def remove_whitespace(in_string: str):
     return in_string.translate(str.maketrans(dict.fromkeys(string.whitespace)))
+
+
+##########################################################################################
+# Init Bridge Online Status
+#
+def init_bridges():
+    for bridge in BRIDGE_TARGETS:
+        bridge[BRIDGE_JSON_ONLINE] = False
 
 
 ##########################################################################################
@@ -237,41 +246,53 @@ def sync_from_bridges():
         )
         # Loop through all bridge targets
         for bridge_target in BRIDGE_TARGETS:
-            try:
-                # Use GET Request to pull message buffer from bridge server
-                response = requests.get(
-                    url=bridge_target[BRIDGE_JSON_URL],
-                    headers={'Content-type': 'application/json'}
-                )
-                # Log GET Request
-                RNS.log(
-                    "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
-                    "' with GET request " + bridge_target[BRIDGE_JSON_URL]
-                )
-                # Check if GET was successful
-                # If so, parse response body into message buffer and digest it
-                if response.ok:
-                    # Parse json bytes into message array of json maps
-                    remote_buffer = json.loads(response.content)
-                    # Log GET result
-                    RNS.log(
-                        "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
+            # Check if we have the online status key inside the target
+            if BRIDGE_JSON_ONLINE not in bridge_target.keys():
+                # Initialize it with False
+                bridge_target[BRIDGE_JSON_ONLINE] = False
+            # Only during initial sync all the bridges need to be pulled
+            # Later during long poll events it might be OK to pull again only if the status has been reset
+            # to False (e.g. after a bridge post failed)
+            if not bridge_target[BRIDGE_JSON_ONLINE]:
+                # Pull message buffer from bridge target
+                try:
+                    # Use GET Request to pull message buffer from bridge server
+                    response = requests.get(
+                        url=bridge_target[BRIDGE_JSON_URL],
+                        headers={'Content-type': 'application/json'}
                     )
+                    # Log GET Request
+                    RNS.log(
+                        "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                        "' with GET request " + bridge_target[BRIDGE_JSON_URL]
+                    )
+                    # Check if GET was successful
+                    # If so, parse response body into message buffer and digest it
+                    if response.ok:
+                        # Parse json bytes into message array of json maps
+                        remote_buffer = json.loads(response.content)
+                        # Log GET result
+                        RNS.log(
+                            "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
+                        )
 
-                    # Digest received messages
-                    digest_messages(remote_buffer, bridge_target[BRIDGE_JSON_CLUSTER])
-                else:
-                    # Log GET failure
-                    RNS.log(
-                        "GET request has failed with reason: " + response.reason
-                    )
-            except Exception as e:
-                RNS.log("Could not complete GET request " + bridge_target[BRIDGE_JSON_URL])
-                RNS.log("The contained exception was: %s" % (str(e)))
+                        # Set bridge status to online
+                        bridge_target[BRIDGE_JSON_ONLINE] = True
+
+                        # Digest received messages
+                        digest_messages(remote_buffer, bridge_target[BRIDGE_JSON_CLUSTER])
+                    else:
+                        # Log GET failure
+                        RNS.log(
+                            "GET request has failed with reason: " + response.reason
+                        )
+                except Exception as e:
+                    RNS.log("Could not complete GET request " + bridge_target[BRIDGE_JSON_URL])
+                    RNS.log("The contained exception was: %s" % (str(e)))
 
         # Log start of message distribution after digesting bridge link buffers
         RNS.log(
-            "Initial synchronization - Distribute messages marked as selected for distribution"
+            "Distribute messages marked as selected for distribution"
         )
         # Distribute all messages marked with merge tag
         # Loop through massage buffer and distribute all messages that have been tagged
@@ -289,11 +310,11 @@ def sync_from_bridges():
         save_messages()
         # Log completion of initial synchronization
         RNS.log(
-            "Initial synchronization - Distribution completed"
+            "Distribution completed"
         )
     else:
         RNS.log(
-            "No bridge targets configured to use for initial synchronization"
+            "No bridge targets configured"
         )
 
 
@@ -1095,6 +1116,9 @@ class NexusLXMAnnounceHandler:
             RNS.log(
                 "Announced nexus role was ignored because role did not match role " + str(NEXUS_SERVER_ROLE)
             )
+
+        # Sync message buffer from configured bridges
+        sync_from_bridges()
 
     # Flush pending log
     sys.stdout.flush()
