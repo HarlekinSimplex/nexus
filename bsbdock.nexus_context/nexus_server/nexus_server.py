@@ -269,23 +269,21 @@ def sync_from_bridges():
                     # Check if GET was successful
                     # If so, parse response body into message buffer and digest it
                     if response.ok:
+                        # Set bridge status to online
+                        bridge_target[BRIDGE_JSON_ONLINE] = True
                         # Parse json bytes into message array of json maps
                         remote_buffer = json.loads(response.content)
                         # Log GET result
-                        RNS.log(
-                            "GET request was successful with " + str(len(remote_buffer)) + " Messages received"
-                        )
-
-                        # Set bridge status to online
-                        bridge_target[BRIDGE_JSON_ONLINE] = True
+                        RNS.log("GET request was successful with " + str(len(remote_buffer)) + " Messages received")
 
                         # Digest received messages
                         digest_messages(remote_buffer, bridge_target[BRIDGE_JSON_CLUSTER])
                     else:
+                        # Set bridge status to offline
+                        bridge_target[BRIDGE_JSON_ONLINE] = False
                         # Log GET failure
-                        RNS.log(
-                            "GET request has failed with reason: " + response.reason
-                        )
+                        RNS.log("GET request has failed with reason: " + response.reason)
+
                 except Exception as e:
                     RNS.log("Could not complete GET request " + bridge_target[BRIDGE_JSON_URL])
                     RNS.log("The contained exception was: %s" % (str(e)))
@@ -1730,9 +1728,13 @@ def distribute_message(nexus_message):
         # Check and log if request was successful
         log_message = "Add message command post to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER]
         if result:
+            # Set bridge status to online
+            bridge_target[BRIDGE_JSON_ONLINE] = True
             # Log that we bridged a message
             log_message = log_message + "' completed successfully"
         else:
+            # Set bridge status to offline
+            bridge_target[BRIDGE_JSON_ONLINE] = False
             # Log POST failure
             log_message = log_message + "' failed"
         # Post log entry
