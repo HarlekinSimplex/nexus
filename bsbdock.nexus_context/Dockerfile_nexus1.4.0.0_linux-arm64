@@ -1,0 +1,61 @@
+############################################################
+# bsbdock/reticulum Dockerfile
+#
+FROM python:3.9
+
+# Set timezone and interactive mode
+ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+
+# Update base image if necessary
+RUN apt-get update
+RUN apt-get install tzdata
+
+# Install pip3
+RUN apt -y install python3-pip
+RUN pip install --upgrade pip
+
+# Build essentials
+RUN apt -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
+
+# Install rust
+RUN apt -y install curl
+RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
+ENV PATH="/root/.cargo/bin:$PATH"
+
+# Build/Install cryptography
+RUN pip3 install cryptography
+
+# Install Reticulum stack and NomadNet messenger application
+RUN pip3 install rns lxmf nomadnet rnodeconf
+
+# Install additional python packages
+RUN pip3 install requests
+
+# Install personal helper tools
+RUN apt -y install mc nano
+
+# Install direwolf
+RUN apt -y install direwolf
+
+# Expose port for Reticulum server TCP Interface (disable as default)
+EXPOSE 4242
+# Expose ports for Nexus Server Web and API Interface
+EXPOSE 4280
+EXPOSE 4281
+
+# Create workdir
+RUN mkdir /bsb
+RUN mkdir /bsb/nexus_server
+
+# Pull in container start script and make it executable
+ARG CACHEBUST=0
+COPY start.sh /bsb
+RUN chmod ug+x /bsb/start.sh
+
+# Pull in NexusServer script
+ARG CACHEBUST=0
+COPY nexus_server /bsb/nexus_server
+RUN chmod ug+x /bsb/nexus_server/nexus_server.py
+
+# Launch Nexus server on start
+CMD /bsb/start.sh
