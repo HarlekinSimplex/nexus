@@ -49,7 +49,7 @@ MESSAGE_STORE = []  # type: list[dict]
 # Number of messages hold (Size of message buffer)
 MESSAGE_BUFFER_SIZE = 20
 # Number of messages pulled from remote server as update
-MAXIMUM_UPDATE_MESSAGES = 5  # MESSAGE_BUFFER_SIZE
+MAXIMUM_UPDATE_MESSAGES = 20
 
 # Distribution links
 # List of subscribed reticulum identities and their target hashes and public keys to distribute messages to
