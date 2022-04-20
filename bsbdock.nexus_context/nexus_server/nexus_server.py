@@ -242,7 +242,7 @@ def sync_from_bridges():
         # Retrieve and process message buffers from bridged targets
         # Log sync start
         RNS.log(
-            "Initial synchronization - GET and digest messages from bridged servers"
+            "Get and digest messages from bridged servers"
         )
         # Loop through all bridge targets
         for bridge_target in BRIDGE_TARGETS:
