@@ -103,6 +103,7 @@ MESSAGE_PATH_SEP = ":"
 BRIDGE_JSON_URL = "url"
 BRIDGE_JSON_CLUSTER = "cluster"
 BRIDGE_JSON_ONLINE = "online"
+BRIDGE_JSON_POLL = "poll"
 # Tags used during message buffer merge (tag to indicate is selected for distribution)
 MERGE_JSON_TAG = "tag"
 
@@ -250,10 +251,15 @@ def sync_from_bridges():
             if BRIDGE_JSON_ONLINE not in bridge_target.keys():
                 # Initialize it with False
                 bridge_target[BRIDGE_JSON_ONLINE] = False
+            # Check if we have the poll key inside the target
+            if BRIDGE_JSON_POLL not in bridge_target.keys():
+                # Initialize it with False
+                bridge_target[BRIDGE_JSON_POLL] = False
             # Only during initial sync all the bridges need to be pulled
             # Later during long poll events it might be OK to pull again only if the status has been reset
             # to False (e.g. after a bridge post failed)
-            if not bridge_target[BRIDGE_JSON_ONLINE]:
+            # Targets with poll=True will be pulled avery time regardless of its online status
+            if not bridge_target[BRIDGE_JSON_ONLINE] or bridge_target[BRIDGE_JSON_POLL]:
                 # Pull message buffer from bridge target
                 try:
                     # Use GET Request to pull message buffer from bridge server
@@ -772,6 +778,9 @@ class NexusLXMSocket:
             " announced with app_data: " + str(announce_data)
         )
 
+        # Sync message buffer from configured bridges
+        sync_from_bridges()
+
         # Flush pending log
         sys.stdout.flush()
 
@@ -1208,9 +1217,6 @@ def initialize_server(
 
     # Load and validate messages from storage
     load_messages()
-
-    # Pull, merge and if required distribute messaged buffers from all configured bridge targets
-    sync_from_bridges()
 
     # After an initial delay start long poll to announce server regularly
     time.sleep(INITIAL_ANNOUNCEMENT_DELAY)
