@@ -265,7 +265,7 @@ def sync_from_bridges():
                     RNS.log(
                         "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
                         "' with GET request " + bridge_target[BRIDGE_JSON_URL],
-                        RNS.LOG_INFO
+                        RNS.LOG_VERBOSE
                     )
                     # Check if GET was successful
                     # If so, parse response body into message buffer and digest it
@@ -277,7 +277,7 @@ def sync_from_bridges():
                         # Log GET result
                         RNS.log(
                             "GET request was successful with " + str(len(remote_buffer)) + " Messages received",
-                            RNS.LOG_INFO
+                            RNS.LOG_VERBOSE
                         )
 
                         # Digest received messages
@@ -1385,7 +1385,7 @@ def process_command(nexus_command):
         # Retrieve message to add from command dict
         message = command[COMMAND_JSON_P1]
         # Log parsed command
-        RNS.log("Process ADD_MESSAGE " + str(message), RNS.LOG_INFO)
+        RNS.log("Process ADD_MESSAGE " + str(message), RNS.LOG_VERBOSE)
         # Process message as message post
         success = cmd_add_message(message)
 
@@ -1817,7 +1817,7 @@ def distribute_message(nexus_message):
                 # Log that we send something to this destination
                 RNS.log(
                     "Message sent to destination " + RNS.prettyhexrep(registered_destination_hash),
-                    RNS.LOG_INFO
+                    RNS.LOG_VERBOSE
                 )
             else:
                 # Log that we removed the destination
