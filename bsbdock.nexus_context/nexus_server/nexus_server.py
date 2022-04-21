@@ -535,7 +535,7 @@ def validate_role(server_role):
     elif server_role[ROLE_JSON_VERSION][SERVER_JSON_VERSION] != __server_version__:
         # Server version does not match
         RNS.log(
-            "Announce version " + server_role[ROLE_JSON_VERSION] +
+            "Announce version " + str(server_role[ROLE_JSON_VERSION]) +
             " does not match server version " + __server_version__,
             RNS.LOG_INFO
         )
@@ -1215,16 +1215,14 @@ def initialize_server(
     RNS.log(".  Message Format    v" + __message_version__, RNS.LOG_INFO)
     RNS.log("...............................................................", RNS.LOG_INFO)
     RNS.log(". Server Configuration:", RNS.LOG_INFO)
-    RNS.log(".  Timeout=" + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
-    RNS.log(".  Longpoll=" + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
-    RNS.log(".  Port=" + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
-    RNS.log(".  Aspect=" + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
-    RNS.log(".  Role=" + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
-    RNS.log(".  Bridge=" + str(BRIDGE_TARGETS), RNS.LOG_INFO)
+    RNS.log(".  Port     " + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
+    RNS.log(".  Aspect   " + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
+    RNS.log(".  Role     " + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
+    RNS.log(".  Bridge   " + str(BRIDGE_TARGETS), RNS.LOG_INFO)
+    RNS.log(".  Timeout  " + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
+    RNS.log(".  Longpoll " + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
     RNS.log("...............................................................", RNS.LOG_INFO)
 
-    # Log http server address/port used
-    RNS.log("Serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS, RNS.LOG_INFO)
     # Create LXMF router socket with this server as source endpoint
     NEXUS_LXM_SOCKET = NexusLXMSocket()
     # Register callback to handle incoming messages
@@ -1232,6 +1230,9 @@ def initialize_server(
 
     # Load and validate messages from storage
     load_messages()
+
+    # Log http server address/port used
+    RNS.log("Serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS, RNS.LOG_INFO)
 
     RNS.log("Initialization complete", RNS.LOG_INFO)
     RNS.log("...............................................................", RNS.LOG_INFO)
