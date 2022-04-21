@@ -1378,23 +1378,30 @@ def process_command(nexus_command):
     success = False
 
     # Log start of command processing
-    RNS.log("Process command " + str(command), RNS.LOG_INFO)
+    RNS.log("Process command " + str(command), RNS.LOG_VERBOSE)
 
     # Check if command is add message to buffer command
     if cmd == CMD_ADD_MESSAGE:
-        RNS.log("ADD_MESSAGE command processing", RNS.LOG_VERBOSE)
         # Retrieve message to add from command dict
         message = command[COMMAND_JSON_P1]
+        # Log parsed command
+        RNS.log("ADD_MESSAGE " + str(message), RNS.LOG_INFO)
         # Process message as message post
         success = cmd_add_message(message)
 
     # Check if command request sending messages received since a given point in time
     elif cmd == CMD_REQUEST_MESSAGES_SINCE:
-        RNS.log("REQUEST_MESSAGES_SINCE command processing", RNS.LOG_VERBOSE)
         # Retrieve message to add from command dict
         since = command[COMMAND_JSON_P1]
         destination_hash = command[COMMAND_JSON_P2]
         message_count = command[COMMAND_JSON_P3]
+        # Log parsed command
+        RNS.log(
+            "REQUEST_MESSAGES_SINCE " + str(since) +
+            " from " + RNS.prettyhexrep(destination_hash) +
+            " max=" + str(message_count),
+            RNS.LOG_VERBOSE
+        )
         # Forward messages received to the requested destination
         success = cmd_request_message_since(since, destination_hash, message_count)
 
