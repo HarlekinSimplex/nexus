@@ -909,7 +909,7 @@ def message_received_callback(lxmessage):
 
     # Log result of command processing
     if command_result:
-        RNS.log("Received LXM Message was successfully processed as Nexus Command", RNS.LOG_INFO)
+        RNS.log("Received LXM Message was successfully processed as Nexus Command", RNS.LOG_VERBOSE)
     else:
         RNS.log("Received LXM Message could not be precessed", RNS.LOG_ERROR)
 
@@ -1377,9 +1377,12 @@ def process_command(nexus_command):
     cmd = command[COMMAND_JSON_CMD]
     success = False
 
+    # Log start of command processing
+    RNS.log("Process command " + str(command), RNS.LOG_INFO)
+
     # Check if command is add message to buffer command
     if cmd == CMD_ADD_MESSAGE:
-        RNS.log("ADD_MESSAGE command processing", RNS.LOG_INFO)
+        RNS.log("ADD_MESSAGE command processing", RNS.LOG_VERBOSE)
         # Retrieve message to add from command dict
         message = command[COMMAND_JSON_P1]
         # Process message as message post
@@ -1387,7 +1390,7 @@ def process_command(nexus_command):
 
     # Check if command request sending messages received since a given point in time
     elif cmd == CMD_REQUEST_MESSAGES_SINCE:
-        RNS.log("REQUEST_MESSAGES_SINCE command processing", RNS.LOG_INFO)
+        RNS.log("REQUEST_MESSAGES_SINCE command processing", RNS.LOG_VERBOSE)
         # Retrieve message to add from command dict
         since = command[COMMAND_JSON_P1]
         destination_hash = command[COMMAND_JSON_P2]
