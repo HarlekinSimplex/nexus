@@ -1010,18 +1010,18 @@ class NexusLXMAnnounceHandler:
         # Check if we have app data received
         if app_data is None:
             # Log app data missing
-            RNS.log("The announce is ignored because it contained no valid nexus role dictionary", RNS.LOG_INFO)
+            RNS.log("The announce is ignored because it contained no valid nexus role dictionary", RNS.LOG_WARNING)
             return
 
         # Recreate nexus role dict from received app data
         announced_role = pickle.loads(app_data)
         # Log role
-        RNS.log("The announce contained the following nexus role: " + str(announced_role), RNS.LOG_INFO)
+        RNS.log("The announce contained the following nexus role: " + str(announced_role), RNS.LOG_DEBUG)
 
         # Validate/Migrate announced role
         if not is_valid_role(validate_role(announced_role)):
             # Log app data missing
-            RNS.log("The announce is ignored because it is no valid nexus server role", RNS.LOG_INFO)
+            RNS.log("The announce is ignored because it is no valid nexus server role", RNS.LOG_DEBUG)
             return
 
         # Get dict key and timestamp for distribution identity registration
@@ -1053,11 +1053,11 @@ class NexusLXMAnnounceHandler:
                 # server destination subscription list
                 NexusLXMSocket.announce()
                 # Log that we added new subscription
-                RNS.log("Subscription for " + RNS.prettyhexrep(destination_hash) + " will be added", RNS.LOG_INFO)
+                RNS.log("Subscription " + RNS.prettyhexrep(destination_hash) + " added", RNS.LOG_INFO)
             else:
                 # Log that we just updated new subscription
                 RNS.log(
-                    "Subscription for " + RNS.prettyhexrep(destination_hash) + " will be updated", RNS.LOG_INFO)
+                    "Subscription " + RNS.prettyhexrep(destination_hash) + " updated", RNS.LOG_INFO)
             # Register for update destination as valid distribution target
             DISTRIBUTION_TARGETS[destination_hash] = (
                 last_heard,
@@ -1087,8 +1087,8 @@ class NexusLXMAnnounceHandler:
                 )
                 # Log that we send something to this destination
                 RNS.log(
-                    "CMD_REQUEST_MESSAGES_SINCE " + str(actual_latest) +
-                    " sent to announced destination " + RNS.prettyhexrep(destination_hash),
+                    "Send CMD_REQUEST_MESSAGES_SINCE " + str(actual_latest) +
+                    " to announced destination " + RNS.prettyhexrep(destination_hash),
                     RNS.LOG_INFO
                 )
 
@@ -1122,7 +1122,7 @@ class NexusLXMAnnounceHandler:
             # link with that cluster as gateway too
             RNS.log(
                 "Announced nexus role was ignored because role did not match role " + str(NEXUS_SERVER_ROLE),
-                RNS.LOG_INFO
+                RNS.LOG_VERBOSE
             )
 
         # Sync message buffer from configured bridges
@@ -1385,7 +1385,7 @@ def process_command(nexus_command):
         # Retrieve message to add from command dict
         message = command[COMMAND_JSON_P1]
         # Log parsed command
-        RNS.log("ADD_MESSAGE " + str(message), RNS.LOG_INFO)
+        RNS.log("Process ADD_MESSAGE " + str(message), RNS.LOG_INFO)
         # Process message as message post
         success = cmd_add_message(message)
 
@@ -1397,7 +1397,7 @@ def process_command(nexus_command):
         message_count = command[COMMAND_JSON_P3]
         # Log parsed command
         RNS.log(
-            "REQUEST_MESSAGES_SINCE " + str(since) +
+            "Process REQUEST_MESSAGES_SINCE " + str(since) +
             " from " + RNS.prettyhexrep(destination_hash) +
             " max=" + str(message_count),
             RNS.LOG_VERBOSE
@@ -1817,7 +1817,7 @@ def distribute_message(nexus_message):
                 # Log that we send something to this destination
                 RNS.log(
                     "Message sent to destination " + RNS.prettyhexrep(registered_destination_hash),
-                    RNS.LOG_VERBOSE
+                    RNS.LOG_INFO
                 )
             else:
                 # Log that we removed the destination
