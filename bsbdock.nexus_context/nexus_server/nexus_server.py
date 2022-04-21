@@ -36,8 +36,8 @@ __message_version__ = "4.2"
 # Increase this number to cause an automatic command drop on incoming commands.
 __command_version__ = "1"
 
-# Trigger some Debug only related log entries
-DEBUG = False
+# A moment to process background stuff
+DIGESTION_DELAY = 0.1
 
 # Message storage
 MESSAGE_STORAGE_PATH = os.path.expanduser("~") + "/.nexus/storage"
@@ -187,10 +187,10 @@ def save_messages():
         save_file = open(MESSAGE_STORAGE_FILE, "wb")
         save_file.write(umsgpack.packb(MESSAGE_STORE))
         save_file.close()
-        RNS.log("Messages saved to storage file " + MESSAGE_STORAGE_FILE)
+        RNS.log("Messages saved to storage file " + MESSAGE_STORAGE_FILE, RNS.LOG_DEBUG)
 
     except Exception as err:
-        RNS.log("Could not save message to storage file " + MESSAGE_STORAGE_FILE)
+        RNS.log("Could not save message to storage file " + MESSAGE_STORAGE_FILE, RNS.LOG_ERROR)
         RNS.log("The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
 
 
@@ -206,29 +206,23 @@ def load_messages():
         # Create storage path
         os.makedirs(MESSAGE_STORAGE_PATH)
         # Log that storage directory was created
-        RNS.log(
-            "Created storage path " + MESSAGE_STORAGE_PATH
-        )
+        RNS.log("Created storage path " + MESSAGE_STORAGE_PATH, RNS.LOG_NOTICE)
     # Check if we can read some messages from storage
     if os.path.isfile(MESSAGE_STORAGE_FILE):
         try:
             file = open(MESSAGE_STORAGE_FILE, "rb")
             MESSAGE_STORE = umsgpack.unpackb(file.read())
             file.close()
-            RNS.log(
-                str(len(MESSAGE_STORE)) + " messages loaded from storage: " + MESSAGE_STORAGE_FILE
-            )
+            RNS.log(str(len(MESSAGE_STORE)) + " messages loaded from storage: " + MESSAGE_STORAGE_FILE, RNS.LOG_DEBUG)
         except Exception as e:
-            RNS.log("Could not load messages from " + MESSAGE_STORAGE_FILE)
-            RNS.log("The contained exception was: %s" % (str(e)))
+            RNS.log("Could not load messages from " + MESSAGE_STORAGE_FILE, RNS.LOG_ERROR)
+            RNS.log("The contained exception was: %s" % (str(e)), RNS.LOG_ERROR)
         # Drop all messages with deprecated or missing message version
         validate_message_store()
         # Log how many have survived validation
-        RNS.log(
-            str(len(MESSAGE_STORE)) + " messages left after validation"
-        )
+        RNS.log(str(len(MESSAGE_STORE)) + " messages left after validation", RNS.LOG_DEBUG)
     else:
-        RNS.log("No messages to load from " + MESSAGE_STORAGE_FILE)
+        RNS.log("No messages to load from " + MESSAGE_STORAGE_FILE, RNS.LOG_EXTREME)
 
 
 ##########################################################################################
@@ -244,9 +238,7 @@ def sync_from_bridges():
         # Initial synchronisation Part 1
         # Retrieve and process message buffers from bridged targets
         # Log sync start
-        RNS.log(
-            "Get and digest messages from bridged servers"
-        )
+        RNS.log("Get and digest messages from bridged servers", RNS.LOG_DEBUG)
         # Loop through all bridge targets
         for bridge_target in BRIDGE_TARGETS:
             # Check if we have the online status key inside the target
@@ -272,7 +264,8 @@ def sync_from_bridges():
                     # Log GET Request
                     RNS.log(
                         "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
-                        "' with GET request " + bridge_target[BRIDGE_JSON_URL]
+                        "' with GET request " + bridge_target[BRIDGE_JSON_URL],
+                        RNS.LOG_INFO
                     )
                     # Check if GET was successful
                     # If so, parse response body into message buffer and digest it
@@ -282,7 +275,10 @@ def sync_from_bridges():
                         # Parse json bytes into message array of json maps
                         remote_buffer = json.loads(response.content)
                         # Log GET result
-                        RNS.log("GET request was successful with " + str(len(remote_buffer)) + " Messages received")
+                        RNS.log(
+                            "GET request was successful with " + str(len(remote_buffer)) + " Messages received",
+                            RNS.LOG_INFO
+                        )
 
                         # Digest received messages
                         digest_messages(remote_buffer, bridge_target[BRIDGE_JSON_CLUSTER])
@@ -290,16 +286,14 @@ def sync_from_bridges():
                         # Set bridge status to offline
                         bridge_target[BRIDGE_JSON_ONLINE] = False
                         # Log GET failure
-                        RNS.log("GET request has failed with reason: " + response.reason)
+                        RNS.log("GET request has failed with reason: " + response.reason, RNS.LOG_ERROR)
 
                 except Exception as e:
-                    RNS.log("Could not complete GET request " + bridge_target[BRIDGE_JSON_URL])
-                    RNS.log("The contained exception was: %s" % (str(e)))
+                    RNS.log("Could not complete GET request " + bridge_target[BRIDGE_JSON_URL], RNS.LOG_ERROR)
+                    RNS.log("The contained exception was: %s" % (str(e)), RNS.LOG_ERROR)
 
         # Log start of message distribution after digesting bridge link buffers
-        RNS.log(
-            "Distribute messages marked as selected for distribution"
-        )
+        RNS.log("Distribute messages marked as selected for distribution", RNS.LOG_DEBUG)
         # Distribute all messages marked with merge tag
         # Loop through massage buffer and distribute all messages that have been tagged
         for message in copy.deepcopy(MESSAGE_STORE):
@@ -315,13 +309,9 @@ def sync_from_bridges():
         # Save message buffer after synchronisation
         save_messages()
         # Log completion of initial synchronization
-        RNS.log(
-            "Distribution completed"
-        )
+        RNS.log("Distribution completed", RNS.LOG_DEBUG)
     else:
-        RNS.log(
-            "No bridge targets configured"
-        )
+        RNS.log("No bridge targets configured", RNS.LOG_NOTICE)
 
 
 ##########################################################################################
@@ -384,7 +374,8 @@ def add_cluster_to_message_path(message_id):
                 message[MESSAGE_JSON_PATH] = MESSAGE_PATH_SEP + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
                 # Log set root path event
                 RNS.log(
-                    "New message " + str(message[MESSAGE_JSON_ID]) + " has root path " + message[MESSAGE_JSON_PATH]
+                    "New message " + str(message[MESSAGE_JSON_ID]) + " has root path " + message[MESSAGE_JSON_PATH],
+                    RNS.LOG_DEBUG
                 )
             else:
                 # Add this server cluster to message path
@@ -393,8 +384,9 @@ def add_cluster_to_message_path(message_id):
 
                 # Log path extension event
                 RNS.log(
-                    "Path of message " + str(message[MESSAGE_JSON_ID]) + " was extended to " + message[
-                        MESSAGE_JSON_PATH]
+                    "Path of message " + str(message[MESSAGE_JSON_ID]) +
+                    " was extended to " + message[MESSAGE_JSON_PATH],
+                    RNS.LOG_DEBUG
                 )
 
 
@@ -414,7 +406,8 @@ def validate_command(command):
         # Command has higher version that this can handle
         RNS.log(
             "Command is invalidated because command version " + str(command[COMMAND_JSON_VERSION]) +
-            " is ahead of server command version " + __command_version__
+            " is ahead of server command version " + __command_version__,
+            RNS.LOG_INFO
         )
         # Set actual command to invalid command
         command = invalid_command
@@ -422,11 +415,12 @@ def validate_command(command):
         # Command version is lower and possibly needs migration
         RNS.log(
             "Command version " + str(command[COMMAND_JSON_VERSION]) +
-            " is below server command version " + __command_version__
+            " is below server command version " + __command_version__,
+            RNS.LOG_DEBUG
         )
 
         # Actual no migration applied, message will just be invalidated
-        RNS.log("Command is invalidated because no migration possible")
+        RNS.log("Command is invalidated because no migration possible", RNS.LOG_INFO)
         # Set actual command to invalid command
         command = invalid_command
 
@@ -454,7 +448,7 @@ def validate_message(message):
 
     # Check for mandatory message key
     # Without that continuing is pointless
-    if not(MESSAGE_JSON_MSG in message.keys()):
+    if not (MESSAGE_JSON_MSG in message.keys()):
         # Return invalid message
         message = invalid_message
         return message
@@ -484,7 +478,8 @@ def validate_message(message):
         # Message has higher version that this can handle
         RNS.log(
             "Message is invalidated because message version " + str(message[MESSAGE_JSON_VERSION]) +
-            " is ahead of server message version " + __message_version__
+            " is ahead of server message version " + __message_version__,
+            RNS.LOG_INFO
         )
         # Set actual message to invalid message
         message = invalid_message
@@ -492,7 +487,8 @@ def validate_message(message):
         # Message version is lower and possibly needs migration
         RNS.log(
             "Message version " + str(message[MESSAGE_JSON_VERSION]) +
-            " is below server message version " + __message_version__
+            " is below server message version " + __message_version__,
+            RNS.LOG_DEBUG
         )
 
         # Check for message version 3
@@ -501,11 +497,11 @@ def validate_message(message):
             # Used to handle old clients still posting v3
             message[MESSAGE_JSON_VERSION] = __message_version__
             # Log message migration
-            RNS.log("Message was elevated from v3 to v" + __message_version__)
+            RNS.log("Message was elevated from v3 to v" + __message_version__, RNS.LOG_VERBOSE)
 
         else:
             # Actual no migration applied, message will just be invalidated
-            RNS.log("Message is invalidated because no migration possible")
+            RNS.log("Message is invalidated because no migration possible", RNS.LOG_INFO)
             # Set actual message to invalid message
             message = invalid_message
 
@@ -540,12 +536,13 @@ def validate_role(server_role):
         # Server version does not match
         RNS.log(
             "Announce version " + server_role[ROLE_JSON_VERSION] +
-            " does not match server version " + __server_version__
+            " does not match server version " + __server_version__,
+            RNS.LOG_INFO
         )
 
         # Replace this section with migration if one is possible
         # Actual no migration implemented, announced role will just be invalidated
-        RNS.log("Announced role is invalidated because no migration possible")
+        RNS.log("Announced role is invalidated because no migration possible", RNS.LOG_INFO)
         # Set actual message to invalid message
         server_role = invalid_role
 
@@ -575,9 +572,9 @@ def validate_message_store():
         # Loop through all messages from end to start, so we can pop items securely
         for i in range(store_size):
             # Validation/Migration of the actual messages in buffer
-            MESSAGE_STORE[store_size-i-1] = validate_message(MESSAGE_STORE[store_size-i-1])
-            if not is_valid_message(MESSAGE_STORE[store_size-i-1]):
-                MESSAGE_STORE.pop(store_size-i-1)
+            MESSAGE_STORE[store_size - i - 1] = validate_message(MESSAGE_STORE[store_size - i - 1])
+            if not is_valid_message(MESSAGE_STORE[store_size - i - 1]):
+                MESSAGE_STORE.pop(store_size - i - 1)
         # Update saved message store
         save_messages()
 
@@ -592,7 +589,7 @@ def latest_message_id():
         return 0
     else:
         # Return message id which indicates time since unix epoch
-        return MESSAGE_STORE[store_size-1][MESSAGE_JSON_ID]
+        return MESSAGE_STORE[store_size - 1][MESSAGE_JSON_ID]
 
 
 ##########################################################################################
@@ -600,22 +597,21 @@ def latest_message_id():
 #
 def log_nexus_message(message):
     # Log message data
-    RNS.log("Nexus Message Details:")
-    RNS.log("- Message '" + message[MESSAGE_JSON_MSG] + "'")
-    RNS.log("- Version " + str(message[MESSAGE_JSON_VERSION]))
-    RNS.log("- ID      " + str(message[MESSAGE_JSON_ID]))
-    RNS.log("- Time    '" + message[MESSAGE_JSON_TIME] + "'")
-    RNS.log("- Origin  " + message[MESSAGE_JSON_ORIGIN])
-    RNS.log("- Via     " + message[MESSAGE_JSON_ORIGIN])
+    RNS.log("Nexus Message Details:", RNS.LOG_DEBUG)
+    RNS.log("- Message '" + message[MESSAGE_JSON_MSG] + "'", RNS.LOG_DEBUG)
+    RNS.log("- Version " + str(message[MESSAGE_JSON_VERSION]), RNS.LOG_DEBUG)
+    RNS.log("- ID      " + str(message[MESSAGE_JSON_ID]), RNS.LOG_DEBUG)
+    RNS.log("- Time    '" + message[MESSAGE_JSON_TIME] + "'", RNS.LOG_DEBUG)
+    RNS.log("- Origin  " + message[MESSAGE_JSON_ORIGIN], RNS.LOG_DEBUG)
+    RNS.log("- Via     " + message[MESSAGE_JSON_ORIGIN], RNS.LOG_DEBUG)
     if MESSAGE_JSON_PATH in message.keys():
-        RNS.log("- Path   " + message[MESSAGE_JSON_PATH])
+        RNS.log("- Path   " + message[MESSAGE_JSON_PATH], RNS.LOG_DEBUG)
 
 
 ##########################################################################################
 # Nexus LXM router socket for LXMF message handling
 #
 class NexusLXMSocket:
-
     # Call back to handle received messages
     message_received_callback = None
 
@@ -635,16 +631,16 @@ class NexusLXMSocket:
             # Create storage path
             os.makedirs(self.storage_path)
             # Log that storage directory was created
-            RNS.log("LXM Storage path was created")
+            RNS.log("LXM Storage path was created", RNS.LOG_NOTICE)
         # Log storage path
-        RNS.log("LXM Socket storage path is " + self.storage_path)
+        RNS.log("LXM Socket storage path is " + self.storage_path, RNS.LOG_INFO)
 
         # If identity was not given create one for this lxm socket
         self.socket_identity = socket_identity
         if self.socket_identity is None:
             self.socket_identity = RNS.Identity()
         # Log that storage directory was created
-        RNS.log("LXM Socket identity is " + str(self.socket_identity))
+        RNS.log("LXM Socket identity is " + str(self.socket_identity), RNS.LOG_DEBUG)
 
         # Initialize from destination to be used when sending nexus messages to other nexus servers
         self.socket_destination = RNS.Destination(
@@ -658,8 +654,8 @@ class NexusLXMSocket:
         self.socket_destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
         # Log the crated lxm destination
-        RNS.log("LXM Nexus Server from destination is " + str(self.socket_destination))
-        RNS.log("LXM Nexus Server hash is " + RNS.prettyhexrep(self.destination_hash()))
+        RNS.log("LXM Nexus Server from destination is " + str(self.socket_destination), RNS.LOG_DEBUG)
+        RNS.log("LXM Nexus Server hash is " + RNS.prettyhexrep(self.destination_hash()), RNS.LOG_DEBUG)
 
         # Initialize lxm router
         self.lxm_router = LXMF.LXMRouter(
@@ -667,17 +663,17 @@ class NexusLXMSocket:
             storagepath=self.storage_path
         )
         # Log updated server role
-        RNS.log("LXM Router initialized with identity " + str(self.socket_identity))
+        RNS.log("LXM Router initialized with identity " + str(self.socket_identity), RNS.LOG_DEBUG)
 
         # Register callback to process incoming links
         self.socket_destination.set_link_established_callback(NexusLXMSocket.client_connected)
         # Log callback for incoming link registered
-        RNS.log("LXM Link established callback registered")
+        RNS.log("LXM Link established callback registered", RNS.LOG_DEBUG)
 
         # Create a handler to process all incoming announcements with the aspect of this nexus server
         announce_handler = NexusLXMAnnounceHandler(aspect_filter=app_name + '.' + server_aspect)
         # Log announce filter
-        RNS.log("LXM AnnounceHandler listens to " + app_name + '.' + server_aspect)
+        RNS.log("LXM AnnounceHandler listens to " + app_name + '.' + server_aspect, RNS.LOG_DEBUG)
         # Register the handler with the reticulum transport layer
         RNS.Transport.register_announce_handler(announce_handler)
 
@@ -693,10 +689,12 @@ class NexusLXMSocket:
     def destination_hash(self):
         return self.socket_destination.hash
 
+    '''
     def send_lxm_hello(self, destination_hash, announced_identity):
         # Send two test messages to announced nexus server to test LXMF message processing
         # One single packet message
         # One multi packet message
+        # This function is not used (demo only) and can be safely removed
 
         # Send single packet 'Hello World' message
         title = 'Hello Nexus Server'
@@ -712,6 +710,7 @@ class NexusLXMSocket:
                   '012345678901234567890123456789012345678901234567890' + \
                   '012345678901234567890123456789012345678901234567890'
         self.send_message(destination_hash, announced_identity, title=title, content=content)
+    '''
 
     def send_message(self, destination_hash, identity, title="", content="", fields=None):
         # Create destination
@@ -742,9 +741,13 @@ class NexusLXMSocket:
         # Transfer handling of the message to LXMF
         RNS.log(
             "LXM handle outbound for message sent to " + RNS.prettyhexrep(destination_hash) +
-            " from " + RNS.prettyhexrep(self.socket_destination.hash)
+            " from " + RNS.prettyhexrep(self.socket_destination.hash),
+            RNS.LOG_VERBOSE
         )
+        # Handle outbound
         self.lxm_router.handle_outbound(lxm_message)
+        # Give system a moment to process network stuff
+        time.sleep(DIGESTION_DELAY)
 
         # Flush pending log
         sys.stdout.flush()
@@ -777,7 +780,8 @@ class NexusLXMSocket:
         RNS.log(
             # Log entry does not use bytes but a string representation
             "LXM Nexus Server " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash()) +
-            " announced with app_data: " + str(announce_data)
+            " announced with app_data: " + str(announce_data),
+            RNS.LOG_INFO
         )
 
         # Sync message buffer from configured bridges
@@ -789,31 +793,31 @@ class NexusLXMSocket:
     @staticmethod
     def client_connected(link):
         link.set_resource_strategy(RNS.Link.ACCEPT_ALL)
-        RNS.log("LXM Link Resource strategy set to ACCEPT_ALL")
+        RNS.log("LXM Link Resource strategy set to ACCEPT_ALL", RNS.LOG_EXTREME)
         link.set_resource_concluded_callback(NexusLXMSocket.resource_concluded)
-        RNS.log("LXM Resource concluded callback set")
+        RNS.log("LXM Resource concluded callback set", RNS.LOG_EXTREME)
         link.set_packet_callback(NexusLXMSocket.packet_received)
-        RNS.log("LXM Packet callback set")
+        RNS.log("LXM Packet callback set", RNS.LOG_EXTREME)
 
     @staticmethod
     def client_disconnect(link):
-        RNS.log("LXM Client disconnected " + str(link))
+        RNS.log("LXM Client disconnected " + str(link), RNS.LOG_EXTREME)
         if link.teardown_reason == RNS.Link.TIMEOUT:
-            RNS.log("The link timed out, exiting now")
+            RNS.log("The link timed out, exiting now", RNS.LOG_EXTREME)
         elif link.teardown_reason == RNS.Link.DESTINATION_CLOSED:
-            RNS.log("The link was closed by the server, exiting now")
+            RNS.log("The link was closed by the server, exiting now", RNS.LOG_EXTREME)
         else:
-            RNS.log("Link closed")
+            RNS.log("Link closed", RNS.LOG_EXTREME)
 
     @staticmethod
     def packet_received(lxmf_bytes, packet):
-        RNS.log("LXM single packet delivered " + str(packet))
+        RNS.log("LXM single packet delivered " + str(packet), RNS.LOG_EXTREME)
         # Process received lxmf bytes into a lxmessage
         NexusLXMSocket.process_lxmf_message_bytes(lxmf_bytes)
 
     @staticmethod
     def resource_concluded(resource):
-        RNS.log("LXM Resource data transfer (multi packet) delivered " + str(resource.file))
+        RNS.log("LXM Resource data transfer (multi packet) delivered " + str(resource.file), RNS.LOG_EXTREME)
         # Check if transfer is completed
         # otherwise log that it is not
         if resource.status == RNS.Resource.COMPLETE:
@@ -822,7 +826,7 @@ class NexusLXMSocket:
             # Process received lxmf bytes into a lxmessage
             NexusLXMSocket.process_lxmf_message_bytes(lxmf_bytes)
         else:
-            RNS.log("Received LXMF resource message is not complete")
+            RNS.log("Received LXMF resource message is not complete", RNS.LOG_EXTREME)
 
     @staticmethod
     def process_lxmf_message_bytes(lxmf_bytes):
@@ -830,8 +834,8 @@ class NexusLXMSocket:
             # Assemble message object from read bytes
             message = LXMF.LXMessage.unpack_from_bytes(lxmf_bytes)
         except Exception as e:
-            RNS.log("Could not assemble LXMF message from received data", RNS.LOG_NOTICE)
-            RNS.log("The contained exception was: " + str(e), RNS.LOG_DEBUG)
+            RNS.log("Could not assemble LXMF message from received data", RNS.LOG_ERROR)
+            RNS.log("The contained exception was: " + str(e), RNS.LOG_ERROR)
             return
 
         # Log message as delivery receipt
@@ -861,14 +865,15 @@ class NexusLXMSocket:
         title = message.title.decode('utf-8')
         content = message.content.decode('utf-8')
         fields = message.fields
-        RNS.log(message_tag + " - " + time_string)
-        RNS.log("-       Title: " + title)
-        RNS.log("-     Content: " + content)
-        RNS.log("-      Fields: " + str(fields))
-        RNS.log("-        Size: " + str(len(title)+len(content)+len(title)+len(pickle.dumps(fields))) + " bytes")
-        RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash))
-        RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash))
-        RNS.log("-   Signature: " + signature_string)
+        RNS.log(message_tag + " - " + time_string, RNS.LOG_VERBOSE)
+        RNS.log("-       Title: " + title, RNS.LOG_VERBOSE)
+        RNS.log("-     Content: " + content, RNS.LOG_VERBOSE)
+        RNS.log("-      Fields: " + str(fields), RNS.LOG_VERBOSE)
+        RNS.log("-        Size: " + str(len(title) + len(content) + len(title) + len(pickle.dumps(fields))) + " bytes",
+                RNS.LOG_VERBOSE)
+        RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash), RNS.LOG_VERBOSE)
+        RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash), RNS.LOG_VERBOSE)
+        RNS.log("-   Signature: " + signature_string, RNS.LOG_VERBOSE)
 
         # Call message handler if one is registered.
         if NEXUS_LXM_SOCKET.message_received_callback is not None:
@@ -904,9 +909,9 @@ def message_received_callback(lxmessage):
 
     # Log result of command processing
     if command_result:
-        RNS.log("Received LXM Message was successfully processed as Nexus Command")
+        RNS.log("Received LXM Message was successfully processed as Nexus Command", RNS.LOG_INFO)
     else:
-        RNS.log("Received LXM Message could not be precessed")
+        RNS.log("Received LXM Message could not be precessed", RNS.LOG_ERROR)
 
     # Flush pending log
     sys.stdout.flush()
@@ -1000,28 +1005,23 @@ class NexusLXMAnnounceHandler:
         global DISTRIBUTION_TARGETS
 
         # Log that we received an announcement matching our aspect filter criteria
-        RNS.log(
-            "Received an announce from " +
-            RNS.prettyhexrep(destination_hash)
-        )
+        RNS.log("Received an announce from " + RNS.prettyhexrep(destination_hash), RNS.LOG_INFO)
 
         # Check if we have app data received
         if app_data is None:
             # Log app data missing
-            RNS.log("The announce is ignored because it contained no valid nexus role dictionary")
+            RNS.log("The announce is ignored because it contained no valid nexus role dictionary", RNS.LOG_INFO)
             return
 
         # Recreate nexus role dict from received app data
         announced_role = pickle.loads(app_data)
         # Log role
-        RNS.log(
-            "The announce contained the following nexus role: " + str(announced_role)
-        )
+        RNS.log("The announce contained the following nexus role: " + str(announced_role), RNS.LOG_INFO)
 
         # Validate/Migrate announced role
         if not is_valid_role(validate_role(announced_role)):
             # Log app data missing
-            RNS.log("The announce is ignored because it is no valid nexus server role")
+            RNS.log("The announce is ignored because it is no valid nexus server role", RNS.LOG_INFO)
             return
 
         # Get dict key and timestamp for distribution identity registration
@@ -1053,16 +1053,11 @@ class NexusLXMAnnounceHandler:
                 # server destination subscription list
                 NexusLXMSocket.announce()
                 # Log that we added new subscription
-                RNS.log(
-                    "Subscription for " + RNS.prettyhexrep(destination_hash) +
-                    " will be added"
-                )
+                RNS.log("Subscription for " + RNS.prettyhexrep(destination_hash) + " will be added", RNS.LOG_INFO)
             else:
                 # Log that we just updated new subscription
                 RNS.log(
-                    "Subscription for " + RNS.prettyhexrep(destination_hash) +
-                    " will be updated"
-                )
+                    "Subscription for " + RNS.prettyhexrep(destination_hash) + " will be updated", RNS.LOG_INFO)
             # Register for update destination as valid distribution target
             DISTRIBUTION_TARGETS[destination_hash] = (
                 last_heard,
@@ -1093,7 +1088,8 @@ class NexusLXMAnnounceHandler:
                 # Log that we send something to this destination
                 RNS.log(
                     "CMD_REQUEST_MESSAGES_SINCE " + str(actual_latest) +
-                    " sent to announced destination " + RNS.prettyhexrep(destination_hash)
+                    " sent to announced destination " + RNS.prettyhexrep(destination_hash),
+                    RNS.LOG_INFO
                 )
 
             # Log list of severs with seconds it was last heard
@@ -1109,7 +1105,8 @@ class NexusLXMAnnounceHandler:
                     # Log that we removed the destination
                     RNS.log(
                         "Distribution destination " + RNS.prettyhexrep(registered_destination_hash) +
-                        " removed because of timeout"
+                        " removed because of timeout",
+                        RNS.LOG_DEBUG
                     )
                     # Actually remove destination from dict
                     DISTRIBUTION_TARGETS.pop(registered_destination_hash)
@@ -1117,13 +1114,15 @@ class NexusLXMAnnounceHandler:
                 # If actual is still valid log it
                 RNS.log(
                     "Registered Server " + RNS.prettyhexrep(registered_destination_hash) +
-                    " last heard " + str(last_heard) + "sec ago"
+                    " last heard " + str(last_heard) + "sec ago",
+                    RNS.LOG_VERBOSE
                 )
         else:
             # Announce should be ignored since it belongs to a different cluster, and we are not eligible to
             # link with that cluster as gateway too
             RNS.log(
-                "Announced nexus role was ignored because role did not match role " + str(NEXUS_SERVER_ROLE)
+                "Announced nexus role was ignored because role did not match role " + str(NEXUS_SERVER_ROLE),
+                RNS.LOG_INFO
             )
 
         # Sync message buffer from configured bridges
@@ -1203,14 +1202,16 @@ def initialize_server(
         BRIDGE_TARGETS = json.loads(bridge_links)
 
     # Log actually used parameters
-    RNS.log("Nexus Server v[" + __server_version__ + "] c[" + __command_version__ + "] m[" + __message_version__ + "]")
-    RNS.log("Startup configuration from commandline:")
-    RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT))
-    RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL))
-    RNS.log("  --port=" + str(NEXUS_SERVER_ADDRESS[1]))
-    RNS.log("  --aspect=" + NEXUS_SERVER_ASPECT)
-    RNS.log("  --role=" + str(NEXUS_SERVER_ROLE))
-    RNS.log("  --bridge=" + str(BRIDGE_TARGETS))
+    RNS.log("Nexus Server      v" + __server_version__, RNS.LOG_INFO)
+    RNS.log("Command Processor v" + __command_version__, RNS.LOG_INFO)
+    RNS.log("Message Format    v" + __message_version__, RNS.LOG_INFO)
+    RNS.log("Startup configuration from commandline:", RNS.LOG_INFO)
+    RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
+    RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
+    RNS.log("  --port=" + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
+    RNS.log("  --aspect=" + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
+    RNS.log("  --role=" + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
+    RNS.log("  --bridge=" + str(BRIDGE_TARGETS), RNS.LOG_INFO)
 
     # Create LXMF router socket with this server as source endpoint
     NEXUS_LXM_SOCKET = NexusLXMSocket()
@@ -1240,9 +1241,7 @@ def launch_http_server():
     # Create multithreading http server with given address and port to listen for json app interaction
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
     # Log launch with aspect and address/port used
-    RNS.log(
-        "Serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS
-    )
+    RNS.log("Serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS, RNS.LOG_INFO)
     # Invoke server loop
     # (infinite)
     httpd.serve_forever()
@@ -1312,13 +1311,12 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # and append that string to the message store
         length = int(self.headers.get('content-length'))
         body = self.rfile.read(length)
-        # Log message received event
-        # RNS.log("HTTP POST Body:" + str(body))
+
         # Parse JSON
         post = json.loads(body)
 
         # Log new client message received event
-        RNS.log("HTTP POST received with content " + str(post))
+        RNS.log("HTTP POST received with content " + str(post), RNS.LOG_INFO)
 
         # Try to validate received post as Nexus Command
         command_result = process_command(post)
@@ -1329,14 +1327,14 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
         # depending on outcome set response header HTTP result value accordingly
         if command_result:
             self._set_success_headers()
-            RNS.log("Received HTTP Post was successfully processed as Nexus Command")
+            RNS.log("Received HTTP Post was successfully processed as Nexus Command", RNS.LOG_VERBOSE)
         else:
             self._set_failure_headers()
-            RNS.log("Received HTTP Post could not be precessed")
+            RNS.log("Received HTTP Post could not be precessed", RNS.LOG_ERROR)
         # Set result JSON to body
         self.wfile.write(json.dumps(result).encode('utf-8'))
         # Log result
-        RNS.log("HTTP Post processing result is " + str(result))
+        RNS.log("HTTP Post processing result is " + str(result), RNS.LOG_DEBUG)
 
         # Flush pending log
         sys.stdout.flush()
@@ -1362,11 +1360,11 @@ def process_command(nexus_command):
         message = validate_message(nexus_command)
         if not is_valid_message(message):
             # Given command was nighter a valid command nor message
-            RNS.log("Invalid command " + str(nexus_command))
+            RNS.log("Invalid command " + str(nexus_command), RNS.LOG_ERROR)
             return False
         else:
             # Create proper add_message command from posted message
-            RNS.log("WARNING: Deprecated Messaging used: Message is processed as ADD_MESSAGE command")
+            RNS.log("WARNING: Deprecated Messaging was processed as ADD_MESSAGE command", RNS.LOG_WARNING)
             command = {
                 COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __server_version__,
                 COMMAND_JSON_P1: message
@@ -1381,7 +1379,7 @@ def process_command(nexus_command):
 
     # Check if command is add message to buffer command
     if cmd == CMD_ADD_MESSAGE:
-        RNS.log("ADD_MESSAGE command processing")
+        RNS.log("ADD_MESSAGE command processing", RNS.LOG_VERBOSE)
         # Retrieve message to add from command dict
         message = command[COMMAND_JSON_P1]
         # Process message as message post
@@ -1389,7 +1387,7 @@ def process_command(nexus_command):
 
     # Check if command request sending messages received since a given point in time
     elif cmd == CMD_REQUEST_MESSAGES_SINCE:
-        RNS.log("REQUEST_MESSAGES_SINCE command processing")
+        RNS.log("REQUEST_MESSAGES_SINCE command processing", RNS.LOG_VERBOSE)
         # Retrieve message to add from command dict
         since = command[COMMAND_JSON_P1]
         destination_hash = command[COMMAND_JSON_P2]
@@ -1400,7 +1398,7 @@ def process_command(nexus_command):
     # Command not found
     else:
         # Command processing failed
-        RNS.log("Command id " + str(cmd) + " not implemented")
+        RNS.log("Command id " + str(cmd) + " not implemented", RNS.LOG_ERROR)
 
     # Return result
     return success
@@ -1436,7 +1434,7 @@ def cmd_request_message_since(since, destination_hash, message_count):
                     fields=cmd
                 )
                 # Log send message ID
-                RNS.log("Message " + str(message[MESSAGE_JSON_ID]) + " sent")
+                RNS.log("Message " + str(message[MESSAGE_JSON_ID]) + " sent", RNS.LOG_VERBOSE)
                 # Increment message sent counter
                 i = i + 1
 
@@ -1444,12 +1442,18 @@ def cmd_request_message_since(since, destination_hash, message_count):
             index = index - 1
 
         # Done sending update
-        # Log that we don't know the destination for this update
-        RNS.log("Destination " + RNS.prettyhexrep(destination_hash) + " has been updated with " + str(i) + "messages")
+        # Log that we updated the destination
+        RNS.log(
+            "Destination " + RNS.prettyhexrep(destination_hash) + " has been updated with " + str(i) + "messages",
+            RNS.LOG_INFO
+        )
         return True
     else:
         # Log that we don't know the destination for this update
-        RNS.log("Destination " + RNS.prettyhexrep(destination_hash) + " for message bulk update unknown")
+        RNS.log(
+            "Destination " + RNS.prettyhexrep(destination_hash) + " for message bulk update unknown",
+            RNS.LOG_ERROR
+        )
         return False
 
 
@@ -1461,13 +1465,13 @@ def cmd_add_message(message):
     # Bridged messages have a path tag set, local posts of new messages does not.
     if MESSAGE_JSON_PATH not in message.keys():
         # Log new client message received event
-        RNS.log("Message to add was send from a client (no path set yet)")
+        RNS.log("Message to add was send from a client (no path set yet)", RNS.LOG_VERBOSE)
         # ToDo Set message version correctly at client side (actually not implemented in client)
         message[MESSAGE_JSON_VERSION] = __message_version__
-        RNS.log("Message version set to " + __message_version__)
+        RNS.log("Message version set to " + __message_version__, RNS.LOG_DEBUG)
     else:
         # Log new client message received event
-        RNS.log("Message to add was send from a remote server with path " + message[MESSAGE_JSON_PATH])
+        RNS.log("Message to add was send from a remote server with path " + message[MESSAGE_JSON_PATH], RNS.LOG_VERBOSE)
 
     # Validate/Migrate message
     message = validate_message(message)
@@ -1503,7 +1507,7 @@ def cmd_add_message(message):
 
     else:
         # Message failed validation and is ignored
-        RNS.log("Message to add failed validation and is ignored")
+        RNS.log("Message to add failed validation and is ignored", RNS.LOG_ERROR)
 
         # Return failure
         return False
@@ -1523,24 +1527,18 @@ def post_command(url, cmd):
         # Check if request was successful
         if response.ok:
             # Log that we bridged a message
-            RNS.log(
-                "POST request " + url +
-                "' completed successfully"
-            )
+            RNS.log("POST request " + url + "' completed successfully", RNS.LOG_VERBOSE)
             # Return success
             return True
         else:
             # Log POST failure
-            RNS.log(
-                "POST request " + url +
-                "' failed with reason: " + response.reason
-            )
+            RNS.log("POST request " + url + "' failed with reason: " + response.reason, RNS.LOG_ERROR)
             # Return failure
             return False
 
     except Exception as e:
-        RNS.log("Could not complete POST request " + url)
-        RNS.log("The contained exception was: %s" % (str(e)))
+        RNS.log("Could not complete POST request " + url, RNS.LOG_ERROR)
+        RNS.log("The contained exception was: %s" % (str(e)), RNS.LOG_ERROR)
         return False
 
 
@@ -1574,7 +1572,8 @@ def digest_messages(merge_buffer, cluster):
         else:
             RNS.log(
                 "Message " + str(message_id) + " pulled from bridge to cluster '" + cluster +
-                "' has invalid version and is dropped"
+                "' has invalid version and is dropped",
+                RNS.LOG_DEBUG
             )
 
 
@@ -1594,10 +1593,7 @@ def process_incoming_message(message):
 
     if message_store_size == 0:
         # First message arrived event
-        RNS.log(
-            "Message " + str(message_id) +
-            " is first message in the buffer"
-        )
+        RNS.log("Message " + str(message_id) + " is first message in the buffer", RNS.LOG_DEBUG)
         # Append the JSON message map to the message store at last position
         MESSAGE_STORE.append(message)
     else:
@@ -1611,7 +1607,8 @@ def process_incoming_message(message):
                     # Log that we have that one already
                     RNS.log(
                         "Message " + str(message_id) +
-                        " storing and distribution not necessary because message is already in the buffer"
+                        " storing and distribution not necessary because message is already in the buffer",
+                        RNS.LOG_DEBUG
                     )
                     # Since we consider a message at the buffer has been distributed already we can exit this function
                     # Flush pending log
@@ -1624,7 +1621,8 @@ def process_incoming_message(message):
                     # Log message insertion with same timestamp
                     RNS.log(
                         "Message " + str(message_id) +
-                        " has a duplicate timestamp but differs (Message will be inserted in timeline)"
+                        " has a duplicate timestamp but differs (Message will be inserted in timeline)",
+                        RNS.LOG_DEBUG
                     )
                     # Insert it at the actual position
                     MESSAGE_STORE.insert(i, message)
@@ -1636,10 +1634,7 @@ def process_incoming_message(message):
             elif message_id < MESSAGE_STORE[i][MESSAGE_JSON_ID]:
                 # Yes it is
                 # Log message insertion with same timestamp
-                RNS.log(
-                    "Message " + str(message_id) +
-                    " will be inserted in timeline"
-                )
+                RNS.log("Message " + str(message_id) + " will be inserted in timeline", RNS.LOG_DEBUG)
                 # Insert it at the actual position
                 MESSAGE_STORE.insert(i, message)
                 # Message processing completed
@@ -1653,8 +1648,8 @@ def process_incoming_message(message):
             if i == message_store_size - 1:
                 # Log message append
                 RNS.log(
-                    "Message " + str(message_id) +
-                    " is most recent and will be appended to timeline"
+                    "Message " + str(message_id) + " is most recent and will be appended to timeline",
+                    RNS.LOG_DEBUG
                 )
                 # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
@@ -1675,7 +1670,8 @@ def process_incoming_message(message):
             # Log message pop
             RNS.log(
                 "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
-                " exceeded. Oldest message is dropped now"
+                " exceeded. Oldest message is dropped now",
+                RNS.LOG_DEBUG
             )
             # If limit is exceeded just drop first (oldest) element of list
             MESSAGE_STORE.pop(0)
@@ -1708,7 +1704,8 @@ def distribute_message(nexus_message):
                 # Log that this message was actually received from that bridge
                 RNS.log(
                     "Message distribution to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
-                    "' was suppressed because message was received from that bridge"
+                    "' was suppressed because message was received from that bridge",
+                    RNS.LOG_VERBOSE
                 )
                 # Continue with next bridge target
                 continue
@@ -1720,7 +1717,8 @@ def distribute_message(nexus_message):
             RNS.log(
                 "Message distribution to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
                 "' was suppressed because its path '" + nexus_message[MESSAGE_JSON_PATH] +
-                "' contains that cluster already"
+                "' contains that cluster already",
+                RNS.LOG_VERBOSE
             )
             # Continue with next bridge target
             continue
@@ -1749,7 +1747,7 @@ def distribute_message(nexus_message):
             # Log POST failure
             log_message = log_message + "' failed"
         # Post log entry
-        RNS.log(log_message)
+        RNS.log(log_message, RNS.LOG_VERBOSE)
 
     # Process distribution targets
 
@@ -1767,7 +1765,8 @@ def distribute_message(nexus_message):
             # Log message received by distribution event
             RNS.log(
                 "Distribution to " + RNS.prettyhexrep(registered_destination_hash) +
-                " was suppressed because message originated from that server"
+                " was suppressed because message originated from that server",
+                RNS.LOG_VERBOSE
             )
             # Continue with next distribution target
             continue
@@ -1777,7 +1776,8 @@ def distribute_message(nexus_message):
             # Log message received by distribution event
             RNS.log(
                 "Distribution to " + RNS.prettyhexrep(registered_destination_hash) +
-                " was suppressed because message was forwarded from that server"
+                " was suppressed because message was forwarded from that server",
+                RNS.LOG_VERBOSE
             )
             # Continue with next distribution target
             continue
@@ -1806,12 +1806,14 @@ def distribute_message(nexus_message):
                 )
                 # Log that we send something to this destination
                 RNS.log(
-                    "Message sent to destination " + RNS.prettyhexrep(registered_destination_hash)
+                    "Message sent to destination " + RNS.prettyhexrep(registered_destination_hash),
+                    RNS.LOG_VERBOSE
                 )
             else:
                 # Log that we removed the destination
                 RNS.log(
-                    "Distribution destination " + RNS.prettyhexrep(registered_destination_hash) + " removed"
+                    "Distribution destination " + RNS.prettyhexrep(registered_destination_hash) + " removed",
+                    RNS.LOG_VERBOSE
                 )
                 # Remove expired target identity from distribution list
                 DISTRIBUTION_TARGETS.pop(registered_destination_hash)
