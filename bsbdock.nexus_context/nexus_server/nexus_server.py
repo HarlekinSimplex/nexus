@@ -407,7 +407,7 @@ def validate_command(command):
         RNS.log(
             "Command is invalidated because command version " + str(command[COMMAND_JSON_VERSION]) +
             " is ahead of server command version " + __command_version__,
-            RNS.LOG_INFO
+            RNS.LOG_WARNING
         )
         # Set actual command to invalid command
         command = invalid_command
@@ -479,7 +479,7 @@ def validate_message(message):
         RNS.log(
             "Message is invalidated because message version " + str(message[MESSAGE_JSON_VERSION]) +
             " is ahead of server message version " + __message_version__,
-            RNS.LOG_INFO
+            RNS.LOG_WARNING
         )
         # Set actual message to invalid message
         message = invalid_message
@@ -497,11 +497,11 @@ def validate_message(message):
             # Used to handle old clients still posting v3
             message[MESSAGE_JSON_VERSION] = __message_version__
             # Log message migration
-            RNS.log("Message was elevated from v3 to v" + __message_version__, RNS.LOG_VERBOSE)
+            RNS.log("Message was elevated from v3 to v" + __message_version__, RNS.LOG_WARNING)
 
         else:
             # Actual no migration applied, message will just be invalidated
-            RNS.log("Message is invalidated because no migration possible", RNS.LOG_INFO)
+            RNS.log("Message is invalidated because no migration possible", RNS.LOG_WARNING)
             # Set actual message to invalid message
             message = invalid_message
 
@@ -537,12 +537,12 @@ def validate_role(server_role):
         RNS.log(
             "Announced version " + str(server_role[ROLE_JSON_VERSION]) +
             " does not match server version " + __server_version__,
-            RNS.LOG_INFO
+            RNS.LOG_WARNING
         )
 
         # Replace this section with migration if one is possible
         # Actual no migration implemented, announced role will just be invalidated
-        RNS.log("Announced role is invalidated because no migration possible", RNS.LOG_INFO)
+        RNS.log("Announced role is invalidated because no migration possible", RNS.LOG_WARNING)
         # Set actual message to invalid message
         server_role = invalid_role
 
