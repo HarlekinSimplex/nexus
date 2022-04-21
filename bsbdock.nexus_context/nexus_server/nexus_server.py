@@ -1202,17 +1202,29 @@ def initialize_server(
         BRIDGE_TARGETS = json.loads(bridge_links)
 
     # Log actually used parameters
-    RNS.log("Nexus Server      v" + __server_version__, RNS.LOG_INFO)
-    RNS.log("Command Processor v" + __command_version__, RNS.LOG_INFO)
-    RNS.log("Message Format    v" + __message_version__, RNS.LOG_INFO)
-    RNS.log("Startup configuration from commandline:", RNS.LOG_INFO)
-    RNS.log("  --timeout=" + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
-    RNS.log("  --longpoll=" + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
-    RNS.log("  --port=" + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
-    RNS.log("  --aspect=" + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
-    RNS.log("  --role=" + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
-    RNS.log("  --bridge=" + str(BRIDGE_TARGETS), RNS.LOG_INFO)
+    RNS.log(".._..._........................_____...........................", RNS.LOG_INFO)
+    RNS.log(".|.\\.|.|....................../.____|..........................", RNS.LOG_INFO)
+    RNS.log(".|..\\|.|._____..___..._.___..|.(___...___._.____..._____._.__..", RNS.LOG_INFO)
+    RNS.log(".|...`.|/._.\\.\\/./.|.|./.__|..\\___.\\./._.\\.'__\\.\\././._.\\.'__|.", RNS.LOG_INFO)
+    RNS.log(".|.|\\..|..__/>..<|.|_|.\\__.\\..____).|..__/.|...\\.V./..__/.|....", RNS.LOG_INFO)
+    RNS.log(".|_|.\\_|\\___/_/\\_\\\\__,_|___/.|_____/.\\___|_|....\\_/.\\___|_|....", RNS.LOG_INFO)
+    RNS.log("...............................................................", RNS.LOG_INFO)
+    RNS.log(". Installed Versions:", RNS.LOG_INFO)
+    RNS.log(".  Nexus Server      v" + __server_version__, RNS.LOG_INFO)
+    RNS.log(".  Command Processor v" + __command_version__, RNS.LOG_INFO)
+    RNS.log(".  Message Format    v" + __message_version__, RNS.LOG_INFO)
+    RNS.log("...............................................................", RNS.LOG_INFO)
+    RNS.log(". Server Configuration:", RNS.LOG_INFO)
+    RNS.log(".  Timeout=" + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
+    RNS.log(".  Longpoll=" + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
+    RNS.log(".  Port=" + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
+    RNS.log(".  Aspect=" + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
+    RNS.log(".  Role=" + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
+    RNS.log(".  Bridge=" + str(BRIDGE_TARGETS), RNS.LOG_INFO)
+    RNS.log("...............................................................", RNS.LOG_INFO)
 
+    # Log http server address/port used
+    RNS.log("Serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS, RNS.LOG_INFO)
     # Create LXMF router socket with this server as source endpoint
     NEXUS_LXM_SOCKET = NexusLXMSocket()
     # Register callback to handle incoming messages
@@ -1220,6 +1232,9 @@ def initialize_server(
 
     # Load and validate messages from storage
     load_messages()
+
+    RNS.log("Initialization complete", RNS.LOG_INFO)
+    RNS.log("...............................................................", RNS.LOG_INFO)
 
     # After an initial delay start long poll to announce server regularly
     time.sleep(INITIAL_ANNOUNCEMENT_DELAY)
@@ -1240,8 +1255,6 @@ def initialize_server(
 def launch_http_server():
     # Create multithreading http server with given address and port to listen for json app interaction
     httpd = ThreadingHTTPServer(NEXUS_SERVER_ADDRESS, ServerRequestHandler)
-    # Log launch with aspect and address/port used
-    RNS.log("Serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS, RNS.LOG_INFO)
     # Invoke server loop
     # (infinite)
     httpd.serve_forever()
