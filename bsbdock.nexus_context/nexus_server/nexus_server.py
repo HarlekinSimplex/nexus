@@ -3,22 +3,24 @@
 # Nexus Message Server
 #
 #
-import copy
-import os
-import signal
-import threading
 import sys
+import os
+import time
 import argparse
-import LXMF
-import RNS
-from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-from http import HTTPStatus
-import requests
+import copy
+
 import json
 import pickle
-import time
 import string
 
+import signal
+import threading
+import requests
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+from http import HTTPStatus
+
+import LXMF
+import RNS
 import RNS.vendor.umsgpack as umsgpack
 
 ##########################################################################################
