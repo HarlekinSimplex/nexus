@@ -535,7 +535,7 @@ def validate_role(server_role):
     elif server_role[ROLE_JSON_VERSION][SERVER_JSON_VERSION] != __server_version__:
         # Server version does not match
         RNS.log(
-            "Announce version " + str(server_role[ROLE_JSON_VERSION]) +
+            "Announced version " + str(server_role[ROLE_JSON_VERSION]) +
             " does not match server version " + __server_version__,
             RNS.LOG_INFO
         )
