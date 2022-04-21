@@ -1379,7 +1379,7 @@ def process_command(nexus_command):
 
     # Check if command is add message to buffer command
     if cmd == CMD_ADD_MESSAGE:
-        RNS.log("ADD_MESSAGE command processing", RNS.LOG_VERBOSE)
+        RNS.log("ADD_MESSAGE command processing", RNS.LOG_INFO)
         # Retrieve message to add from command dict
         message = command[COMMAND_JSON_P1]
         # Process message as message post
@@ -1387,7 +1387,7 @@ def process_command(nexus_command):
 
     # Check if command request sending messages received since a given point in time
     elif cmd == CMD_REQUEST_MESSAGES_SINCE:
-        RNS.log("REQUEST_MESSAGES_SINCE command processing", RNS.LOG_VERBOSE)
+        RNS.log("REQUEST_MESSAGES_SINCE command processing", RNS.LOG_INFO)
         # Retrieve message to add from command dict
         since = command[COMMAND_JSON_P1]
         destination_hash = command[COMMAND_JSON_P2]
