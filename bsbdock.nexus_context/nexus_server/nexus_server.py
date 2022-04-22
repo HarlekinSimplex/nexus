@@ -1,7 +1,32 @@
 #!/usr/bin/env python3
-# ##########################################################################################
-# Nexus Message Server
+###########################################################################################
+#  ____   _____ ____   _   _                      _____                          
+# |  _ \ / ____|  _ \ | \ | |                    / ____|                         
+# | |_) | (___ | |_) ||  \| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __ 
+# |  _ < \___ \|  _ < | . ` |/ _ \ \/ / | | / __|\___ \ / _ \ '__\ \ / / _ \ '__|
+# | |_) |____) | |_) || |\  |  __/>  <| |_| \__ \____) |  __/ |   \ V /  __/ |   
+# |____/|_____/|____(_)_| \_|\___/_/\_\\__,_|___/_____/ \___|_|    \_/ \___|_|   
 #
+# Copyright (c) 2020 Stephan Becker / Becker-Systemberatung, MIT License
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify, merge,
+# publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+# persons to whom the Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
+# This software contains and uses Reticulum, NomadNet and LXMF
+# Copyright (c) 2016-2022 Mark Qvist / unsigned.io, MIT License
 #
 import sys
 import os
@@ -1201,27 +1226,28 @@ def initialize_server(
         # Overwrite default role with specified role
         BRIDGE_TARGETS = json.loads(bridge_links)
 
-    # Log actually used parameters
-    RNS.log(".._..._........................_____...........................", RNS.LOG_INFO)
-    RNS.log(".|.\\.|.|....................../.____|..........................", RNS.LOG_INFO)
-    RNS.log(".|..\\|.|._____..___..._.___..|.(___...___._.____..._____._.__..", RNS.LOG_INFO)
-    RNS.log(".|...`.|/._.\\.\\/./.|.|./.__|..\\___.\\./._.\\.'__\\.\\././._.\\.'__|.", RNS.LOG_INFO)
-    RNS.log(".|.|\\..|..__/>..<|.|_|.\\__.\\..____).|..__/.|...\\.V./..__/.|....", RNS.LOG_INFO)
-    RNS.log(".|_|.\\_|\\___/_/\\_\\\\__,_|___/.|_____/.\\___|_|....\\_/.\\___|_|....", RNS.LOG_INFO)
-    RNS.log("...............................................................", RNS.LOG_INFO)
-    RNS.log(". Installed Versions:", RNS.LOG_INFO)
-    RNS.log(".  Nexus Server      v" + __server_version__, RNS.LOG_INFO)
-    RNS.log(".  Command Processor v" + __command_version__, RNS.LOG_INFO)
-    RNS.log(".  Message Format    v" + __message_version__, RNS.LOG_INFO)
-    RNS.log("...............................................................", RNS.LOG_INFO)
-    RNS.log(". Server Configuration:", RNS.LOG_INFO)
-    RNS.log(".  Port     " + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
-    RNS.log(".  Aspect   " + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
-    RNS.log(".  Role     " + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
-    RNS.log(".  Bridge   " + str(BRIDGE_TARGETS), RNS.LOG_INFO)
-    RNS.log(".  Timeout  " + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
-    RNS.log(".  Longpoll " + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
-    RNS.log("...............................................................", RNS.LOG_INFO)
+    # Startup log with used parameter
+    RNS.log(" ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
+    RNS.log("|  _ \\ / ____|  _ \\ | \\ | |                    / ____|", RNS.LOG_INFO)
+    RNS.log("| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __", RNS.LOG_INFO)
+    RNS.log("|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|", RNS.LOG_INFO)
+    RNS.log("| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
+    RNS.log("|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
+    RNS.log("Copyright (c) 2020 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
+    RNS.log("...............................................................................", RNS.LOG_INFO)
+    RNS.log("Installed Versions:", RNS.LOG_INFO)
+    RNS.log(" Nexus Server      v" + __server_version__, RNS.LOG_INFO)
+    RNS.log(" Command Processor v" + __command_version__, RNS.LOG_INFO)
+    RNS.log(" Message Format    v" + __message_version__, RNS.LOG_INFO)
+    RNS.log("...............................................................................", RNS.LOG_INFO)
+    RNS.log("Server Configuration:", RNS.LOG_INFO)
+    RNS.log(" Port     " + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
+    RNS.log(" Aspect   " + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
+    RNS.log(" Role     " + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
+    RNS.log(" Bridge   " + str(BRIDGE_TARGETS), RNS.LOG_INFO)
+    RNS.log(" Timeout  " + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
+    RNS.log(" Longpoll " + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
+    RNS.log("...............................................................................", RNS.LOG_INFO)
 
     # Create LXMF router socket with this server as source endpoint
     NEXUS_LXM_SOCKET = NexusLXMSocket()
@@ -1235,7 +1261,7 @@ def initialize_server(
     RNS.log("Serving '" + APP_NAME + '.' + NEXUS_SERVER_ASPECT + "' at %s:%d" % NEXUS_SERVER_ADDRESS, RNS.LOG_INFO)
 
     RNS.log("Initialization complete", RNS.LOG_INFO)
-    RNS.log("...............................................................", RNS.LOG_INFO)
+    RNS.log("...............................................................................", RNS.LOG_INFO)
 
     # After an initial delay start long poll to announce server regularly
     time.sleep(INITIAL_ANNOUNCEMENT_DELAY)
