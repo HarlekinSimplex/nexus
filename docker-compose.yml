@@ -1,20 +1,44 @@
+#.........................................................................................
+#  ____   _____ ____   _   _                      _____
+# |  _ \ / ____|  _ \ | \ | |                    / ____|
+# | |_) | (___ | |_) ||  \| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __
+# |  _ < \___ \|  _ < | . ` |/ _ \ \/ / | | / __|\___ \ / _ \ '__\ \ / / _ \ '__|
+# | |_) |____) | |_) || |\  |  __/>  <| |_| \__ \____) |  __/ |   \ V /  __/ |
+# |____/|_____/|____(_)_| \_|\___/_/\_\\__,_|___/_____/ \___|_|    \_/ \___|_|
+#
+# Copyright (c) 2020 Stephan Becker / Becker-Systemberatung, MIT License
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify, merge,
+# publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+# persons to whom the Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all copies
+# or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
+# This software contains and uses Reticulum, NomadNet and LXMF
+# Copyright (c) 2016-2022 Mark Qvist / unsigned.io, MIT License
+#.........................................................................................
 version: '3.5'
 
-#################################################
-# Reticulum Node
-#
-# docker exec -it nexus-server_node01 bash
-# docker exec -it nexus-server_node01 rnstatus
-# docker exec -it nexus-server_node01 nomadnet
-#
+# BSB.NexusServer Docker service configuration
 services:
   nexus-server_node01:
     container_name: ${NEXUS_CONTAINER:-nexus-server_node01}
 
 # If image can not be pulled from docker hub run one of the following commands
-# bash ./build-arm-v7.sh for building an arm architecture image (Raspberry)
+# bash ./build-arm.sh for building an arm architecture image
+# bash ./build-arm64.sh for building an arm64 architecture image
 # bash ./build-amd64.sh for building an amd64 architecture image
-    image: ${NEXUS_IMAGE:-bsbdock/nexus}
+    image: ${NEXUS_IMAGE:-bsbdock/nexus:latest}
 
 # Build environment for nexus container (default ARM-V7 Architectur)
 # Use NEXUS_DOCKERFILE=./Dockerfile_nexus_linux-amd-64 at .env if you want to build for the AMD64 Architecture
@@ -54,7 +78,7 @@ services:
         max-file: "10"
 
 #################################################
-# Reticulum Container Networks
+# BSB.NexusServer Container Networks
 #
 networks:
   nexus_server_net:
