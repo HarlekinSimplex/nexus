@@ -50,7 +50,6 @@ import RNS.vendor.umsgpack as umsgpack
 
 ##########################################################################################
 # Global variables
-#
 
 # Server Version
 __server_version__ = "1.4.0.1"
