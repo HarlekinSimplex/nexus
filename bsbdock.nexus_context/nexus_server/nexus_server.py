@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 ###########################################################################################
-#  ____   _____ ____   _   _                      _____                          
+#  ____   _____ ____   _   _                      _____
 # |  _ \ / ____|  _ \ | \ | |                    / ____|                         
 # | |_) | (___ | |_) ||  \| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __ 
 # |  _ < \___ \|  _ < | . ` |/ _ \ \/ / | | / __|\___ \ / _ \ '__\ \ / / _ \ '__|
@@ -50,15 +50,13 @@ import RNS.vendor.umsgpack as umsgpack
 
 ##########################################################################################
 # Global variables
+#
 
-# Server Version
+# Versions used
 __server_version__ = "1.4.0.1"
-# Message purge version
-# Increase this number to cause an automatic message drop from saved buffers or any incoming message.
-# New messages will be tagged with 'v': __message_version__
-__message_version__ = "4.2"
-# Increase this number to cause an automatic command drop on incoming commands.
+__role_version__ = "2"
 __command_version__ = "1"
+__message_version__ = "4.2"
 
 # A moment to process background stuff
 DIGESTION_DELAY = 0.1
@@ -136,17 +134,19 @@ MERGE_JSON_TAG = "tag"
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # The LXM Destination is added with the LXM socket instantiation
 # Role Example: {'c':'ClusterName','g':'GatewayName', 'l': latest_id}
-ROLE_JSON_CLUSTER = "c"
-ROLE_JSON_GATEWAY = "g"
-ROLE_JSON_LATEST = "l"
-ROLE_JSON_VERSION = "v"
+ROLE_JSON_CLUSTER = "cluster"
+ROLE_JSON_GATEWAY = "gate"
+ROLE_JSON_LAST = "last"
+ROLE_JSON_VERSION = "rolv"
 
-# Full version dict
+# Full version dict added to role
 __full_version__ = {
     SERVER_JSON_VERSION: __server_version__,
+    ROLE_JSON_VERSION: __role_version__,
     COMMAND_JSON_VERSION: __command_version__,
     MESSAGE_JSON_VERSION: __message_version__
 }
+VERSION_JSON_VERSION = "ver"
 
 # Some Server default values used to announce nexus servers to reticulum
 # APP_NAME = "nexus"
@@ -182,10 +182,10 @@ NEXUS_LXM_SOCKET = None  # type: NexusLXMSocket
 CMD_ADD_MESSAGE = 0
 CMD_REQUEST_MESSAGES_SINCE = 1
 
-
 ##########################################################################################
 # Helper functions
 #
+
 
 ##########################################################################################
 # Remove all whitespaces
@@ -551,38 +551,71 @@ def validate_role(server_role):
     # Server role signature to invalidate an announce
     invalid_role = {}
 
-    # Invalid role if version tag is missing
-    if ROLE_JSON_VERSION not in server_role.keys():
-        # Set actual message to invalid message
-        server_role = invalid_role
+    # Invalid role if version key is missing
+    if VERSION_JSON_VERSION not in server_role.keys():
+        RNS.log("Announced role " + str(server_role) + " has no version key", RNS.LOG_WARNING)
+        return invalid_role
+
+    # Get version dict from announced role
+    version_dict = server_role[VERSION_JSON_VERSION]
+
+    # Invalid role if role key is missing
+    if ROLE_JSON_VERSION not in version_dict.keys():
+        RNS.log("Announced versions " + str(server_role) + " doe not contain role version", RNS.LOG_WARNING)
+        return invalid_role
+
+    # Get role from version dict
+    role_version = version_dict[ROLE_JSON_VERSION]
+
     # Invalid role if role version does not match actual server version
-    elif server_role[ROLE_JSON_VERSION][SERVER_JSON_VERSION] != __server_version__:
+    if role_version != __role_version__:
         # Server version does not match
         RNS.log(
-            "Announced version " + str(server_role[ROLE_JSON_VERSION]) +
-            " does not match server version " + __server_version__,
+            "Announced role version " + role_version +
+            " does not match server role version " + __role_version__,
             RNS.LOG_WARNING
         )
 
         # Replace this section with migration if one is possible
-        # Actual no migration implemented, announced role will just be invalidated
-        RNS.log("Announced role is invalidated because no migration possible", RNS.LOG_WARNING)
-        # Set actual message to invalid message
-        server_role = invalid_role
+        # Actual no migration implemented, announced role is considered valid
 
     # Return invalidated or validated (migrated) message
     return server_role
 
 
 def is_valid_role(server_role):
-    # Invalid role if role version tag is missing
-    if ROLE_JSON_VERSION not in server_role.keys():
-        return False
-    # Invalid role if server version does not match actual server version
-    elif server_role[ROLE_JSON_VERSION][SERVER_JSON_VERSION] != __server_version__:
+    # Invalid role if version key is missing
+    if VERSION_JSON_VERSION not in server_role.keys():
+        RNS.log("Role " + str(server_role) + " has no version key", RNS.LOG_ERROR)
         return False
 
-    return True
+    # Get version dict from announced role
+    version_dict = server_role[VERSION_JSON_VERSION]
+
+    # Invalid role if role key is missing
+    if ROLE_JSON_VERSION not in version_dict.keys():
+        RNS.log("Version dictionary " + str(server_role) + " does not contain role version", RNS.LOG_ERROR)
+        return False
+
+    # Get role from version dict
+    role_version = version_dict[ROLE_JSON_VERSION]
+
+    # Invalid role if server version does not match actual server version
+    if role_version == __role_version__:
+        return True
+    # If role version is below actual version server shall be able to process announcement properly
+    if role_version < __role_version__:
+        # Log Info
+        RNS.log("Role version " + role_version + " is deprecated.", RNS.LOG_NOTICE)
+        return True
+    # Announcements of future releases may cause issues
+    else:
+        # Log Warning
+        RNS.log(
+            "Role server version " + server_role[VERSION_JSON_VERSION][ROLE_JSON_VERSION] +
+            " is newer than actual server version and considered invalid.", RNS.LOG_WARNING
+        )
+        return False
 
 
 ##########################################################################################
@@ -791,9 +824,9 @@ class NexusLXMSocket:
         # Set nexus default server role as default announce data
         announce_data = NEXUS_SERVER_ROLE
         # add latest message time stamp (id) from message buffer
-        announce_data[ROLE_JSON_LATEST] = latest_message_id()
+        announce_data[ROLE_JSON_LAST] = latest_message_id()
         # add latest server-command-message version
-        announce_data[ROLE_JSON_VERSION] = __full_version__
+        announce_data[VERSION_JSON_VERSION] = __full_version__
         # Announce this server to the network
         # All other nexus server with the same aspect will register this server as a distribution target
         NEXUS_LXM_SOCKET.socket_destination.announce(
@@ -1091,7 +1124,7 @@ class NexusLXMAnnounceHandler:
 
             # Sync on announce
             # Get timestamp (the latest message id) from announcement
-            announced_latest = announced_role[ROLE_JSON_LATEST]
+            announced_latest = announced_role[ROLE_JSON_LAST]
             actual_latest = latest_message_id()
             # Check ich announced timestamp (the latest message id) indicates an aged local buffer
             if announced_latest > actual_latest:
@@ -1236,6 +1269,7 @@ def initialize_server(
     RNS.log("...............................................................................", RNS.LOG_INFO)
     RNS.log("Installed Versions:", RNS.LOG_INFO)
     RNS.log(" Nexus Server      v" + __server_version__, RNS.LOG_INFO)
+    RNS.log(" Mesh Role         v" + __role_version__, RNS.LOG_INFO)
     RNS.log(" Command Processor v" + __command_version__, RNS.LOG_INFO)
     RNS.log(" Message Format    v" + __message_version__, RNS.LOG_INFO)
     RNS.log("...............................................................................", RNS.LOG_INFO)
@@ -1405,7 +1439,7 @@ def process_command(nexus_command):
             # Create proper add_message command from posted message
             RNS.log("WARNING: Deprecated Messaging was processed as ADD_MESSAGE command", RNS.LOG_WARNING)
             command = {
-                COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __server_version__,
+                COMMAND_JSON_CMD: CMD_ADD_MESSAGE, COMMAND_JSON_VERSION: __command_version__,
                 COMMAND_JSON_P1: message
             }
 
