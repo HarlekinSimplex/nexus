@@ -289,7 +289,7 @@ def sync_from_bridges():
                     RNS.log(
                         "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
                         "' with GET request " + bridge_target[BRIDGE_JSON_URL],
-                        RNS.LOG_VERBOSE
+                        RNS.LOG_INFO
                     )
                     # Check if GET was successful
                     # If so, parse response body into message buffer and digest it
