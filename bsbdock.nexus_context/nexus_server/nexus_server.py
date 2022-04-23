@@ -834,6 +834,9 @@ class NexusLXMSocket:
         # Add the latest message time stamp (id) from message buffer except this is the initial announcement
         if not initial_announcement:
             announce_data[ROLE_JSON_LAST] = latest_message_id()
+        else:
+            # Log that this is the initial announcement
+            RNS.log("Preparing the initial Announcement", RNS.LOG_VERBOSE)
         # Add full version dictionary
         announce_data[VERSION_JSON_VERSION] = __full_version__
 
