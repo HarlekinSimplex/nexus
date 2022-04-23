@@ -335,7 +335,7 @@ def sync_from_bridges():
         # Log completion of initial synchronization
         RNS.log("Distribution completed", RNS.LOG_DEBUG)
     else:
-        RNS.log("No bridge targets configured", RNS.LOG_NOTICE)
+        RNS.log("No bridge targets configured", RNS.LOG_VERBOSE)
 
 
 ##########################################################################################
