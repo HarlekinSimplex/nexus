@@ -317,7 +317,8 @@ def sync_from_bridges():
                     RNS.log("The contained exception was: %s" % (str(e)), RNS.LOG_ERROR)
 
         # Log start of message distribution after digesting bridge link buffers
-        RNS.log("Distribute messages marked as selected for distribution", RNS.LOG_DEBUG)
+        RNS.log("Distribute messages marked as selected for distribution after bridge pull digestion", RNS.LOG_DEBUG)
+
         # Distribute all messages marked with merge tag
         # Loop through massage buffer and distribute all messages that have been tagged
         for message in copy.deepcopy(MESSAGE_STORE):
@@ -333,7 +334,7 @@ def sync_from_bridges():
         # Save message buffer after synchronisation
         save_messages()
         # Log completion of initial synchronization
-        RNS.log("Distribution completed", RNS.LOG_DEBUG)
+        RNS.log("Bridge pull and distribution completed", RNS.LOG_DEBUG)
     else:
         RNS.log("No bridge targets configured", RNS.LOG_VERBOSE)
 
@@ -1132,22 +1133,28 @@ class NexusLXMAnnounceHandler:
             # Add update on announce
             # Check if destination is a new destination
             if destination_hash not in DISTRIBUTION_TARGETS.keys():
-                # Destination is new
-                # Announce this server out of sequence to give accelerate distribution list build up at that new
-                # server destination subscription list. This may trigger a bulk update request from that server.
-                NexusLXMSocket.announce()
-                # Log that we added new subscription
-                RNS.log("Subscription " + RNS.prettyhexrep(destination_hash) + " added", RNS.LOG_INFO)
+                new_target = True
             else:
-                # Log that we just updated new subscription
-                RNS.log(
-                    "Subscription " + RNS.prettyhexrep(destination_hash) + " updated", RNS.LOG_INFO)
-            # Register for update destination as valid distribution target
+                new_target = False
+
+            # Register/update destination as valid distribution target
             DISTRIBUTION_TARGETS[destination_hash] = (
                 last_heard,
                 announced_identity,
                 announced_role
             )
+
+            # Announce this server if received announcement was a new target
+            if new_target:
+                # Destination is new
+                # Log that we added new subscription
+                RNS.log("Subscription " + RNS.prettyhexrep(destination_hash) + " was added", RNS.LOG_INFO)
+                # Announce this server out of sequence to give accelerate distribution list build up at that new
+                # server destination subscription list. This may trigger a bulk update request from that server.
+                NexusLXMSocket.announce()
+            else:
+                # Log that we just updated new subscription
+                RNS.log("Subscription " + RNS.prettyhexrep(destination_hash) + " updated", RNS.LOG_INFO)
 
             # Sync on announce
             # If this announcement is not the first announcement of that server (aka a 'last' key is provided)
