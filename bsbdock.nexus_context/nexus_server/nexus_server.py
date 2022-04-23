@@ -1265,6 +1265,7 @@ def initialize_server(
     RNS.log("|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|", RNS.LOG_INFO)
     RNS.log("| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
     RNS.log("|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
+    RNS.log("", RNS.LOG_INFO)
     RNS.log("Copyright (c) 2020 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
     RNS.log("...............................................................................", RNS.LOG_INFO)
     RNS.log("Installed Versions:", RNS.LOG_INFO)
