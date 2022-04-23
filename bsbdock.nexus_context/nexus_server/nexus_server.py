@@ -793,7 +793,7 @@ class NexusLXMSocket:
         # This is the good case - message is processed successfully
         lxm_message.register_delivery_callback(NexusLXMSocket.lxmf_delivery_callback)
         # Log delivery failure
-        lxm_message.register_failed_callback(NexusLXMSocket.lxmf_delivery_callback)
+        lxm_message.register_failed_callback(NexusLXMSocket.lxmf_delivery_failed_callback)
 
         # Transfer handling of the message to LXMF
         RNS.log(
@@ -911,10 +911,22 @@ class NexusLXMSocket:
         # Log message as delivery receipt
         NexusLXMSocket.log_lxm_message(message, "LXMF Message received")
 
+        # Call message handler if one is registered.
+        if NEXUS_LXM_SOCKET.message_received_callback is not None:
+            RNS.log("Call to registered message received callback", RNS.LOG_DEBUG)
+            NEXUS_LXM_SOCKET.message_received_callback(message)
+        else:
+            RNS.log("No message received callback registered", RNS.LOG_DEBUG)
+
     @staticmethod
     def lxmf_delivery_callback(message):
         # Log message as delivery receipt
-        NexusLXMSocket.log_lxm_message(message, "LXMF Delivery receipt")
+        NexusLXMSocket.log_lxm_message(message, "LXMF Delivery receipt (success)")
+
+    @staticmethod
+    def lxmf_delivery_failed_callback(message):
+        # Log message as delivery receipt
+        NexusLXMSocket.log_lxm_message(message, "LXMF Delivery receipt (failed)")
 
     @staticmethod
     def log_lxm_message(message, message_tag="LXMF Message log"):
@@ -944,10 +956,6 @@ class NexusLXMSocket:
         RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash), RNS.LOG_VERBOSE)
         RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash), RNS.LOG_VERBOSE)
         RNS.log("-   Signature: " + signature_string, RNS.LOG_VERBOSE)
-
-        # Call message handler if one is registered.
-        if NEXUS_LXM_SOCKET.message_received_callback is not None:
-            NEXUS_LXM_SOCKET.message_received_callback(message)
 
     @staticmethod
     def long_poll(initial=False):
