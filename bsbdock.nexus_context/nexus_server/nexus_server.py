@@ -1718,7 +1718,7 @@ def process_incoming_message(message):
 
     if message_store_size == 0:
         # First message arrived event
-        RNS.log("Message " + str(message_id) + " is first message in the buffer", RNS.LOG_DEBUG)
+        RNS.log("Message " + str(message_id) + " is first message in the buffer", RNS.LOG_VERBOSE)
         # Append the JSON message map to the message store at last position
         MESSAGE_STORE.append(message)
     else:
@@ -1747,7 +1747,7 @@ def process_incoming_message(message):
                     RNS.log(
                         "Message " + str(message_id) +
                         " has a duplicate timestamp but differs (Message will be inserted in timeline)",
-                        RNS.LOG_DEBUG
+                        RNS.LOG_VERBOSE
                     )
                     # Insert it at the actual position
                     MESSAGE_STORE.insert(i, message)
@@ -1759,7 +1759,7 @@ def process_incoming_message(message):
             elif message_id < MESSAGE_STORE[i][MESSAGE_JSON_ID]:
                 # Yes it is
                 # Log message insertion with same timestamp
-                RNS.log("Message " + str(message_id) + " will be inserted in timeline", RNS.LOG_DEBUG)
+                RNS.log("Message " + str(message_id) + " will be inserted in timeline", RNS.LOG_VERBOSE)
                 # Insert it at the actual position
                 MESSAGE_STORE.insert(i, message)
                 # Message processing completed
@@ -1774,7 +1774,7 @@ def process_incoming_message(message):
                 # Log message append
                 RNS.log(
                     "Message " + str(message_id) + " is most recent and will be appended to timeline",
-                    RNS.LOG_DEBUG
+                    RNS.LOG_VERBOSE
                 )
                 # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
