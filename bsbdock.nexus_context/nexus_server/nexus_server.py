@@ -553,21 +553,21 @@ def validate_role(server_role):
 
     # Invalid role if version key is missing
     if VERSION_JSON_VERSION not in server_role.keys():
-        RNS.log("Announced role " + str(server_role) + " has no version key", RNS.LOG_WARNING)
+        RNS.log("Announced role " + str(server_role) + " has no version key", RNS.LOG_ERROR)
         return invalid_role
 
     # Get version dict from announced role
     version_dict = server_role[VERSION_JSON_VERSION]
 
-    # Invalid role if role key is missing
+    # Invalid role if role version is missing
     if ROLE_JSON_VERSION not in version_dict.keys():
-        RNS.log("Announced versions " + str(server_role) + " doe not contain role version", RNS.LOG_WARNING)
+        RNS.log("Announced versions " + str(server_role) + " doe not contain role version", RNS.LOG_ERROR)
         return invalid_role
 
     # Get role from version dict
     role_version = version_dict[ROLE_JSON_VERSION]
 
-    # Invalid role if role version does not match actual server version
+    # Warn if role version does not match actual server version
     if role_version != __role_version__:
         # Server version does not match
         RNS.log(
@@ -816,17 +816,27 @@ class NexusLXMSocket:
     # specified re-announce period.
     #
     @staticmethod
-    def announce():
+    def announce(initial_announcement=False):
         # Build proper announce data set
-        # Server Role
-        # Timestamp of the latest message in the message buffer
-        # Version of this server, command and message processor
+        # For the initial announce to trigger subscription linking the timestamp of the latest message is not included.
+        # As soon as an announcement from a remote server is received we can safely request a bulk update from it.
+        # If the remote server needs an update from this server it can ask for that with the proper identity it has
+        # registered already with our first announcement.
+
+        # The announcement contains of:
+        # - Server Role
+        # - Timestamp of the latest message in the message buffer (in case it is the initial announcement)
+        # - Version of this server, command processor and message format used
+
         # Set nexus default server role as default announce data
         announce_data = NEXUS_SERVER_ROLE
-        # add latest message time stamp (id) from message buffer
-        announce_data[ROLE_JSON_LAST] = latest_message_id()
-        # add latest server-command-message version
+
+        # Add the latest message time stamp (id) from message buffer except this is the initial announcement
+        if not initial_announcement:
+            announce_data[ROLE_JSON_LAST] = latest_message_id()
+        # Add full version dictionary
         announce_data[VERSION_JSON_VERSION] = __full_version__
+
         # Announce this server to the network
         # All other nexus server with the same aspect will register this server as a distribution target
         NEXUS_LXM_SOCKET.socket_destination.announce(
@@ -937,10 +947,13 @@ class NexusLXMSocket:
             NEXUS_LXM_SOCKET.message_received_callback(message)
 
     @staticmethod
-    def long_poll():
+    def long_poll(initial=False):
         # Announce this server to the network
+        # The initial announcement will omit the timestamp of the latest message by setting the initial parameter to
+        # True. For all other poll call the timestamp is included in the announcement (role)
+
         # All other nexus server with the same aspect will register this server as a distribution target
-        NEXUS_LXM_SOCKET.announce()
+        NEXUS_LXM_SOCKET.announce(initial)
 
         # Start timer to re announce this server in due time as specified
         t = threading.Timer(NEXUS_SERVER_LONGPOLL, NEXUS_LXM_SOCKET.long_poll)
@@ -1109,8 +1122,8 @@ class NexusLXMAnnounceHandler:
             # Check if destination is a new destination
             if destination_hash not in DISTRIBUTION_TARGETS.keys():
                 # Destination is new
-                # Announce this server once out of sequence to accelerate distribution list build up at that new
-                # server destination subscription list
+                # Announce this server out of sequence to give accelerate distribution list build up at that new
+                # server destination subscription list. This may trigger a bulk update request from that server.
                 NexusLXMSocket.announce()
                 # Log that we added new subscription
                 RNS.log("Subscription " + RNS.prettyhexrep(destination_hash) + " added", RNS.LOG_INFO)
@@ -1126,31 +1139,38 @@ class NexusLXMAnnounceHandler:
             )
 
             # Sync on announce
-            # Get timestamp (the latest message id) from announcement
-            announced_latest = announced_role[ROLE_JSON_LAST]
-            actual_latest = latest_message_id()
-            # Check ich announced timestamp (the latest message id) indicates an aged local buffer
-            if announced_latest > actual_latest:
-                # Request update from remote server
-                update_destination = NEXUS_LXM_SOCKET.destination_hash()
-                cmd = {
-                    COMMAND_JSON_CMD: CMD_REQUEST_MESSAGES_SINCE, COMMAND_JSON_VERSION: __command_version__,
-                    COMMAND_JSON_P1: actual_latest,
-                    COMMAND_JSON_P2: update_destination,
-                    COMMAND_JSON_P3: MAXIMUM_UPDATE_MESSAGES
-                }
-                # Send nexus message packed as lxm message to destination
-                NEXUS_LXM_SOCKET.send_message(
-                    destination_hash,
-                    announced_identity,
-                    fields=cmd
-                )
-                # Log that we send something to this destination
-                RNS.log(
-                    "Send CMD_REQUEST_MESSAGES_SINCE " + str(actual_latest) +
-                    " to announced destination " + RNS.prettyhexrep(destination_hash),
-                    RNS.LOG_INFO
-                )
+            # If this announcement is not the first announcement of that server (aka a 'last' key is provided)
+            # we ask that server for a bulk update.
+            # If this announcement is the first one we wait for the second announcement he sends us after registering us
+            # as a new subscription.
+
+            # Check if we have a timestamp
+            if ROLE_JSON_LAST in announced_role.keys():
+                # Get timestamp (the latest message id) from announcement
+                announced_latest = announced_role[ROLE_JSON_LAST]
+                actual_latest = latest_message_id()
+                # Check ich announced timestamp (the latest message id) indicates an aged local buffer
+                if announced_latest > actual_latest:
+                    # Request update from remote server
+                    update_destination = NEXUS_LXM_SOCKET.destination_hash()
+                    cmd = {
+                        COMMAND_JSON_CMD: CMD_REQUEST_MESSAGES_SINCE, COMMAND_JSON_VERSION: __command_version__,
+                        COMMAND_JSON_P1: actual_latest,
+                        COMMAND_JSON_P2: update_destination,
+                        COMMAND_JSON_P3: MAXIMUM_UPDATE_MESSAGES
+                    }
+                    # Send nexus message packed as lxm message to destination
+                    NEXUS_LXM_SOCKET.send_message(
+                        destination_hash,
+                        announced_identity,
+                        fields=cmd
+                    )
+                    # Log that we send something to this destination
+                    RNS.log(
+                        "Send CMD_REQUEST_MESSAGES_SINCE " + str(actual_latest) +
+                        " to announced destination " + RNS.prettyhexrep(destination_hash),
+                        RNS.LOG_INFO
+                    )
 
             # Log list of severs with seconds it was last heard
             for registered_destination_hash in DISTRIBUTION_TARGETS.copy():
@@ -1302,7 +1322,7 @@ def initialize_server(
 
     # After an initial delay start long poll to announce server regularly
     time.sleep(INITIAL_ANNOUNCEMENT_DELAY)
-    NexusLXMSocket.long_poll()
+    NexusLXMSocket.long_poll(initial=True)
 
     # Launch HTTP GET/POST processing
     # This is an endless loop
