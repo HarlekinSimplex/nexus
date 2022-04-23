@@ -1531,7 +1531,7 @@ def cmd_request_message_since(since, destination_hash, message_count):
         # Done sending update
         # Log that we updated the destination
         RNS.log(
-            "Destination " + RNS.prettyhexrep(destination_hash) + " has been updated with " + str(i) + "messages",
+            "Destination " + RNS.prettyhexrep(destination_hash) + " has been updated with " + str(i) + " messages",
             RNS.LOG_INFO
         )
         return True
