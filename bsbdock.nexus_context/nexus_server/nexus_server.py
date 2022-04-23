@@ -1177,17 +1177,17 @@ class NexusLXMAnnounceHandler:
                         COMMAND_JSON_P2: update_destination,
                         COMMAND_JSON_P3: MAXIMUM_UPDATE_MESSAGES
                     }
+                    # Log that we are sending a bulk update request to this destination
+                    RNS.log(
+                        "Send CMD_REQUEST_MESSAGES_SINCE " + str(actual_latest) +
+                        " to announced destination " + RNS.prettyhexrep(destination_hash),
+                        RNS.LOG_INFO
+                    )
                     # Send nexus message packed as lxm message to destination
                     NEXUS_LXM_SOCKET.send_message(
                         destination_hash,
                         announced_identity,
                         fields=cmd
-                    )
-                    # Log that we send something to this destination
-                    RNS.log(
-                        "Send CMD_REQUEST_MESSAGES_SINCE " + str(actual_latest) +
-                        " to announced destination " + RNS.prettyhexrep(destination_hash),
-                        RNS.LOG_INFO
                     )
 
             # Log list of severs with seconds it was last heard
