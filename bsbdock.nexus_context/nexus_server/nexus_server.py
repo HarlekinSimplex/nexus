@@ -1148,7 +1148,7 @@ class NexusLXMAnnounceHandler:
             if new_target:
                 # Destination is new
                 # Log that we added new subscription
-                RNS.log("Subscription " + RNS.prettyhexrep(destination_hash) + " was added", RNS.LOG_INFO)
+                RNS.log("Subscription " + RNS.prettyhexrep(destination_hash) + " added", RNS.LOG_INFO)
                 # Announce this server out of sequence to give accelerate distribution list build up at that new
                 # server destination subscription list. This may trigger a bulk update request from that server.
                 NexusLXMSocket.announce()
