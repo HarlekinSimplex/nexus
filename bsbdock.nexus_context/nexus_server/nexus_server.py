@@ -970,7 +970,7 @@ def message_received_callback(lxmessage):
     else:
         RNS.log(
             "Received LXM Message " + str(lxmessage.fields) +
-            "could not be processed as Nexus command", RNS.LOG_ERROR
+            " could not be processed as Nexus command", RNS.LOG_ERROR
         )
 
     # Flush pending log
