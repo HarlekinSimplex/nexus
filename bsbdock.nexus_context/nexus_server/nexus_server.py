@@ -1073,7 +1073,7 @@ class NexusLXMAnnounceHandler:
         # Recreate nexus role dict from received app data
         announced_role = pickle.loads(app_data)
         # Log role
-        RNS.log("The announce contained the following nexus role: " + str(announced_role), RNS.LOG_INFO)
+        RNS.log("The announce contained the following nexus role: " + str(announced_role), RNS.LOG_VERBOSE)
 
         # Validate/Migrate announced role
         if not is_valid_role(validate_role(announced_role)):
