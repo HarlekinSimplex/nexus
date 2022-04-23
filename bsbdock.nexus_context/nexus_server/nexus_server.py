@@ -655,15 +655,15 @@ def latest_message_id():
 #
 def log_nexus_message(message):
     # Log message data
-    RNS.log("Nexus Message Details:", RNS.LOG_DEBUG)
-    RNS.log("- Message '" + message[MESSAGE_JSON_MSG] + "'", RNS.LOG_DEBUG)
-    RNS.log("- Version " + str(message[MESSAGE_JSON_VERSION]), RNS.LOG_DEBUG)
-    RNS.log("- ID      " + str(message[MESSAGE_JSON_ID]), RNS.LOG_DEBUG)
-    RNS.log("- Time    '" + message[MESSAGE_JSON_TIME] + "'", RNS.LOG_DEBUG)
-    RNS.log("- Origin  " + message[MESSAGE_JSON_ORIGIN], RNS.LOG_DEBUG)
-    RNS.log("- Via     " + message[MESSAGE_JSON_ORIGIN], RNS.LOG_DEBUG)
+    RNS.log("Nexus Message Details:", RNS.LOG_VERBOSE)
+    RNS.log("- Message '" + message[MESSAGE_JSON_MSG] + "'", RNS.LOG_VERBOSE)
+    RNS.log("- Version " + str(message[MESSAGE_JSON_VERSION]), RNS.LOG_VERBOSE)
+    RNS.log("- ID      " + str(message[MESSAGE_JSON_ID]), RNS.LOG_VERBOSE)
+    RNS.log("- Time    '" + message[MESSAGE_JSON_TIME] + "'", RNS.LOG_VERBOSE)
+    RNS.log("- Origin  " + message[MESSAGE_JSON_ORIGIN], RNS.LOG_VERBOSE)
+    RNS.log("- Via     " + message[MESSAGE_JSON_ORIGIN], RNS.LOG_VERBOSE)
     if MESSAGE_JSON_PATH in message.keys():
-        RNS.log("- Path   " + message[MESSAGE_JSON_PATH], RNS.LOG_DEBUG)
+        RNS.log("- Path   " + message[MESSAGE_JSON_PATH], RNS.LOG_VERBOSE)
 
 
 ##########################################################################################
@@ -948,15 +948,15 @@ class NexusLXMSocket:
         title = message.title.decode('utf-8')
         content = message.content.decode('utf-8')
         fields = message.fields
-        RNS.log(message_tag + " - " + time_string, RNS.LOG_VERBOSE)
-        RNS.log("-       Title: " + title, RNS.LOG_VERBOSE)
-        RNS.log("-     Content: " + content, RNS.LOG_VERBOSE)
-        RNS.log("-      Fields: " + str(fields), RNS.LOG_VERBOSE)
+        RNS.log(message_tag + " - " + time_string, RNS.LOG_DEBUG)
+        RNS.log("-       Title: " + title, RNS.LOG_DEBUG)
+        RNS.log("-     Content: " + content, RNS.LOG_DEBUG)
+        RNS.log("-      Fields: " + str(fields), RNS.LOG_DEBUG)
         RNS.log("-        Size: " + str(len(title) + len(content) + len(title) + len(pickle.dumps(fields))) + " bytes",
-                RNS.LOG_VERBOSE)
-        RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash), RNS.LOG_VERBOSE)
-        RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash), RNS.LOG_VERBOSE)
-        RNS.log("-   Signature: " + signature_string, RNS.LOG_VERBOSE)
+                RNS.LOG_DEBUG)
+        RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash), RNS.LOG_DEBUG)
+        RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash), RNS.LOG_DEBUG)
+        RNS.log("-   Signature: " + signature_string, RNS.LOG_DEBUG)
 
     @staticmethod
     def long_poll(initial=False):
