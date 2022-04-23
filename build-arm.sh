@@ -4,7 +4,7 @@
 #
 VER=1.4.0.1
 OS=linux
-ARCH=arm-v7
+ARCH=arm
 
 cd ./bsbdock.nexus_context
 docker build --no-cache --build-arg CACHEBUST=$(date +%s) --tag bsbdock/nexus:$VER\_$OS-$ARCH -f Dockerfile_nexus$VER\_$OS-$ARCH .
