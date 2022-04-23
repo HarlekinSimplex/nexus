@@ -663,7 +663,7 @@ def log_nexus_message(message):
     RNS.log("- Origin  " + message[MESSAGE_JSON_ORIGIN], RNS.LOG_VERBOSE)
     RNS.log("- Via     " + message[MESSAGE_JSON_ORIGIN], RNS.LOG_VERBOSE)
     if MESSAGE_JSON_PATH in message.keys():
-        RNS.log("- Path   " + message[MESSAGE_JSON_PATH], RNS.LOG_VERBOSE)
+        RNS.log("- Path    " + message[MESSAGE_JSON_PATH], RNS.LOG_VERBOSE)
 
 
 ##########################################################################################
