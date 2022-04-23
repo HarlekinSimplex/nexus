@@ -13,12 +13,12 @@
 
   [[TCP Server Interface]]
     type = TCPServerInterface
-    interface_enabled = False
+    interface_enabled = True
     outgoing = True
     listen_ip = 0.0.0.0
     listen_port = 4242
 
-  [[TCP Client Interface]]
+  [[TCP Client Interface - Nexus.DeltaMatrix]]
     type = TCPClientInterface
     interface_enabled = True
     outgoing = True
