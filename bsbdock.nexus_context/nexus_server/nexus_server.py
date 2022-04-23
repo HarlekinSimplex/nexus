@@ -966,9 +966,12 @@ def message_received_callback(lxmessage):
 
     # Log result of command processing
     if command_result:
-        RNS.log("Received LXM Message was successfully processed as Nexus Command", RNS.LOG_VERBOSE)
+        RNS.log("Received LXM Message was successfully processed as Nexus command", RNS.LOG_VERBOSE)
     else:
-        RNS.log("Received LXM Message could not be precessed", RNS.LOG_ERROR)
+        RNS.log(
+            "Received LXM Message " + str(lxmessage.fields) +
+            "could not be processed as Nexus command", RNS.LOG_ERROR
+        )
 
     # Flush pending log
     sys.stdout.flush()
