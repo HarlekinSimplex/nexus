@@ -262,7 +262,7 @@ def sync_from_bridges():
         # Initial synchronisation Part 1
         # Retrieve and process message buffers from bridged targets
         # Log sync start
-        RNS.log("Get and digest messages from bridged servers", RNS.LOG_DEBUG)
+        RNS.log("Get messages from bridged servers", RNS.LOG_INFO)
         # Loop through all bridge targets
         for bridge_target in BRIDGE_TARGETS:
             # Check if we have the online status key inside the target
@@ -289,7 +289,7 @@ def sync_from_bridges():
                     RNS.log(
                         "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
                         "' with GET request " + bridge_target[BRIDGE_JSON_URL],
-                        RNS.LOG_INFO
+                        RNS.LOG_VERBOSE
                     )
                     # Check if GET was successful
                     # If so, parse response body into message buffer and digest it
