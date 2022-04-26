@@ -48,6 +48,7 @@ import LXMF
 import RNS
 import RNS.vendor.umsgpack as umsgpack
 
+
 ##########################################################################################
 # Global variables
 #
