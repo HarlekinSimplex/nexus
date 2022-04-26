@@ -21,6 +21,12 @@ ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get install tzdata
 
+# Install personal helper tools
+RUN apt -y install mc nano vim screen
+
+# Install direwolf
+RUN apt -y install direwolf
+
 # Install pip3
 RUN apt -y install python3-pip
 RUN pip install --upgrade pip
@@ -31,11 +37,8 @@ RUN pip3 install rns lxmf nomadnet rnodeconf
 # Install additional python packages
 RUN pip3 install requests
 
-# Install personal helper tools
-RUN apt -y install mc nano
-
-# Install direwolf
-RUN apt -y install direwolf
+# Install Django
+RUN pip3 install Django==4.0.4
 
 # Expose port for Reticulum server TCP Interface (disable as default)
 EXPOSE 4242
