@@ -59,7 +59,7 @@ __role_version__ = "2"
 __command_version__ = "1"
 __message_version__ = "4.2"
 
-# A moment to process background stuff
+# A moment of time to give LXM a chance to process background stuff while handle outbound messages
 DIGESTION_DELAY = 0.1
 
 # Message storage
@@ -804,9 +804,15 @@ class NexusLXMSocket:
             RNS.LOG_VERBOSE
         )
         # Handle outbound
-        self.lxm_router.handle_outbound(lxm_message)
-        # Give system a moment to process network stuff
-        time.sleep(DIGESTION_DELAY)
+        try:
+            self.lxm_router.handle_outbound(lxm_message)
+            # Give system a moment to process network stuff
+            time.sleep(DIGESTION_DELAY)
+        except Exception as e:
+            # Log outbound error
+            RNS.log("Could not send LXMF message " + str(lxm_message), RNS.LOG_ERROR)
+            RNS.log("The contained exception was: " + str(e), RNS.LOG_ERROR)
+            return
 
         # Flush pending log
         sys.stdout.flush()
