@@ -10,6 +10,21 @@ ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get install tzdata
 
+# Install pip3
+RUN apt -y install python3-pip
+RUN pip install --upgrade pip
+
+# Build essentials
+RUN apt -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
+
+# Install rust
+RUN apt -y install curl
+RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
+ENV PATH="/root/.cargo/bin:$PATH"
+
+# Build/Install cryptography
+RUN pip3 install cryptography
+
 #############
 
 # Install personal helper tools
