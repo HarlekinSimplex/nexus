@@ -29,19 +29,18 @@ echo " Actual Reticulum interface status:"
 echo "-------------------------------------------------------------"
 rnstatus
 
-#echo ""
-#echo "-------------------------------------------------------------"
-#echo " Direwolf startup"
-#echo "-------------------------------------------------------------"
-#direwolf -t 0
-
-echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus Messenger Web App NGINX configuration check and startup"
 echo "-------------------------------------------------------------"
 nginx -t
 systemctl start nginx
 systemctl status nginx
+
+#echo ""
+#echo "-------------------------------------------------------------"
+#echo " Direwolf startup"
+#echo "-------------------------------------------------------------"
+#direwolf -t 0
 
 echo ""
 echo "-------------------------------------------------------------"
