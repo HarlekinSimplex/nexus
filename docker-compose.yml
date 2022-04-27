@@ -76,6 +76,20 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+    labels:
+      - com.centurylinklabs.watchtower.enable = true
+
+#################################################
+# BSB.NexusServer automatic update service
+  nexus_watchtower:
+    image: containrrr/watchtower
+    environment:
+      WATCHTOWER_LABEL_ENABLE: true
+      WATCHTOWER_POLL_INTERVAL: 900
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      nexus_server_net:
 
 #################################################
 # BSB.NexusServer Container Networks
@@ -85,3 +99,4 @@ networks:
 # Name of the network to be spawned or connected to by docker
     name: ${NEXUS_NETWORK:-nexus-server_net}
     driver: bridge
+
