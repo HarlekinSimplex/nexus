@@ -22,7 +22,7 @@ RUN apt-get update
 RUN apt-get install tzdata
 
 # Install personal helper tools
-RUN apt -y install mc nano vim screen
+RUN apt -y install mc nano vim screen systemctl nginx
 
 # Install direwolf
 RUN apt -y install direwolf
