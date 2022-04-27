@@ -16,13 +16,6 @@ echo "NEXUS_ROLE=$NEXUS_ROLE"
 echo "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
 echo "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
 echo "NEXUS_BRIDGE=$NEXUS_BRIDGE"
-echo ""
-
-#echo ""
-#echo "-------------------------------------------------------------"
-#echo " Direwolf startup"
-#echo "-------------------------------------------------------------"
-#direwolf -t 0
 
 echo ""
 echo "-------------------------------------------------------------"
@@ -36,6 +29,12 @@ echo " Actual Reticulum interface status:"
 echo "-------------------------------------------------------------"
 rnstatus
 
+#echo ""
+#echo "-------------------------------------------------------------"
+#echo " Direwolf startup"
+#echo "-------------------------------------------------------------"
+#direwolf -t 0
+
 echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus Messenger Web App NGINX configuration check and startup"
@@ -44,6 +43,7 @@ nginx -t
 systemctl start nginx
 systemctl status nginx
 
+echo ""
 echo "-------------------------------------------------------------"
 echo " Parameters passed to server startup:"
 echo "-------------------------------------------------------------"
