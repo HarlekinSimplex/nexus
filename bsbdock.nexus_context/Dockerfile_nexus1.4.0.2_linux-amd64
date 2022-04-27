@@ -1,17 +1,6 @@
 ############################################################
 # bsbdock/reticulum Dockerfile
 #
-# How to build this container:
-# docker build --tag bsbdock/nexus -f Dockerfile_nexusdev_linux-amd64 .
-# docker build --tag bsbdock/nexus:dev_linux-amd64 -f Dockerfile_nexusdev_linux-amd64 .
-# docker push bsbdock/nexus:dev_linux-amd64
-#
-# How to invoke a shell into this container:
-# docker run -it bsbdock/nexus bash
-#
-# How to run the reticulum stack as a service
-# docker run --rm --name nexus-prod_nexus -it bsbdock/nexus
-#
 FROM python:3.9
 
 # Set timezone and interactive mode

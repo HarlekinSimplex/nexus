@@ -1,17 +1,6 @@
 ############################################################
 # bsbdock/reticulum Dockerfile
 #
-# How to build this container:
-# docker build --tag bsbdock/nexus -f Dockerfile_nexus1.3.0.2_linux-arm-v7 .
-# docker build --tag bsbdock/nexus:1.3.0.2_linux-arm-v7 -f Dockerfile_nexus1.3.0.2_linux-arm-v7 .
-# docker push bsbdock/nexus:1.3.0.2_linux-arm-v7
-#
-# How to invoke a shell into this container:
-# docker run -it bsbdock/nexus bash
-#
-# How to run the reticulum stack as a service
-# docker run --rm --name nexus-prod_nexus -it bsbdock/nexus
-#
 FROM python:3.9
 
 # Set timezone and interactive mode
@@ -36,37 +25,50 @@ ENV PATH="/root/.cargo/bin:$PATH"
 # Build/Install cryptography
 RUN pip3 install cryptography
 
+#############
+
+# Install personal helper tools
+RUN apt -y install mc nano vim screen systemctl nginx
+
+# Install direwolf
+RUN apt -y install direwolf
+
+# Install pip3
+RUN apt -y install python3-pip
+RUN pip install --upgrade pip
+
 # Install Reticulum stack and NomadNet messenger application
 RUN pip3 install rns lxmf nomadnet rnodeconf
 
 # Install additional python packages
 RUN pip3 install requests
 
-# Install personal helper tools
-RUN apt -y install mc nano
+# Install Django
+RUN pip3 install Django==4.0.4
 
-# Install direwolf
-RUN apt -y install direwolf
+# Create Directories
+ARG CACHEBUST=0
+RUN mkdir /bsb
+RUN mkdir /bsb/nexus_server
+RUN mkdir /bsb/nexus_web
+
+# Pull in container start script and make it executable
+COPY start.sh /bsb
+RUN chmod ug+x /bsb/start.sh
+
+# Pull in NexusServer
+COPY nexus_server /bsb/nexus_server
+
+# Pull in NexusWeb
+COPY nexus_web /bsb/nexus_web
+RUN rm /etc/nginx/sites-enabled/default
+RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
 
 # Expose port for Reticulum server TCP Interface (disable as default)
 EXPOSE 4242
 # Expose ports for Nexus Server Web and API Interface
 EXPOSE 4280
 EXPOSE 4281
-
-# Create workdir
-RUN mkdir /bsb
-RUN mkdir /bsb/nexus_server
-
-# Pull in container start script and make it executable
-ARG CACHEBUST=0
-COPY start.sh /bsb
-RUN chmod ug+x /bsb/start.sh
-
-# Pull in NexusServer script
-ARG CACHEBUST=0
-COPY nexus_server /bsb/nexus_server
-RUN chmod ug+x /bsb/nexus_server/nexus_server.py
 
 # Launch Nexus server on start
 CMD /bsb/start.sh
