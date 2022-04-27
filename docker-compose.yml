@@ -52,7 +52,7 @@ services:
 # Port for the reticulum server API for reticulum client access if required
 # Can be set to 127.0.0.1:4242:4242 to permit access other than from localhost
       - ${NEXUS_PORT_RNSAPI:-4242}:4242
-# Port of the nexus server web admin (not yet served)
+# Port of the nexus server web client
       - ${NEXUS_PORT_WEB:-4280}:4280
 # Port of the nexus server web client and mobile app JSON TCP/IP API
       - ${NEXUS_PORT_JSONAPI:-4281}:4281
