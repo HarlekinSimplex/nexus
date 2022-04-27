@@ -48,6 +48,7 @@ COPY nexus_server /bsb/nexus_server
 COPY nexus_web /bsb/nexus_web
 RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+RUN systemctl enable nginx
 
 # Expose port for Reticulum server TCP Interface (disable as default)
 EXPOSE 4242
