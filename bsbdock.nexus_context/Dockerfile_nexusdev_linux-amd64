@@ -47,6 +47,7 @@ EXPOSE 4280
 EXPOSE 4281
 
 # Create Directories
+ARG CACHEBUST=0
 RUN mkdir /bsb
 RUN mkdir /bsb/nexus_server
 RUN mkdir /bsb/nexus_web
@@ -59,7 +60,6 @@ RUN chmod ug+x /bsb/start.sh
 COPY nexus_server /bsb/nexus_server
 
 # Pull in NexusWeb
-ARG CACHEBUST=0
 COPY nexus_web /bsb/nexus_web
 RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
