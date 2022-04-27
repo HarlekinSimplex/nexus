@@ -737,9 +737,9 @@ class NexusLXMSocket:
         RNS.log("LXM Link established callback registered", RNS.LOG_DEBUG)
 
         # Create a handler to process all incoming announcements with the aspect of this nexus server
-        announce_handler = NexusLXMAnnounceHandler(aspect_filter=app_name + '.' + server_aspect)
+        announce_handler = NexusLXMAnnounceHandler(aspect_filter= self.app_name + '.' +  self.server_aspect)
         # Log announce filter
-        RNS.log("LXM AnnounceHandler listens to " + app_name + '.' + server_aspect, RNS.LOG_DEBUG)
+        RNS.log("LXM AnnounceHandler listens to " +  self.app_name + '.' +  self.server_aspect, RNS.LOG_DEBUG)
         # Register the handler with the reticulum transport layer
         RNS.Transport.register_announce_handler(announce_handler)
 
