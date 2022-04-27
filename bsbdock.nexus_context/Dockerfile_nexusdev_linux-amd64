@@ -61,7 +61,7 @@ RUN chmod ug+x /bsb/nexus_server/nexus_server.py
 
 # Pull in NexusWeb
 ARG CACHEBUST=0
-COPY nexus_server /bsb/nexus_server
+COPY nexus_web /bsb/nexus_web
 
 # Launch Nexus server on start
 CMD /bsb/start.sh
