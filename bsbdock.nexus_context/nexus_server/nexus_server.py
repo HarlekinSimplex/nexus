@@ -675,11 +675,18 @@ class NexusLXMSocket:
     message_received_callback = None
 
     # Class constructor
-    def __init__(self, socket_identity=None, storage_path=None, app_name=APP_NAME, server_aspect=NEXUS_SERVER_ASPECT):
+    def __init__(self, socket_identity=None, storage_path=None, app_name=None, server_aspect=None):
 
         # Initialize members
+        # (Global variables as default values within constructors does not work if they are changed
+        # App Name used with announces
         self.app_name = app_name
+        if app_name is None:
+            self.app_name = APP_NAME
+        # Server aspect used with announces as well
         self.server_aspect = server_aspect
+        if server_aspect is None:
+            self.server_aspect = NEXUS_SERVER_ASPECT
 
         # If storage path was not set use default storage path
         self.storage_path = storage_path
