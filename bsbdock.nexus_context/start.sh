@@ -1,8 +1,8 @@
 #!/bin/bash
 # Log reticulum interface status
 echo "#############################################################"
-echo "# Welcome to Nexus Server                                   #"
-echo "# A minimal broadcast messaging server based on Reticulum   #"
+echo "# Welcome to bsbdock/nexus                                  #"
+echo "# A broadcast messaging server based on Reticulum           #"
 echo "#############################################################"
 
 echo ""
@@ -55,6 +55,7 @@ echo "-------------------------------------------------------------"
 nginx -t
 systemctl start nginx
 
+echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus Server startup"
 echo "-------------------------------------------------------------"
