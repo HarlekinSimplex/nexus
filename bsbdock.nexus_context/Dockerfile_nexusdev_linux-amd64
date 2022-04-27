@@ -58,7 +58,7 @@ RUN chmod ug+x /bsb/start.sh
 # Pull in NexusServer
 COPY nexus_server /bsb/nexus_server
 RUN rm /etc/nginx/sites-enabled/default
-RUM ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
 
 # Pull in NexusWeb
 ARG CACHEBUST=0
