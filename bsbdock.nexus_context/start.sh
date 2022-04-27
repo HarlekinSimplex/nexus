@@ -18,18 +18,6 @@ echo "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
 echo "NEXUS_BRIDGE=$NEXUS_BRIDGE"
 echo ""
 
-echo "-------------------------------------------------------------"
-echo " Parameters passed to server startup:"
-echo "-------------------------------------------------------------"
-echo \
-${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
-${NEXUS_PORT:+--port=$NEXUS_PORT} \
-${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
-${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
-${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
-${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
-${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
-
 #echo ""
 #echo "-------------------------------------------------------------"
 #echo " Direwolf startup"
@@ -50,10 +38,23 @@ rnstatus
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " NGINX configuration chec and startup"
+echo " Nexus Messenger Web App NGINX configuration check and startup"
 echo "-------------------------------------------------------------"
 nginx -t
 systemctl start nginx
+systemctl status nginx
+
+echo "-------------------------------------------------------------"
+echo " Parameters passed to server startup:"
+echo "-------------------------------------------------------------"
+echo \
+${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
+${NEXUS_PORT:+--port=$NEXUS_PORT} \
+${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
+${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
+${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
+${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
+${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
 
 echo ""
 echo "-------------------------------------------------------------"
