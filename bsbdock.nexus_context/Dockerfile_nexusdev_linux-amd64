@@ -63,6 +63,7 @@ ARG CACHEBUST=0
 COPY nexus_web /bsb/nexus_web
 RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+RUN systemctl start nginx
 
 # Launch Nexus server on start
 CMD /bsb/start.sh
