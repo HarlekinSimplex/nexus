@@ -21,6 +21,8 @@ ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get install tzdata
 
+#############
+
 # Install personal helper tools
 RUN apt -y install mc nano vim screen systemctl nginx
 
@@ -40,12 +42,6 @@ RUN pip3 install requests
 # Install Django
 RUN pip3 install Django==4.0.4
 
-# Expose port for Reticulum server TCP Interface (disable as default)
-EXPOSE 4242
-# Expose ports for Nexus Server Web and API Interface
-EXPOSE 4280
-EXPOSE 4281
-
 # Create Directories
 ARG CACHEBUST=0
 RUN mkdir /bsb
@@ -63,6 +59,12 @@ COPY nexus_server /bsb/nexus_server
 COPY nexus_web /bsb/nexus_web
 RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+
+# Expose port for Reticulum server TCP Interface (disable as default)
+EXPOSE 4242
+# Expose ports for Nexus Server Web and API Interface
+EXPOSE 4280
+EXPOSE 4281
 
 # Launch Nexus server on start
 CMD /bsb/start.sh
