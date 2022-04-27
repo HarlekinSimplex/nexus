@@ -82,7 +82,7 @@ services:
 #################################################
 # BSB.NexusServer automatic update service
   nexus_watchtower:
-    container_name: ${NEXUS_WATCHTOWER:-nexus-server_watchtower}
+    container_name: ${NEXUS_WATCHTOWER:-nexus-watchtower}
     image: containrrr/watchtower
     environment:
       WATCHTOWER_LABEL_ENABLE: "true"
