@@ -1,8 +1,8 @@
 #!/bin/bash
 # Log reticulum interface status
 echo "#############################################################"
-echo "# Welcome to Nexus Server                                   #"
-echo "# A minimal broadcast messaging server based on Reticulum   #"
+echo "# Welcome to bsbdock/nexus                                  #"
+echo "# A broadcast messaging server based on Reticulum           #"
 echo "#############################################################"
 
 echo ""
@@ -16,25 +16,6 @@ echo "NEXUS_ROLE=$NEXUS_ROLE"
 echo "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
 echo "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
 echo "NEXUS_BRIDGE=$NEXUS_BRIDGE"
-echo ""
-
-echo "-------------------------------------------------------------"
-echo " Parameters passed to server startup:"
-echo "-------------------------------------------------------------"
-echo \
-${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
-${NEXUS_PORT:+--port=$NEXUS_PORT} \
-${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
-${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
-${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
-${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
-${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
-
-#echo ""
-#echo "-------------------------------------------------------------"
-#echo " Direwolf startup"
-#echo "-------------------------------------------------------------"
-#direwolf -t 0
 
 echo ""
 echo "-------------------------------------------------------------"
@@ -48,6 +29,33 @@ echo " Actual Reticulum interface status:"
 echo "-------------------------------------------------------------"
 rnstatus
 
+echo "-------------------------------------------------------------"
+echo " Nexus Messenger Web App NGINX configuration check and startup"
+echo "-------------------------------------------------------------"
+nginx -t
+systemctl start nginx
+systemctl status nginx
+
+#echo ""
+#echo "-------------------------------------------------------------"
+#echo " Direwolf startup"
+#echo "-------------------------------------------------------------"
+#direwolf -t 0
+
+echo ""
+echo "-------------------------------------------------------------"
+echo " Parameters passed to server startup:"
+echo "-------------------------------------------------------------"
+echo \
+${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
+${NEXUS_PORT:+--port=$NEXUS_PORT} \
+${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
+${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
+${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
+${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
+${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
+
+echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus Server startup"
 echo "-------------------------------------------------------------"

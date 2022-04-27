@@ -48,6 +48,7 @@ import LXMF
 import RNS
 import RNS.vendor.umsgpack as umsgpack
 
+
 ##########################################################################################
 # Global variables
 #
@@ -58,7 +59,7 @@ __role_version__ = "2"
 __command_version__ = "1"
 __message_version__ = "4.2"
 
-# A moment to process background stuff
+# A moment of time to give LXM a chance to process background stuff while handle outbound messages
 DIGESTION_DELAY = 0.1
 
 # Message storage
@@ -674,11 +675,18 @@ class NexusLXMSocket:
     message_received_callback = None
 
     # Class constructor
-    def __init__(self, socket_identity=None, storage_path=None, app_name=APP_NAME, server_aspect=NEXUS_SERVER_ASPECT):
+    def __init__(self, socket_identity=None, storage_path=None, app_name=None, server_aspect=None):
 
         # Initialize members
+        # (Global variables as default values within constructors does not work if they are changed
+        # App Name used with announces
         self.app_name = app_name
+        if app_name is None:
+            self.app_name = APP_NAME
+        # Server aspect used with announces as well
         self.server_aspect = server_aspect
+        if server_aspect is None:
+            self.server_aspect = NEXUS_SERVER_ASPECT
 
         # If storage path was not set use default storage path
         self.storage_path = storage_path
@@ -729,9 +737,9 @@ class NexusLXMSocket:
         RNS.log("LXM Link established callback registered", RNS.LOG_DEBUG)
 
         # Create a handler to process all incoming announcements with the aspect of this nexus server
-        announce_handler = NexusLXMAnnounceHandler(aspect_filter=app_name + '.' + server_aspect)
+        announce_handler = NexusLXMAnnounceHandler(aspect_filter= self.app_name + '.' +  self.server_aspect)
         # Log announce filter
-        RNS.log("LXM AnnounceHandler listens to " + app_name + '.' + server_aspect, RNS.LOG_DEBUG)
+        RNS.log("LXM AnnounceHandler listens to " +  self.app_name + '.' +  self.server_aspect, RNS.LOG_DEBUG)
         # Register the handler with the reticulum transport layer
         RNS.Transport.register_announce_handler(announce_handler)
 
@@ -803,9 +811,15 @@ class NexusLXMSocket:
             RNS.LOG_VERBOSE
         )
         # Handle outbound
-        self.lxm_router.handle_outbound(lxm_message)
-        # Give system a moment to process network stuff
-        time.sleep(DIGESTION_DELAY)
+        try:
+            self.lxm_router.handle_outbound(lxm_message)
+            # Give system a moment to process network stuff
+            time.sleep(DIGESTION_DELAY)
+        except Exception as e:
+            # Log outbound error
+            RNS.log("Could not send LXMF message " + str(lxm_message), RNS.LOG_ERROR)
+            RNS.log("The contained exception was: " + str(e), RNS.LOG_ERROR)
+            return
 
         # Flush pending log
         sys.stdout.flush()
