@@ -54,7 +54,7 @@ import RNS.vendor.umsgpack as umsgpack
 #
 
 # Versions used
-__server_version__ = "1.4.0.2"
+__server_version__ = "1.4.0.3"
 __role_version__ = "2"
 __command_version__ = "1"
 __message_version__ = "4.2"
