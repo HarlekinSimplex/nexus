@@ -44,7 +44,7 @@ services:
 # Use NEXUS_DOCKERFILE=./Dockerfile_nexus_linux-amd-64 at .env if you want to build for the AMD64 Architecture
     build:
       context: ${NEXUS_COMPOSE_HOME:-~/nexus}/bsbdock.nexus_context
-      dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile_nexus_linux-arm-v7}
+      dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile_nexus_linux-arm}
 
     restart: unless-stopped
     command: ${NEXUS_COMMAND:-/bsb/start.sh}
