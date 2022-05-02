@@ -7,7 +7,7 @@
 # | |_) |____) | |_) || |\  |  __/>  <| |_| \__ \____) |  __/ |   \ V /  __/ |   
 # |____/|_____/|____(_)_| \_|\___/_/\_\\__,_|___/_____/ \___|_|    \_/ \___|_|   
 #
-# Copyright (c) 2020 Stephan Becker / Becker-Systemberatung, MIT License
+# Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this
 # software and associated documentation files (the "Software"), to deal in the Software
@@ -1321,7 +1321,7 @@ def initialize_server(
     RNS.log("| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
     RNS.log("|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
     RNS.log("", RNS.LOG_INFO)
-    RNS.log("Copyright (c) 2020 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
+    RNS.log("Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
     RNS.log("...............................................................................", RNS.LOG_INFO)
     RNS.log("Installed Versions:", RNS.LOG_INFO)
     RNS.log(" Nexus Server      v" + __server_version__, RNS.LOG_INFO)
