@@ -3,12 +3,12 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 const RESOURCES = {
-  "assets/AssetManifest.json": "b2528f0e82b3cbb22e772aadd9a08e15",
+  "assets/AssetManifest.json": "d248ee47a67eb5523f64e9e9e263ef7a",
 "assets/assets/audios/favicon.png": "5dcef449791fa27946b3d35ad8803796",
 "assets/assets/fonts/favicon.png": "5dcef449791fa27946b3d35ad8803796",
-"assets/assets/images/app_launcher_icon.png": "19efeed95bbd5ff1daa32677cdfde122",
+"assets/assets/images/app_launcher_icon.png": "cea2ecce02d7f26d0c8bf0d059b68742",
+"assets/assets/images/Element_1ldpi.png": "cea2ecce02d7f26d0c8bf0d059b68742",
 "assets/assets/images/favicon.png": "5dcef449791fa27946b3d35ad8803796",
-"assets/assets/images/Logo_TriColor_WhiteBack_200407-SBR-01.png": "19efeed95bbd5ff1daa32677cdfde122",
 "assets/assets/lottie_animations/favicon.png": "5dcef449791fa27946b3d35ad8803796",
 "assets/assets/pdfs/favicon.png": "5dcef449791fa27946b3d35ad8803796",
 "assets/assets/rive_animations/favicon.png": "5dcef449791fa27946b3d35ad8803796",
@@ -27,11 +27,11 @@ const RESOURCES = {
 "favicon.png": "5dcef449791fa27946b3d35ad8803796",
 "icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
 "icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
-"index.html": "3f5dd49de5e7e15ca9b2babde482f788",
-"/": "3f5dd49de5e7e15ca9b2babde482f788",
-"main.dart.js": "4e1a66fca338311488d7573b956e8f28",
+"index.html": "297e2775e39cb60df783fbf807809f10",
+"/": "297e2775e39cb60df783fbf807809f10",
+"main.dart.js": "9c4b73d20f4f1a7f29ba5c5c37c55672",
 "manifest.json": "e1b8d33810a1077769258129b3439c19",
-"version.json": "d3ae1304e671b8b3ea7e99085eb64983"
+"version.json": "60ba9ddaca5170b7d37c51605614460a"
 };
 
 // The application shell files that are downloaded before a service worker can

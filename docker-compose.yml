@@ -86,6 +86,7 @@ services:
       - auto-update
     container_name: ${NEXUS_WATCHTOWER:-nexus-watchtower}
     image: containrrr/watchtower
+    restart: unless-stopped
     environment:
       WATCHTOWER_LABEL_ENABLE: "true"
       WATCHTOWER_POLL_INTERVAL: 900
