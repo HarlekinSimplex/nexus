@@ -77,7 +77,7 @@ services:
         max-size: "200k"
         max-file: "10"
     labels:
-      - com.centurylinklabs.watchtower.enable = true
+      - "com.centurylinklabs.watchtower.enable=true"
 
 #################################################
 # BSB.NexusServer automatic update service
@@ -88,8 +88,8 @@ services:
     image: containrrr/watchtower
     restart: unless-stopped
     environment:
-      WATCHTOWER_LABEL_ENABLE: "true"
-      WATCHTOWER_POLL_INTERVAL: 900
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_POLL_INTERVAL=900
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
