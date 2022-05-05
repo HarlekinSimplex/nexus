@@ -2,7 +2,7 @@
 #################################################
 # Build and tag nexus_server2 container
 #
-VER=1.4.0.2
+VER=1.4.0.4
 OS=linux
 ARCH=arm
 
