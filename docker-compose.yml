@@ -62,7 +62,7 @@ services:
     env_file:
       - .env
     networks:
-      nexus_server_net:
+      nexus-server_net:
         aliases:
 # Hostname alias of container within the network spanned by docker
           - ${NEXUS_CONTAINER_ALIAS:-nexus-server_node01}
@@ -81,7 +81,7 @@ services:
 
 #################################################
 # BSB.NexusServer automatic update service
-  nexus_watchtower:
+  nexus-watchtower:
     profiles:
       - auto-update
     container_name: ${NEXUS_WATCHTOWER:-nexus-watchtower}
@@ -93,14 +93,13 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      nexus_server_net:
+      nexus-server_net:
 
 #################################################
 # BSB.NexusServer Container Networks
 #
 networks:
-  nexus_server_net:
+  nexus-server_net:
 # Name of the network to be spawned or connected to by docker
     name: ${NEXUS_NETWORK:-nexus-server_net}
     driver: bridge
-
