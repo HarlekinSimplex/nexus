@@ -89,8 +89,8 @@ services:
     restart: unless-stopped
     environment:
       - WATCHTOWER_LABEL_ENABLE=true
-# Check for updates every 12hrs (60x60x12)
-      - WATCHTOWER_POLL_INTERVAL=43200
+# Check for updates every 12hrs (60x60x12=43200)
+      - WATCHTOWER_POLL_INTERVAL=${WATCHTOWER_POLL_INTERVAL:-43200}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
