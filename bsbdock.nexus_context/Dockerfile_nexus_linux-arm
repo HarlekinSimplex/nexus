@@ -41,7 +41,7 @@ RUN pip install --upgrade pip
 RUN pip3 install rns lxmf nomadnet rnodeconf
 
 # Install additional python packages
-RUN pip3 install requests
+RUN pip3 install requests pytz
 
 # Install Django
 RUN pip3 install Django==4.0.4

@@ -37,7 +37,7 @@ RUN pip install --upgrade pip
 RUN pip3 install rns lxmf nomadnet rnodeconf
 
 # Install additional python packages
-RUN pip3 install requests
+RUN pip3 install requests pytz
 
 # Install Django
 RUN pip3 install Django==4.0.4
@@ -46,15 +46,17 @@ RUN pip3 install Django==4.0.4
 ARG CACHEBUST=0
 RUN mkdir /bsb
 RUN mkdir /bsb/nexus_server
+RUN mkdir /bsb/nexus_django
 RUN mkdir /bsb/nexus_web
 
 # Pull in container start script and make it executable
 COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh
 
-# Pull in NexusServer
+# Pull in Nexus Server
 COPY nexus_server /bsb/nexus_server
-
+# Pull in Nexus Django
+COPY nexus_django /bsb/nexus_jango
 # Pull in NexusWeb
 COPY nexus_web /bsb/nexus_web
 RUN rm /etc/nginx/sites-enabled/default
