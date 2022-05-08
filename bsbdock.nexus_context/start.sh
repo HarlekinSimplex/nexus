@@ -40,7 +40,7 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Django server startup"
 echo "-------------------------------------------------------------"
-python /bsb/nexus_django/manage.py runserver &
+python3 /bsb/nexus_django/manage.py runserver >&1 &
 
 #echo ""
 #echo "-------------------------------------------------------------"
