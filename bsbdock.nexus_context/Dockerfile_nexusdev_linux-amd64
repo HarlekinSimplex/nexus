@@ -56,7 +56,7 @@ RUN chmod ug+x /bsb/start.sh
 # Pull in Nexus Server
 COPY nexus_server /bsb/nexus_server
 # Pull in Nexus Django
-COPY nexus_django /bsb/nexus_jango
+COPY nexus_django /bsb/nexus_django
 # Pull in NexusWeb
 COPY nexus_web /bsb/nexus_web
 RUN rm /etc/nginx/sites-enabled/default

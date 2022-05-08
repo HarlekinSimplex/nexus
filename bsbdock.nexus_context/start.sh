@@ -36,6 +36,12 @@ nginx -t
 systemctl start nginx
 systemctl status nginx
 
+echo ""
+echo "-------------------------------------------------------------"
+echo " Django server startup"
+echo "-------------------------------------------------------------"
+python /bsb/nexus_django/manage.py runserver &
+
 #echo ""
 #echo "-------------------------------------------------------------"
 #echo " Direwolf startup"
