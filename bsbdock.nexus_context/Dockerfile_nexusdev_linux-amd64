@@ -24,25 +24,25 @@ RUN apt-get install tzdata
 #############
 
 # Install personal helper tools
-RUN apt -y install mc nano vim screen systemctl nginx
-
-# Install direwolf
-RUN apt -y install direwolf
+RUN apt -y install mc nano vim screen
 
 # Install pip3
 RUN apt -y install python3-pip
 RUN pip install --upgrade pip
-
 # Install Reticulum stack and NomadNet messenger application
 RUN pip3 install rns lxmf nomadnet rnodeconf
-
 # Install additional python packages
-RUN pip3 install requests pytz
-
+RUN pip3 install requests
 # Install Django
 RUN pip3 install Django==4.0.4
 
-# Create Directories
+# Install components for django production deplyment
+RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
+
+# Install TNC for radio networking (direwolf)
+RUN apt -y install direwolf
+
+# Create Directories to hold all BSB application files
 ARG CACHEBUST=0
 RUN mkdir /bsb
 RUN mkdir /bsb/nexus_server
