@@ -14,6 +14,16 @@
 #
 FROM python:3.9
 
+# Set timezone and interactive mode
+ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+
+# Update base image if necessary
+RUN apt-get update
+RUN apt-get install tzdata
+
+# Install personal helper tools
+RUN apt -y install mc nano vim screen
+
 # grab gosu for easy step-down from root
 RUN set -eux; \
 	apt-get update; \
@@ -21,9 +31,6 @@ RUN set -eux; \
 	rm -rf /var/lib/apt/lists/*; \
 # verify that the binary works
 	gosu nobody true
-
-# Install personal helper tools
-RUN apt -y install mc nano vim screen
 
 # Add local user 'bsb'
 RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb --uid=9001 bsb
