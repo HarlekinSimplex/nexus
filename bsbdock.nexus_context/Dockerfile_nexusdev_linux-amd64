@@ -75,6 +75,7 @@ COPY . .
 RUN pip install --no-cache-dir -r ./requirements.txt
 
 WORKDIR $HOME/nexus_django
+RUN mkdir static
 RUN python manage.py collectstatic --no-input --clear
 
 # Back to root
