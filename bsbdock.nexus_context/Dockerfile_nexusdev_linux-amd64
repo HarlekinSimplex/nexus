@@ -25,8 +25,8 @@ RUN set -eux; \
 # Add local user 'bsb'
 RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb --uid=9001 bsb
 # Grant him sudo privileges
-RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
-    chmod 0440 /etc/sudoers.d/bsb
+#RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
+#    chmod 0440 /etc/sudoers.d/bsb
 
 # Do stuff with this user if needed
 USER bsb
