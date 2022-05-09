@@ -63,6 +63,8 @@ ${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
 ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
 ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
 ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
+echo "-------------------------------------------------------------"
+echo "NEXUS_PORT_JSONAPI=$NEXUS_PORT_JSONAPI"
 
 echo ""
 echo "-------------------------------------------------------------"
