@@ -71,4 +71,4 @@ echo "-------------------------------------------------------------"
 
 cd nexus_django || exit
 #exec gunicorn nexus_django.wsgi:application -t 0 -w 3 -k gevent --bind 0.0.0.0:"$NEXUS_PORT"
-exec gunicorn nexus_django.wsgi:application --reload --bind 0.0.0.0:"$NEXUS_PORT"
+exec gunicorn nexus_django.wsgi:application --log-level debug --bind 0.0.0.0:"$NEXUS_PORT"
