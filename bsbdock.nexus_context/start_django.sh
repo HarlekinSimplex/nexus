@@ -70,4 +70,4 @@ echo "-------------------------------------------------------------"
 # exec python3 -u /bsb/nexus_server/nexus_server.py ${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} ${NEXUS_PORT:+--port=$NEXUS_PORT} ${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} ${NEXUS_ROLE:+--role=$NEXUS_ROLE} ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
 
 cd nexus_django || exit
-exec gunicorn nexus_django.wsgi:application --bind 0.0.0.0:"$NEXUS_PORT"
+exec gunicorn nexus_django.wsgi:application -w 3 -k gevent --bind 0.0.0.0:"$NEXUS_PORT"
