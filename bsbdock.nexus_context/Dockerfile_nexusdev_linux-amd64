@@ -63,15 +63,15 @@ WORKDIR $HOME
 # Copy ressources from context into bsb home
 COPY . .
 
+# Install required python packages
+RUN pip install -r ./requirements.txt
+
 # Back to root
 USER root
 
 # Make start script executable
 RUN chmod ugo+x start.sh
 RUN chmod ugo+x start_django.sh
-
-# Install required python packages
-RUN pip install -r requirements.txt
 
 # Configure Nginx
 RUN rm /etc/nginx/sites-enabled/default
