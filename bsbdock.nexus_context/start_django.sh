@@ -25,7 +25,7 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Actual Reticulum interface configuration:"
 echo "-------------------------------------------------------------"
-cat /root/.reticulum/config
+cat .reticulum/config
 
 echo ""
 echo "-------------------------------------------------------------"
