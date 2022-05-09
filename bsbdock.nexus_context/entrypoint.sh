@@ -21,4 +21,4 @@ fi
 
 echo "**** GOSU bsb $@ ..."
 
-#exec /usr/local/bin/gosu bsb "$@"
+exec gosu bsb "$@"
