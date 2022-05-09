@@ -1,0 +1,65 @@
+############################################################
+# bsbdock/reticulum Dockerfile
+#
+# How to build this container:
+# docker build --tag bsbdock/nexus -f Dockerfile_nexusdev_linux-amd64 .
+# docker build --tag bsbdock/nexus:dev_linux-amd64 -f Dockerfile_nexusdev_linux-amd64 .
+# docker push bsbdock/nexus:dev_linux-amd64
+#
+# How to invoke a shell into this container:
+# docker run -it bsbdock/nexus bash
+#
+# How to run the reticulum stack as a service
+# docker run --rm --name nexus-prod_nexus -it bsbdock/nexus
+#
+FROM python:3.9
+WORKDIR /bsb
+
+# Set timezone and interactive mode
+ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+
+# Update base image if necessary
+RUN apt-get update
+RUN apt-get install tzdata
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Install pip3
+RUN apt -y install python3-pip
+RUN pip install --upgrade pip
+
+# Install personal helper tools
+RUN apt -y install mc nano vim screen
+
+# Install components for django production deplyment
+RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
+
+# Install TNC for radio networking (direwolf)
+RUN apt -y install direwolf
+
+# Create Directories to hold all BSB application files
+# ARG CACHEBUST=0
+COPY . .
+
+# Make start script executable
+RUN chmod ug+x /bsb/start.sh
+RUN chmod ug+x /bsb/start_django.sh
+
+# Install required python packages
+RUN pip install -r requirements.txt
+
+# Configure Nginx
+RUN rm /etc/nginx/sites-enabled/default
+RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+RUN systemctl enable nginx
+
+# Expose port for Reticulum server TCP Interface (disable as default)
+EXPOSE 4242
+# Expose ports for Nexus Server Web and API Interface
+EXPOSE 4280
+EXPOSE 4281
+
+# Launch Nexus server on start
+CMD /bsb/start.sh
