@@ -22,6 +22,9 @@ RUN set -eux; \
 # verify that the binary works
 	gosu nobody true
 
+# Install personal helper tools
+RUN apt -y install mc nano vim screen
+
 # Add local user 'bsb'
 RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb --uid=9001 bsb
 # Grant him sudo privileges
