@@ -97,7 +97,7 @@ EXPOSE 4280
 EXPOSE 4281
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["bash"]
+CMD ["./start.sh"]
 
 
 ################################################
