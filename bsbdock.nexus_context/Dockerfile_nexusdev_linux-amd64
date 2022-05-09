@@ -33,7 +33,8 @@ RUN set -eux; \
 	gosu nobody true
 
 # Add local user 'bsb'
-RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb --uid=9001 bsb
+RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m q--uid=9001 bsb
+RUN chown bsb:bsb .
 # Grant him sudo privileges
 #RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
 #    chmod 0440 /etc/sudoers.d/bsb
@@ -42,8 +43,12 @@ RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb --uid=9001 bsb
 USER bsb
 ENV HOME /home/bsb
 WORKDIR $HOME
-#RUN ...
+##########################################################
 
+
+
+
+##########################################################
 # Repass root
 USER root
 
