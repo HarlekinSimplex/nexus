@@ -16,10 +16,26 @@ FROM python:3.9
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+# set environment variables for python
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 # Update base image if necessary
 RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get -y install tzdata sudo
+
+# Install pip3
+RUN apt -y install python3-pip
+RUN pip install --upgrade pip
+
+# Install personal helper tools
+RUN apt -y install mc nano vim screen
+
+# Install components for django production deplyment
+RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
+
+# Install TNC for radio networking (direwolf)
+RUN apt -y install direwolf
 
 # Install personal helper tools
 RUN apt -y install mc nano vim screen
@@ -38,23 +54,6 @@ RUN chown bsb:bsb .
 # Grant him sudo privileges
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
     chmod 0440 /etc/sudoers.d/bsb
-
-# set environment variables for python
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Install pip3
-RUN apt -y install python3-pip
-RUN pip install --upgrade pip
-
-# Install personal helper tools
-RUN apt -y install mc nano vim screen
-
-# Install components for django production deplyment
-RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
-
-# Install TNC for radio networking (direwolf)
-RUN apt -y install direwolf
 
 # Switch to user bsb
 USER bsb
