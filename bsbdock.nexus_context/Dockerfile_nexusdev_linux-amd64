@@ -91,65 +91,16 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod ug+x /usr/local/bin/entrypoint.sh
 
 # Expose port for Reticulum server TCP Interface (disable as default)
-EXPOSE 4242
-# Expose ports for Nexus Server Web and API Interface
-EXPOSE 4280
-EXPOSE 4281
+ENV NEXUS_CONTAINER_RNS_PORT 4242
+EXPOSE $NEXUS_CONTAINER_RNS_PORT
+
+# Expose port for Nexus Server Web (Nginx)
+ENV NEXUS_CONTAINER_WEB_PORT 4280
+EXPOSE $NEXUS_CONTAINER_WEB_PORT
+
+# Expose port for Nexus Server API (Gunicorn / Python)
+ENV NEXUS_CONTAINER_API_PORT 4281
+EXPOSE $NEXUS_CONTAINER_API_PORT
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["./start.sh"]
-
-
-################################################
-#WORKDIR /bsb
-
-## Set timezone and interactive mode
-#ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
-
-## Update base image if necessary
-#RUN apt-get update
-#RUN apt-get install tzdata
-
-## set environment variables
-#ENV PYTHONDONTWRITEBYTECODE 1
-#ENV PYTHONUNBUFFERED 1
-
-## Install pip3
-#RUN apt -y install python3-pip
-#RUN pip install --upgrade pip
-
-## Install personal helper tools
-#RUN apt -y install mc nano vim screen
-
-## Install components for django production deplyment
-#RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
-
-## Install TNC for radio networking (direwolf)
-#RUN apt -y install direwolf
-
-## Create Directories to hold all BSB application files
-## ARG CACHEBUST=0
-#COPY . .
-
-## Make start script executable
-#RUN chmod ug+x /bsb/start.sh
-#RUN chmod ug+x /bsb/start_django.sh
-
-## Install required python packages
-#RUN pip install -r requirements.txt
-
-## Configure Nginx
-#RUN rm /etc/nginx/sites-enabled/default
-#RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
-#RUN systemctl enable nginx
-
-## Expose port for Reticulum server TCP Interface (disable as default)
-#EXPOSE 4242
-## Expose ports for Nexus Server Web and API Interface
-#EXPOSE 4280
-#EXPOSE 4281
-
-# Launch Nexus server on start
-#CMD /bsb/start.sh
-
-########################################

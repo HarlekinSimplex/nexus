@@ -13,7 +13,8 @@ echo "-------------------------------------------------------------"
 echo " Environment variables set:"
 echo "-------------------------------------------------------------"
 
-NEXUS_PORT="${NEXUS_PORT:-4281}"
+# Set default container Nexus API Port to exposed port
+NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
 
 echo "NEXUS_CONFIG=$NEXUS_CONFIG"
 echo "NEXUS_PORT=$NEXUS_PORT"
