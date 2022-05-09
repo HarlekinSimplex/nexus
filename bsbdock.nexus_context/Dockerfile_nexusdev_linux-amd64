@@ -39,22 +39,55 @@ RUN chown bsb:bsb .
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
     chmod 0440 /etc/sudoers.d/bsb
 
-# Do stuff with this user if needed
+# set environment variables for python
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Install pip3
+RUN apt -y install python3-pip
+RUN pip install --upgrade pip
+
+# Install personal helper tools
+RUN apt -y install mc nano vim screen
+
+# Install components for django production deplyment
+RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
+
+# Install TNC for radio networking (direwolf)
+RUN apt -y install direwolf
+
+# Switch to user bsb
 USER bsb
 ENV HOME /home/bsb
 WORKDIR $HOME
-##########################################################
 
+# Copy ressources from context into bsb home
+COPY . .
 
-
-
-##########################################################
-# Repass root
+# Back to root
 USER root
+
+# Make start script executable
+RUN chmod ug+x start.sh
+RUN chmod ug+x start_django.sh
+
+# Install required python packages
+RUN pip install -r requirements.txt
+
+# Configure Nginx
+RUN rm /etc/nginx/sites-enabled/default
+RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+RUN systemctl enable nginx
 
 # Copy entrypoint
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod ug+x /usr/local/bin/entrypoint.sh
+
+# Expose port for Reticulum server TCP Interface (disable as default)
+EXPOSE 4242
+# Expose ports for Nexus Server Web and API Interface
+EXPOSE 4280
+EXPOSE 4281
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
