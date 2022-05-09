@@ -4,11 +4,6 @@
 trap "echo TRAPed signal" HUP INT QUIT TERM
 
 # Log reticulum interface status
-echo "#############################################################"
-echo "# Welcome to bsbdock/nexus                                  #"
-echo "# A broadcast messaging server based on Reticulum           #"
-echo "#############################################################"
-
 echo ""
 echo "-------------------------------------------------------------"
 echo " Environment variables set:"

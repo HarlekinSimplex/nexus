@@ -57,5 +57,9 @@ if [ "$MAP_NODE_UID" != "no" ]; then
     }
 fi
 
-echo "Run given CMD: gosu bsb $@"
+echo ""
+echo "-------------------------------------------------------------"
+echo " Run given start command using GOSU with user bsb"
+echo "-------------------------------------------------------------"
+echo "gosu bsb $@"
 exec gosu bsb "$@"
