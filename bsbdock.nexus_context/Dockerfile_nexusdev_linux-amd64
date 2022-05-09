@@ -45,6 +45,7 @@ COPY . .
 
 # Make start script executable
 RUN chmod ug+x /bsb/start.sh
+RUN chmod ug+x /bsb/start_django.sh
 
 # Install required python packages
 RUN pip install -r requirements.txt
