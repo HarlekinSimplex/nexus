@@ -55,11 +55,18 @@ RUN chown bsb:bsb .
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
     chmod 0440 /etc/sudoers.d/bsb
 
+
 # Switch to user bsb
 USER bsb
 ENV HOME /home/bsb
 ENV PATH="$HOME/.local/bin:$PATH"
 WORKDIR $HOME
+
+# Install Reticulum stack and NomadNet messenger application
+RUN pip3 install rns lxmf nomadnet rnodeconf
+
+# Install additional python packages
+RUN pip3 install requests pytz
 
 # Copy ressources from context into bsb home
 COPY . .
