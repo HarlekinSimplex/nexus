@@ -18,7 +18,7 @@ FROM python:3.9
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 
 # Update base image if necessary
-RUN apt-get update
+RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get -y install tzdata sudo
 
 # Install personal helper tools
