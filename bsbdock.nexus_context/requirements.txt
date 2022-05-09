@@ -1,3 +1,9 @@
+rns
+lxmf
+nomadnet
+rnodeconf
+requests
+pytz
 Django
 gunicorn
 psycopg2-binary

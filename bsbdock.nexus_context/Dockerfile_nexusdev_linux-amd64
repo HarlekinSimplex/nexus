@@ -48,34 +48,35 @@ RUN set -eux; \
 # verify that the binary works
 	gosu nobody true
 
+# Set Home dir and path fpr user bsb
+ENV HOME /home/bsb
+ENV PATH="$HOME/.local/bin:$PATH"
+
 # Add local user 'bsb'
 RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
-RUN chown bsb:bsb .
 # Grant him sudo privileges
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
     chmod 0440 /etc/sudoers.d/bsb
 
+# Copy ressources from context into bsb home
+COPY . .
+
+# Create folder for static files
+WORKDIR $HOME/nexus_django
+RUN mkdir static
+
+# Set ownership to usr bsb
+RUN chown -R bsb:bsb $HOME
 
 # Switch to user bsb
 USER bsb
-ENV HOME /home/bsb
-ENV PATH="$HOME/.local/bin:$PATH"
 WORKDIR $HOME
-
-# Install Reticulum stack and NomadNet messenger application
-RUN pip3 install rns lxmf nomadnet rnodeconf
-
-# Install additional python packages
-RUN pip3 install requests pytz
-
-# Copy ressources from context into bsb home
-COPY . .
 
 # Install required python packages
 RUN pip install --no-cache-dir -r ./requirements.txt
 
+# Collect static files
 WORKDIR $HOME/nexus_django
-RUN mkdir static
 RUN python manage.py collectstatic --no-input --clear
 
 # Back to root
