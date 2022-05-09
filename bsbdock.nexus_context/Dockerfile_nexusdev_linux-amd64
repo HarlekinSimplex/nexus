@@ -13,53 +13,91 @@
 # docker run --rm --name nexus-prod_nexus -it bsbdock/nexus
 #
 FROM python:3.9
-WORKDIR /bsb
 
-# Set timezone and interactive mode
-ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+# grab gosu for easy step-down from root
+ENV GOSU_VERSION 1.14
+RUN set -x \
+  && curl -sSLo /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
+  && curl -sSLo /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
+  && export GNUPGHOME="$(mktemp -d)" \
+  && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+  && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+  && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
+  && chmod +x /usr/local/bin/gosu \
+  && gosu nobody true
 
-# Update base image if necessary
-RUN apt-get update
-RUN apt-get install tzdata
+# Add local user 'bsb'
+RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb --uid=9001 bsb
+# Grant him sudo privileges
+RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
+    chmod 0440 /etc/sudoers.d/bsb
 
-# set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# Do stuff with this user if needed
+USER bsb
+ENV HOME /home/bsb
+WORKDIR $HOME
+#RUN ...
 
-# Install pip3
-RUN apt -y install python3-pip
-RUN pip install --upgrade pip
+# Repass root
+USER root
 
-# Install personal helper tools
-RUN apt -y install mc nano vim screen
+# Copy entrypoint
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-# Install components for django production deplyment
-RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
+CMD ["bash"]
 
-# Install TNC for radio networking (direwolf)
-RUN apt -y install direwolf
 
-# Create Directories to hold all BSB application files
-# ARG CACHEBUST=0
-COPY . .
+################################################
+#WORKDIR /bsb
 
-# Make start script executable
-RUN chmod ug+x /bsb/start.sh
-RUN chmod ug+x /bsb/start_django.sh
+## Set timezone and interactive mode
+#ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 
-# Install required python packages
-RUN pip install -r requirements.txt
+## Update base image if necessary
+#RUN apt-get update
+#RUN apt-get install tzdata
 
-# Configure Nginx
-RUN rm /etc/nginx/sites-enabled/default
-RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
-RUN systemctl enable nginx
+## set environment variables
+#ENV PYTHONDONTWRITEBYTECODE 1
+#ENV PYTHONUNBUFFERED 1
 
-# Expose port for Reticulum server TCP Interface (disable as default)
-EXPOSE 4242
-# Expose ports for Nexus Server Web and API Interface
-EXPOSE 4280
-EXPOSE 4281
+## Install pip3
+#RUN apt -y install python3-pip
+#RUN pip install --upgrade pip
+
+## Install personal helper tools
+#RUN apt -y install mc nano vim screen
+
+## Install components for django production deplyment
+#RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
+
+## Install TNC for radio networking (direwolf)
+#RUN apt -y install direwolf
+
+## Create Directories to hold all BSB application files
+## ARG CACHEBUST=0
+#COPY . .
+
+## Make start script executable
+#RUN chmod ug+x /bsb/start.sh
+#RUN chmod ug+x /bsb/start_django.sh
+
+## Install required python packages
+#RUN pip install -r requirements.txt
+
+## Configure Nginx
+#RUN rm /etc/nginx/sites-enabled/default
+#RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+#RUN systemctl enable nginx
+
+## Expose port for Reticulum server TCP Interface (disable as default)
+#EXPOSE 4242
+## Expose ports for Nexus Server Web and API Interface
+#EXPOSE 4280
+#EXPOSE 4281
 
 # Launch Nexus server on start
-CMD /bsb/start.sh
+#CMD /bsb/start.sh
+
+########################################
