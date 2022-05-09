@@ -36,8 +36,8 @@ RUN set -eux; \
 RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 RUN chown bsb:bsb .
 # Grant him sudo privileges
-#RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
-#    chmod 0440 /etc/sudoers.d/bsb
+RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
+    chmod 0440 /etc/sudoers.d/bsb
 
 # Do stuff with this user if needed
 USER bsb
