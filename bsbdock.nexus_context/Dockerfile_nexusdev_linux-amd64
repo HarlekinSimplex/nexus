@@ -51,8 +51,8 @@ USER root
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod ug+x /usr/local/bin/entrypoint.sh
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["bash"]
+#ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+#CMD ["bash"]
 
 
 ################################################
