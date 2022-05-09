@@ -59,6 +59,7 @@ RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
     chmod 0440 /etc/sudoers.d/bsb
 
 # Copy ressources from context into bsb home
+WORKDIR $HOME
 COPY . .
 
 # Create folder for static files
