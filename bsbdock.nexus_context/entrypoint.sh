@@ -1,6 +1,37 @@
 #!/bin/bash
 set -e
 
+echo ""
+echo "-------------------------------------------------------------"
+echo " Check configuration directories"
+echo "-------------------------------------------------------------"
+if [ ! -d "~/.reticulum" ]
+then
+    echo "Create .reticulum"
+else
+    echo ".reticulum exists"
+fi
+chown bsb:bsb -R ~/.reticulum
+chmod -R 777 ~/.reticulum
+
+if [ ! -d "~/.nomadnetwork" ]
+then
+    echo "Create .nomadnetwork"
+else
+    echo ".nomadnetwork exists"
+fi
+chown bsb:bsb -R ~/.nomadnetwork
+chmod -R 777 ~/.nomadnetwork
+
+if [ ! -d "~/.nexus" ]
+then
+    echo "Create .nexus"
+else
+    echo ".nexus exists"
+fi
+chown bsb:bsb -R ~/.nexus
+chmod -R 777 ~/.nexus
+
 # Change uid and gid of node user so it matches ownership of current dir
 if [ "$MAP_NODE_UID" != "no" ]; then
     if [ ! -d "$MAP_NODE_UID" ]; then

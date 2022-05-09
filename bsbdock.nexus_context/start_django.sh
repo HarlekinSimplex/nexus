@@ -23,37 +23,6 @@ echo "NEXUS_BRIDGE=$NEXUS_BRIDGE"
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Check configuration directories"
-echo "-------------------------------------------------------------"
-if [ ! -d "~/.reticulum" ]
-then
-    echo "Create .reticulum"
-else
-    echo ".reticulum exists"
-fi
-sudo chown bsb:bsb -R ~/.reticulum
-sudo chmod -R 777 ~/.reticulum
-
-if [ ! -d "~/.nomadnetwork" ]
-then
-    echo "Create .nomadnetwork"
-else
-    echo ".nomadnetwork exists"
-fi
-sudo chown bsb:bsb -R ~/.nomadnetwork
-sudo chmod -R 777 ~/.nomadnetwork
-
-if [ ! -d "~/.nexus" ]
-then
-    echo "Create .nexus"
-else
-    echo ".nexus exists"
-fi
-sudo chown bsb:bsb -R ~/.nexus
-sudo chmod -R 777 ~/.nexus
-
-echo ""
-echo "-------------------------------------------------------------"
 echo " Actual Reticulum interface configuration:"
 echo "-------------------------------------------------------------"
 cat .reticulum/config
