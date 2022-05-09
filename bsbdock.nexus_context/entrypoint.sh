@@ -5,32 +5,35 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Check configuration directories"
 echo "-------------------------------------------------------------"
-if [ ! -d "~/.reticulum" ]
+if [ ! -d "/home/bsb/.reticulum" ]
 then
     echo "Create .reticulum"
+    mkdir /home/bsb/.reticulum
 else
     echo ".reticulum exists"
 fi
 chown bsb:bsb -R ~/.reticulum
-chmod -R 777 ~/.reticulum
+chmod -R 755 ~/.reticulum
 
-if [ ! -d "~/.nomadnetwork" ]
+if [ ! -d "/home/bsb/.nomadnetwork" ]
 then
     echo "Create .nomadnetwork"
+    mkdir /home/bsb/.nomadnetwork
 else
     echo ".nomadnetwork exists"
 fi
 chown bsb:bsb -R ~/.nomadnetwork
-chmod -R 777 ~/.nomadnetwork
+chmod -R 755 ~/.nomadnetwork
 
-if [ ! -d "~/.nexus" ]
+if [ ! -d "/home/bsb/.nexus" ]
 then
     echo "Create .nexus"
+    mkdir /home/bsb/.nexus
 else
     echo ".nexus exists"
 fi
 chown bsb:bsb -R ~/.nexus
-chmod -R 777 ~/.nexus
+chmod -R 755 ~/.nexus
 
 # Change uid and gid of node user so it matches ownership of current dir
 if [ "$MAP_NODE_UID" != "no" ]; then
