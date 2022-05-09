@@ -75,7 +75,7 @@ RUN pip install -r requirements.txt
 
 # Configure Nginx
 RUN rm /etc/nginx/sites-enabled/default
-RUN ln -s nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+RUN ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
 RUN systemctl enable nginx
 
 # Copy entrypoint
