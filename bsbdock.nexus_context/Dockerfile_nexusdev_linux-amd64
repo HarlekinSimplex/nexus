@@ -13,6 +13,7 @@
 # docker run --rm --name nexus-prod_nexus -it bsbdock/nexus
 #
 FROM python:3.9
+WORKDIR /bsb
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
@@ -23,18 +24,23 @@ RUN apt-get install tzdata
 
 #############
 
-# Install personal helper tools
-RUN apt -y install mc nano vim screen
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 # Install pip3
 RUN apt -y install python3-pip
 RUN pip install --upgrade pip
+
+# Install personal helper tools
+RUN apt -y install mc nano vim screen
+
 # Install Reticulum stack and NomadNet messenger application
-RUN pip3 install rns lxmf nomadnet rnodeconf
+#RUN pip3 install rns lxmf nomadnet rnodeconf
 # Install additional python packages
-RUN pip3 install requests
+#RUN pip3 install requests
 # Install Django
-RUN pip3 install Django==4.0.4
+#RUN pip3 install Django==4.0.4
 
 # Install components for django production deplyment
 RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
@@ -44,21 +50,21 @@ RUN apt -y install direwolf
 
 # Create Directories to hold all BSB application files
 ARG CACHEBUST=0
-RUN mkdir /bsb
-RUN mkdir /bsb/nexus_server
-RUN mkdir /bsb/nexus_django
-RUN mkdir /bsb/nexus_web
+COPY . .
+#RUN mkdir /bsb/nexus_server
+#RUN mkdir /bsb/nexus_django
+#RUN mkdir /bsb/nexus_web
 
 # Pull in container start script and make it executable
-COPY start.sh /bsb
+#COPY start.sh /bsb
 RUN chmod ug+x /bsb/start.sh
 
 # Pull in Nexus Server
-COPY nexus_server /bsb/nexus_server
+#COPY nexus_server /bsb/nexus_server
 # Pull in Nexus Django
-COPY nexus_django /bsb/nexus_django
+#COPY nexus_django /bsb/nexus_django
 # Pull in NexusWeb
-COPY nexus_web /bsb/nexus_web
+#COPY nexus_web /bsb/nexus_web
 RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
 RUN systemctl enable nginx
@@ -70,4 +76,4 @@ EXPOSE 4280
 EXPOSE 4281
 
 # Launch Nexus server on start
-CMD /bsb/start.sh
+CMD start.sh
