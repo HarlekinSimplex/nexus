@@ -36,11 +36,11 @@ nginx -t
 systemctl start nginx
 systemctl status nginx
 
-echo ""
-echo "-------------------------------------------------------------"
-echo " Django server startup"
-echo "-------------------------------------------------------------"
-python3 /bsb/nexus_django/manage.py runserver >>/root/.django/logfile &
+#echo ""
+#echo "-------------------------------------------------------------"
+#echo " Django server startup"
+#echo "-------------------------------------------------------------"
+#python3 /bsb/nexus_django/manage.py runserver >>/root/.django/logfile &
 
 #echo ""
 #echo "-------------------------------------------------------------"
