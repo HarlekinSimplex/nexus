@@ -37,8 +37,8 @@ echo "-------------------------------------------------------------"
 echo " Nexus Messenger Web App NGINX configuration check and startup"
 echo "-------------------------------------------------------------"
 nginx -t
-systemctl start nginx
-systemctl status nginx
+sudo systemctl start nginx
+sudo systemctl status nginx
 
 #echo ""
 #echo "-------------------------------------------------------------"
