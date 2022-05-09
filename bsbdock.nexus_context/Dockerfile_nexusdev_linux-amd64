@@ -19,7 +19,7 @@ ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 
 # Update base image if necessary
 RUN apt-get update
-RUN apt-get install tzdata
+RUN apt-get install tzdata apt-utils
 
 # Install personal helper tools
 RUN apt -y install mc nano vim screen
