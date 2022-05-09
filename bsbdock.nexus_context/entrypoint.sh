@@ -35,6 +35,10 @@ fi
 chown bsb:bsb -R ~/.nexus
 chmod -R 755 ~/.nexus
 
+echo ""
+echo "-------------------------------------------------------------"
+echo " Switch from user root to user bsb"
+echo "-------------------------------------------------------------"
 # Change uid and gid of node user so it matches ownership of current dir
 if [ "$MAP_NODE_UID" != "no" ]; then
     if [ ! -d "$MAP_NODE_UID" ]; then
@@ -53,6 +57,5 @@ if [ "$MAP_NODE_UID" != "no" ]; then
     }
 fi
 
-echo "**** GOSU bsb $@ ..."
-
+echo "Run given CMD: gosu bsb $@"
 exec gosu bsb "$@"

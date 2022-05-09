@@ -36,7 +36,7 @@ rnstatus
 echo "-------------------------------------------------------------"
 echo " Nexus Messenger Web App NGINX configuration check and startup"
 echo "-------------------------------------------------------------"
-nginx -t
+sudo nginx -t
 sudo systemctl start nginx
 sudo systemctl status nginx
 
