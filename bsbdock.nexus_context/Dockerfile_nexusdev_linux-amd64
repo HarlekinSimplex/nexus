@@ -22,8 +22,6 @@ ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get install tzdata
 
-#############
-
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -35,13 +33,6 @@ RUN pip install --upgrade pip
 # Install personal helper tools
 RUN apt -y install mc nano vim screen
 
-# Install Reticulum stack and NomadNet messenger application
-#RUN pip3 install rns lxmf nomadnet rnodeconf
-# Install additional python packages
-#RUN pip3 install requests
-# Install Django
-#RUN pip3 install Django==4.0.4
-
 # Install components for django production deplyment
 RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
 
@@ -49,26 +40,16 @@ RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
 RUN apt -y install direwolf
 
 # Create Directories to hold all BSB application files
-ARG CACHEBUST=0
+# ARG CACHEBUST=0
 COPY . .
+
+# Make start script executable
+RUN chmod ug+x /bsb/start.sh
 
 # Install required python packages
 RUN pip install -r requirements.txt
 
-#RUN mkdir /bsb/nexus_server
-#RUN mkdir /bsb/nexus_django
-#RUN mkdir /bsb/nexus_web
-
-# Pull in container start script and make it executable
-#COPY start.sh /bsb
-RUN chmod ug+x /bsb/start.sh
-
-# Pull in Nexus Server
-#COPY nexus_server /bsb/nexus_server
-# Pull in Nexus Django
-#COPY nexus_django /bsb/nexus_django
-# Pull in NexusWeb
-#COPY nexus_web /bsb/nexus_web
+# Configure Nginx
 RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
 RUN systemctl enable nginx
