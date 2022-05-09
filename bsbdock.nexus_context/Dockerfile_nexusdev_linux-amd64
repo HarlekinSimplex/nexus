@@ -80,4 +80,4 @@ EXPOSE 4280
 EXPOSE 4281
 
 # Launch Nexus server on start
-CMD start.sh
+ENTRYPOINT start.sh

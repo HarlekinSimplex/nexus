@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/bin/sh
+# USE the trap if you need to also do manual cleanup after the service is stopped,
+#     or need to start multiple services in the one container
+trap "echo TRAPed signal" HUP INT QUIT TERM
+
 # Log reticulum interface status
 echo "#############################################################"
 echo "# Welcome to bsbdock/nexus                                  #"
@@ -68,9 +72,14 @@ echo "-------------------------------------------------------------"
 # Launch nexus_server2 Server with unbuffered logs (docker takes those logs)
 python3 -u /bsb/nexus_server/nexus_server.py ${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} ${NEXUS_PORT:+--port=$NEXUS_PORT} ${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} ${NEXUS_ROLE:+--role=$NEXUS_ROLE} ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
 
+echo "-------------------------------------------------------------"
+echo " Shutdown Nginx"
+echo "-------------------------------------------------------------"
+systemctl stop nginx
+
 echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus Server terminated"
 echo "-------------------------------------------------------------"
 
-exit
+echo "exited $0"
