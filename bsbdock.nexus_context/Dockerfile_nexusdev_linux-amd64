@@ -58,6 +58,7 @@ RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
 # Switch to user bsb
 USER bsb
 ENV HOME /home/bsb
+ENV PATH="$HOME/.local/bin:$PATH"
 WORKDIR $HOME
 
 # Copy ressources from context into bsb home
