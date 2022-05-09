@@ -21,6 +21,27 @@ echo "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
 echo "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
 echo "NEXUS_BRIDGE=$NEXUS_BRIDGE"
 
+if [ ! -d "~/.reticulum" ]
+then
+    echo "Create .reticulum"
+fi
+sudo chown bsb:bsb -R ~/.reticulum
+sudo chmod -R 777 ~/.reticulum
+
+if [ ! -d "~/.nomadnetwork" ]
+then
+    echo "Create .nomadnetwork"
+fi
+sudo chown bsb:bsb -R ~/.nomadnetwork
+sudo chmod -R 777 ~/.nomadnetwork
+
+if [ ! -d "~/.nexus" ]
+then
+    echo "Create .nexus"
+fi
+sudo chown bsb:bsb -R ~/.nexus
+sudo chmod -R 777 ~/.nexus
+
 echo ""
 echo "-------------------------------------------------------------"
 echo " Actual Reticulum interface configuration:"
