@@ -74,6 +74,8 @@ COPY . .
 # Install required python packages
 RUN pip install --no-cache-dir -r ./requirements.txt
 
+RUN python manage.py collectstatic --no-input --clear
+
 # Back to root
 USER root
 
