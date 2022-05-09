@@ -67,10 +67,16 @@ services:
 # Hostname alias of container within the network spanned by docker
           - ${NEXUS_CONTAINER_ALIAS:-nexus-server_node01}
     volumes:
+      # Mapping used to externalize config files of reticulum, nomadnet and nexus
       - type: bind
-# Mapping used to externalize config files of reticulum, nomadnet and nexus
-        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root}
-        target: ${NEXUS_ROOT:-/home/bsb}
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.reticulum}
+        target: ${NEXUS_ROOT:-/home/bsb/.reticulum}
+      - type: bind
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.nomadnetwork}
+        target: ${NEXUS_ROOT:-/home/bsb/.nomadnetwork}
+      - type: bind
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.nexus}
+        target: ${NEXUS_ROOT:-/home/bsb/.nexus}
     logging:
       driver: "json-file"
       options:
