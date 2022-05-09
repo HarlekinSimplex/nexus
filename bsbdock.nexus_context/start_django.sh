@@ -12,6 +12,9 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Environment variables set:"
 echo "-------------------------------------------------------------"
+
+NEXUS_PORT="${NEXUS_PORT:-4281}"
+
 echo "NEXUS_CONFIG=$NEXUS_CONFIG"
 echo "NEXUS_PORT=$NEXUS_PORT"
 echo "NEXUS_ASPECT=$NEXUS_ASPECT"
@@ -63,8 +66,6 @@ ${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
 ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
 ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
 ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
-echo "-------------------------------------------------------------"
-echo "NEXUS_PORT_JSONAPI=$NEXUS_PORT_JSONAPI"
 
 echo ""
 echo "-------------------------------------------------------------"
