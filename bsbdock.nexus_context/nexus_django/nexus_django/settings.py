@@ -50,7 +50,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CSRF_TRUSTED_ORIGINS = ["https://nexus.deltamatrix.org"]
+CSRF_TRUSTED_ORIGINS = ["https://nexus.deltamatrix.org:8285"]
 
 ROOT_URLCONF = 'nexus_django.urls'
 
