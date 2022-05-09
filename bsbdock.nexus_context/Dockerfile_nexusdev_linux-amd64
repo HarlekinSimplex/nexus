@@ -35,9 +35,6 @@ RUN pip install --upgrade pip
 # Install personal helper tools
 RUN apt -y install mc nano vim screen
 
-# Install required python packages
-RUN pip install -r requirements.txt
-
 # Install Reticulum stack and NomadNet messenger application
 #RUN pip3 install rns lxmf nomadnet rnodeconf
 # Install additional python packages
@@ -54,6 +51,10 @@ RUN apt -y install direwolf
 # Create Directories to hold all BSB application files
 ARG CACHEBUST=0
 COPY . .
+
+# Install required python packages
+RUN pip install -r requirements.txt
+
 #RUN mkdir /bsb/nexus_server
 #RUN mkdir /bsb/nexus_django
 #RUN mkdir /bsb/nexus_web
