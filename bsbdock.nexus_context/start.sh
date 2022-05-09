@@ -4,11 +4,10 @@
 trap "echo TRAPed signal" HUP INT QUIT TERM
 
 # Log reticulum interface status
+echo ""
 echo "#############################################################"
-echo "# Welcome to bsbdock/nexus                                  #"
-echo "# A broadcast messaging server based on Reticulum           #"
+echo " Startup of Nexus Server 1.4.0.4 [Python]"
 echo "#############################################################"
-
 echo ""
 echo "-------------------------------------------------------------"
 echo " Environment variables set:"
@@ -25,7 +24,7 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Actual Reticulum interface configuration:"
 echo "-------------------------------------------------------------"
-cat ~/.reticulum/config
+cat .reticulum/config
 
 echo ""
 echo "-------------------------------------------------------------"
@@ -36,15 +35,9 @@ rnstatus
 echo "-------------------------------------------------------------"
 echo " Nexus Messenger Web App NGINX configuration check and startup"
 echo "-------------------------------------------------------------"
-nginx -t
+sudo nginx -t
 sudo systemctl start nginx
 sudo systemctl status nginx
-
-#echo ""
-#echo "-------------------------------------------------------------"
-#echo " Django server startup"
-#echo "-------------------------------------------------------------"
-#python3 /bsb/nexus_django/manage.py runserver >>/root/.django/logfile &
 
 #echo ""
 #echo "-------------------------------------------------------------"
@@ -70,16 +63,11 @@ echo "-------------------------------------------------------------"
 echo " Nexus Server startup"
 echo "-------------------------------------------------------------"
 # Launch nexus_server2 Server with unbuffered logs (docker takes those logs)
-exec python3 -u ./nexus_server/nexus_server.py ${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} ${NEXUS_PORT:+--port=$NEXUS_PORT} ${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} ${NEXUS_ROLE:+--role=$NEXUS_ROLE} ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
-
-echo "-------------------------------------------------------------"
-echo " Shutdown Nginx"
-echo "-------------------------------------------------------------"
-sudo systemctl stop nginx
-
-echo ""
-echo "-------------------------------------------------------------"
-echo " Nexus Server terminated"
-echo "-------------------------------------------------------------"
-
-echo "exited $0"
+exec python3 -u ./nexus_server/nexus_server.py \
+${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
+${NEXUS_PORT:+--port=$NEXUS_PORT} \
+${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
+${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
+${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
+${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
+${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
