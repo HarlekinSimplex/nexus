@@ -72,7 +72,7 @@ RUN pip3 install requests pytz
 COPY . .
 
 # Install required python packages
-RUN pip install -r ./requirements.txt
+RUN pip install --no-cache-dir -r ./requirements.txt
 
 # Back to root
 USER root
@@ -103,4 +103,4 @@ ENV NEXUS_CONTAINER_API_PORT 4281
 EXPOSE $NEXUS_CONTAINER_API_PORT
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["./start.sh"]
+# CMD ["/home/bsb/start.sh"]
