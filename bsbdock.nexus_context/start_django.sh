@@ -5,6 +5,10 @@ trap "echo TRAPed signal" HUP INT QUIT TERM
 
 # Log reticulum interface status
 echo ""
+echo "#############################################################"
+echo " Startup of Nexus Server [Django]"
+echo "#############################################################"
+echo ""
 echo "-------------------------------------------------------------"
 echo " Environment variables set:"
 echo "-------------------------------------------------------------"
