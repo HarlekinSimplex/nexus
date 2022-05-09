@@ -74,11 +74,12 @@ COPY . .
 # Install required python packages
 RUN pip install --no-cache-dir -r ./requirements.txt
 
-RUN cd nexus_django
+WORKDIR $HOME/nexus_django
 RUN python manage.py collectstatic --no-input --clear
 
 # Back to root
 USER root
+WORKDIR $HOME
 
 # Make start script executable
 RUN chmod ugo+x start.sh
