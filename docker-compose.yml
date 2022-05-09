@@ -70,7 +70,7 @@ services:
       - type: bind
 # Mapping used to externalize config files of reticulum, nomadnet and nexus
         source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root}
-        target: ${NEXUS_ROOT:-/root}
+        target: ${NEXUS_ROOT:-~}
     logging:
       driver: "json-file"
       options:
