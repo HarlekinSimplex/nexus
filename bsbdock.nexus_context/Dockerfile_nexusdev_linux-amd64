@@ -64,8 +64,8 @@ WORKDIR $HOME
 COPY . .
 
 # Make start script executable
-RUN chmod ug+x start.sh
-RUN chmod ug+x start_django.sh
+RUN sudo chmod ug+x start.sh
+RUN sudo chmod ug+x start_django.sh
 
 # Install required python packages
 RUN pip install -r requirements.txt
