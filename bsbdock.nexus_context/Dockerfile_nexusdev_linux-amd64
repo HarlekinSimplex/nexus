@@ -24,10 +24,6 @@ ENV PYTHONUNBUFFERED 1
 RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get -y install tzdata sudo
 
-# Install pip3
-RUN apt -y install python3-pip
-RUN pip install --upgrade pip
-
 # Install personal helper tools
 RUN apt -y install mc nano vim screen
 
@@ -73,6 +69,10 @@ RUN chown -R bsb:bsb $HOME
 # Switch to user bsb
 USER bsb
 WORKDIR $HOME
+
+# Install pip3
+RUN apt -y install python3-pip
+RUN pip install --upgrade pip
 
 # Install required python packages
 #RUN pip install --no-cache-dir -r ./requirements.txt
