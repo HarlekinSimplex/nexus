@@ -31,13 +31,11 @@ RUN apt-get -y install python3-pip
 RUN apt-get -y install mc nano vim screen
 
 # Install components for django production deplyment
-RUN apt-get -y install systemctl nginx uwsgi uwsgi-plugin-python3
+#RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
+RUN apt-get -y install systemctl nginx
 
 # Install TNC for radio networking (direwolf)
 RUN apt-get -y install direwolf
-
-# Install personal helper tools
-RUN apt-get -y install mc nano vim screen
 
 # grab gosu for easy step-down from root
 RUN set -eux
