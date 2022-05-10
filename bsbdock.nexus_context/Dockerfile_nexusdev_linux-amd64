@@ -71,8 +71,8 @@ USER bsb
 WORKDIR $HOME
 
 # Install pip3
-RUN apt -y install python3-pip
-RUN pip install --upgrade pip
+RUN sudo apt -y install python3-pip
+RUN sudo pip install --upgrade pip
 
 # Install required python packages
 #RUN pip install --no-cache-dir -r ./requirements.txt
