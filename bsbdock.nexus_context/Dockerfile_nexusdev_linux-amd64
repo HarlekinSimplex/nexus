@@ -74,7 +74,8 @@ USER bsb
 WORKDIR $HOME
 
 # Install required python packages
-RUN pip install --no-cache-dir -r ./requirements.txt
+#RUN pip install --no-cache-dir -r ./requirements.txt
+RUN pip install -r ./requirements.txt
 
 # Collect static files
 WORKDIR $HOME/nexus_django
