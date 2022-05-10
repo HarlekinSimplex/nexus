@@ -6,6 +6,7 @@ class ServerConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'server'
 
+'''
     def ready(self):
         # Pull up Reticulum stack as configured
         RNS.Reticulum()
@@ -21,3 +22,4 @@ class ServerConfig(AppConfig):
         RNS.log("", RNS.LOG_INFO)
         RNS.log("Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
         RNS.log("...............................................................................", RNS.LOG_INFO)
+'''
