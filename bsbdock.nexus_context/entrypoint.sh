@@ -42,6 +42,15 @@ fi
 chown bsb:bsb -R ~/.nexus
 chmod -R 755 ~/.nexus
 
+# Set default container Nexus API Port to exposed port
+NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
+
+# Set default super user credentials for django
+DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}"
+DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-admin}"
+DJANGO_SUPERUSER_EMAIL="${DJANGO_SUPERUSER_EMAIL:-admin@example.com}"
+DJANGO_LOG_LEVEL="${DJANGO_LOG_LEVEL:-info}"
+
 echo ""
 echo "-------------------------------------------------------------"
 echo " Switch from user root to user bsb"

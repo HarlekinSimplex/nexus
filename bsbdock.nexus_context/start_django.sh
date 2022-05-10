@@ -39,9 +39,6 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus environment variables set:"
 echo "-------------------------------------------------------------"
-# Set default container Nexus API Port to exposed port
-NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
-
 echo "NEXUS_CONFIG=$NEXUS_CONFIG"
 echo "NEXUS_PORT=$NEXUS_PORT"
 echo "NEXUS_ASPECT=$NEXUS_ASPECT"
@@ -54,12 +51,6 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Default Django environment variables set:"
 echo "-------------------------------------------------------------"
-# Set default super user credentials for django
-DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}"
-DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-admin}"
-DJANGO_SUPERUSER_EMAIL="${DJANGO_SUPERUSER_EMAIL:-admin@example.com}"
-DJANGO_LOG_LEVEL="${DJANGO_LOG_LEVEL:-info}"
-
 echo "DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME"
 echo "DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD"
 echo "DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL"
