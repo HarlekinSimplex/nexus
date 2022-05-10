@@ -25,27 +25,27 @@ RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get -y install tzdata sudo
 
 # Install pip3
-RUN apt -y install python3-pip
+RUN apt-get -y install python3-pip
 
 # Install personal helper tools
-RUN apt -y install mc nano vim screen
+RUN apt-get -y install mc nano vim screen
 
 # Install components for django production deplyment
-RUN apt -y install systemctl nginx uwsgi uwsgi-plugin-python3
+RUN apt-get -y install systemctl nginx uwsgi uwsgi-plugin-python3
 
 # Install TNC for radio networking (direwolf)
-RUN apt -y install direwolf
+RUN apt-get -y install direwolf
 
 # Install personal helper tools
-RUN apt -y install mc nano vim screen
+RUN apt-get -y install mc nano vim screen
 
 # grab gosu for easy step-down from root
-RUN set -eux; \
-	apt-get update; \
-	apt-get install -y gosu; \
-	rm -rf /var/lib/apt/lists/*; \
+RUN set -eux
+RUN	apt-get update
+RUN	apt-get install -y gosu
+RUN	rm -rf /var/lib/apt/lists/*
 # verify that the binary works
-	gosu nobody true
+RUN	gosu nobody true
 
 # Set Home dir and path fpr user bsb
 ENV HOME /home/bsb
