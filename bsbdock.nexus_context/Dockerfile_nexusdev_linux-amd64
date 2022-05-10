@@ -80,7 +80,9 @@ RUN pip install -r ./requirements.txt
 
 # Collect static files
 WORKDIR $HOME/nexus_django
-RUN python manage.py collectstatic --no-input --clear
+#RUN python manage.py collectstatic --no-input --clear
+RUN ./manage.py collectstatic --no-input --clear
+RUN ./manage.py flush --no-input
 
 # Back to root
 USER root
