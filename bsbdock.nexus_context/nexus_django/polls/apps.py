@@ -1,8 +1,7 @@
+import RNS
 from django.apps import AppConfig
 
-# import the logging library
 import logging
-# Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
@@ -11,14 +10,16 @@ class PollsConfig(AppConfig):
     name = 'polls'
 
     def ready(self):
-        # put your startup code here
+        # Pull up Reticulum stack as configured
+        RNS.Reticulum()
+
         # Startup log with used parameter
-        logger.info(" ____   _____ ____   _   _                      _____")
-        logger.info("|  _ \\ / ____|  _ \\ | \\ | |                    / ____|")
-        logger.info("| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __")
-        logger.info("|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|")
-        logger.info("| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |")
-        logger.info("|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|")
-        logger.info("")
-        logger.info("Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License")
-        logger.info("...............................................................................")
+        RNS.log(" ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
+        RNS.log("|  _ \\ / ____|  _ \\ | \\ | |                    / ____|", RNS.LOG_INFO)
+        RNS.log("| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __", RNS.LOG_INFO)
+        RNS.log("|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|", RNS.LOG_INFO)
+        RNS.log("| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
+        RNS.log("|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
+        RNS.log("", RNS.LOG_INFO)
+        RNS.log("Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
+        RNS.log("...............................................................................", RNS.LOG_INFO)
