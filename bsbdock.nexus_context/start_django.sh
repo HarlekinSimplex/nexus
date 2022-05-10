@@ -8,21 +8,6 @@ echo ""
 echo "#############################################################"
 echo " Startup of Nexus Server [Django]"
 echo "#############################################################"
-echo ""
-echo "-------------------------------------------------------------"
-echo " Environment variables set:"
-echo "-------------------------------------------------------------"
-
-# Set default container Nexus API Port to exposed port
-NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
-
-echo "NEXUS_CONFIG=$NEXUS_CONFIG"
-echo "NEXUS_PORT=$NEXUS_PORT"
-echo "NEXUS_ASPECT=$NEXUS_ASPECT"
-echo "NEXUS_ROLE=$NEXUS_ROLE"
-echo "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
-echo "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
-echo "NEXUS_BRIDGE=$NEXUS_BRIDGE"
 
 echo ""
 echo "-------------------------------------------------------------"
@@ -49,26 +34,48 @@ sudo systemctl status nginx
 #echo "-------------------------------------------------------------"
 #direwolf -t 0
 
+
 echo ""
 echo "-------------------------------------------------------------"
-echo " Parameters passed to server startup:"
+echo " Nexus environment variables set:"
 echo "-------------------------------------------------------------"
-echo \
-${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
-${NEXUS_PORT:+--port=$NEXUS_PORT} \
-${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
-${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
-${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
-${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
-${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
+# Set default container Nexus API Port to exposed port
+NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
+
+echo "NEXUS_CONFIG=$NEXUS_CONFIG"
+echo "NEXUS_PORT=$NEXUS_PORT"
+echo "NEXUS_ASPECT=$NEXUS_ASPECT"
+echo "NEXUS_ROLE=$NEXUS_ROLE"
+echo "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
+echo "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
+echo "NEXUS_BRIDGE=$NEXUS_BRIDGE"
+
+echo ""
+echo "-------------------------------------------------------------"
+echo " Default Django Super User environment variables set:"
+echo "-------------------------------------------------------------"
+# Set default super user credentials for django
+DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}"
+DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-admin}"
+DJANGO_SUPERUSER_EMAIL="${DJANGO_SUPERUSER_EMAIL:-admin@example.com}"
+
+echo "DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME"
+echo "DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD"
+echo "DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL"
+
+echo ""
+echo "-------------------------------------------------------------"
+echo " Create default Django Super User"
+echo "-------------------------------------------------------------"
+cd nexus_django || exit
+if ! python manage.py createsuperuser --noinput ; then
+    echo "Super User already exists and cannot be replaced"
+else
+    echo "Default Super User successfully created"
+fi
 
 echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus Django Server startup"
 echo "-------------------------------------------------------------"
-# Launch nexus_server2 Server with unbuffered logs (docker takes those logs)
-# exec python3 -u /bsb/nexus_server/nexus_server.py ${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} ${NEXUS_PORT:+--port=$NEXUS_PORT} ${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} ${NEXUS_ROLE:+--role=$NEXUS_ROLE} ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
-
-cd nexus_django || exit
-#exec gunicorn nexus_django.wsgi:application -t 0 -w 3 -k gevent --bind 0.0.0.0:"$NEXUS_PORT"
 exec gunicorn nexus_django.wsgi:application --log-level debug --bind 0.0.0.0:"$NEXUS_PORT"
