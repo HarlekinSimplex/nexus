@@ -92,8 +92,8 @@ DISTRIBUTION_TARGETS = {}
 # These links are use as additional distribution targets
 # Links ar specified using an array of json map as startup parameter --bridge
 # BRIDGE_LINKS = [
-#    {'url': 'https://nexus.deltamatrix.org:8241', 'tag': 'dev.test01'},
-#    {'url': 'https://nexus.deltamatrix.org:8242', 'tag': 'dev.test02'}
+#    {'url': 'https://nexus.deltamatrix.org:8241', 'cluster': 'delta'},
+#    {'url': 'https://nexus.deltamatrix.org:8242', 'cluster': 'dev'}
 # ]
 BRIDGE_TARGETS = []
 
