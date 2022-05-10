@@ -42,8 +42,13 @@ fi
 chown bsb:bsb -R ~/.nexus
 chmod -R 755 ~/.nexus
 
-# Set default container Nexus API Port to exposed port
+# Set Nexus Default environment variables
 export NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
+export NEXUS_ASPECT="${NEXUS_ASPECT:-home}"
+export NEXUS_ROLE="${NEXUS_ROLE:-{\"cluster\":\"home\"}}"
+export NEXUS_LONGPOLL="${NEXUS_LONGPOLL:-17280}"
+export NEXUS_TIMEOUT="${NEXUS_TIMEOUT:-43200}"
+export NEXUS_BRIDGE="${NEXUS_BRIDGE:-[]}"
 
 # Set default super user credentials for django
 export DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}"
