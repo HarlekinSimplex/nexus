@@ -3,8 +3,11 @@
 # Build and tag nexus_server2 container
 #
 
+VER=$1
+ARCH=$2
+
 # Check
-if [ "$2" ] && [ "$2" != "amd64" ] && [ "$2" != "arm64" ] && [ "$2" != "arm" ]
+if [ "$ARCH" ] && [ "$ARCH" != "amd64" ] && [ "$ARCH" != "arm64" ] && [ "$ARCH" != "arm" ]
 then
   echo ""
   echo "Usage:"
@@ -17,8 +20,8 @@ then
   echo ""
 fi
 
-VER="${$1:-dev}"
-ARCH="${$2:-amd64}"
+VER="${$VER:-dev}"
+ARCH="${$ARCH:-amd64}"
 OS=linux
 TAG="$VER"_"$OS"-"$ARCH"
 
