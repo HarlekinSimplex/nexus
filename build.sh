@@ -12,11 +12,12 @@ then
 fi
 
 # Check
-if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ]
+if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ] ||
+   [ "$1" == "?" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]
 then
   echo ""
   echo "Usage:"
-  echo "  build [<Arch>=amd64|arm64|arm] [<Version>=dev"
+  echo "  build [<Arch>=amd64|arm64|arm] [<Version>=dev]"
   echo ""
   echo "Examples:"
   echo "  build.sh amd64 1.2.3"
