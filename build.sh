@@ -38,7 +38,7 @@ IMAGE_ARCH="${IMAGE_ARCH:-amd64}"
 IMAGE_OS=linux
 IMAGE_TAG="$IMAGE_VERSION"_"$IMAGE_OS"-"$IMAGE_ARCH"
 
-echo -e "${BLUE}Using $IMAGE_TAG as image tag.${NC}"
+echo -e "${BLUE}Using ${LIGHTBLUE}$IMAGE_TAG${BLUE} as image tag.${NC}"
 
 # Move into image context
 cd ./bsbdock.nexus_context || exit
