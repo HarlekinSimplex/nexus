@@ -20,12 +20,12 @@ then
   echo ""
 fi
 
-IMAGE_VERSION="${$VER:-dev}"
-IMAGE_ARCH="${$IMAGE_ARCH:-amd64}"
+IMAGE_VERSION="${IMAGE_VERSION:-dev}"
+IMAGE_ARCH="${IMAGE_ARCH:-amd64}"
 IMAGE_OS=linux
 IMAGE_TAG="$IMAGE_VERSION"_"$IMAGE_OS"-"$IMAGE_ARCH"
 
-echo $IMAGE_TAG
+echo "$IMAGE_TAG"
 
 exit
 
