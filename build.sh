@@ -3,6 +3,11 @@
 # Build and tag nexus_server2 container
 #
 
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
 IMAGE_ARCH=$1
 IMAGE_VERSION=$2
 if [ "$IMAGE_ARCH" == "dev" ] ; then
@@ -14,15 +19,15 @@ fi
 if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ] ||
    [ "$1" == "?" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then
   echo ""
-  echo "Usage:"
+  echo "${YELLOW}Usage:"
   echo "  build [<Arch>=amd64|arm64|arm] [<Version>=dev]"
-  echo ""
-  echo "Examples:"
+  echo "${NC}"
+  echo "${GREEN}Examples:"
   echo "  build.sh amd64 1.2.3"
   echo "  build.sh        -> build.sh amd64 dev"
   echo "  build.sh dev    -> build.sh amd64 dev"
   echo "  build.sh arm    -> build.sh arm dev"
-  echo ""
+  echo "${NC}"
   exit 0
 fi
 
@@ -39,8 +44,9 @@ cd ./bsbdock.nexus_context || exit
 # Check if Dockerfile exists
 FILE=Dockerfile_nexus_"$IMAGE_TAG"
 if test -f "$FILE"; then
-    echo "Dockerfile $FILE to build image exists."
-    echo "Building image ..."
+    echo "${GREEN}Dockerfile $FILE to build image exists."
+    echo "Building image ...{NC}"
+
 
     # Build image according given build parameters
     docker build --no-cache --build-arg CACHEBUST="$(date +%s)" \
@@ -59,8 +65,8 @@ if test -f "$FILE"; then
 
     RESULT=$?
 else
-    echo "Dockerfile $FILE to build image does NOT exists."
-    echo "Image build aborted..."
+    echo "${RED}Dockerfile $FILE to build image does NOT exists."
+    echo "Image build aborted.${NC}"
     RESULT=1
 fi
 
