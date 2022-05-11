@@ -7,6 +7,7 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 IMAGE_ARCH=$1
@@ -45,7 +46,7 @@ cd ./bsbdock.nexus_context || exit
 # Check if Dockerfile exists
 FILE=Dockerfile_nexus_"$IMAGE_TAG"
 if test -f "$FILE"; then
-    echo -e "${GREEN}Dockerfile $FILE to build image exists.${NC}"
+    echo -e "${GREEN}Dockerfile ${CYAN}$FILE${GREEN} to build image exists.${NC}"
     echo -e "${BLUE}Building image ...${NC}"
 
 
