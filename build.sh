@@ -3,11 +3,11 @@
 # Build and tag nexus_server2 container
 #
 
-VER=$1
-ARCH=$2
+IMAGE_VERSION=$1
+IMAGE_ARCH=$2
 
 # Check
-if [ "$ARCH" ] && [ "$ARCH" != "amd64" ] && [ "$ARCH" != "arm64" ] && [ "$ARCH" != "arm" ]
+if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ]
 then
   echo ""
   echo "Usage:"
@@ -20,25 +20,25 @@ then
   echo ""
 fi
 
-VER="${$VER:-dev}"
-ARCH="${$ARCH:-amd64}"
-OS=linux
-TAG="$VER"_"$OS"-"$ARCH"
+IMAGE_VERSION="${$VER:-dev}"
+IMAGE_ARCH="${$IMAGE_ARCH:-amd64}"
+IMAGE_OS=linux
+IMAGE_TAG="$IMAGE_VERSION"_"$IMAGE_OS"-"$IMAGE_ARCH"
 
-echo $TAG
+echo $IMAGE_TAG
 
 exit
 
 cd ./bsbdock.nexus_context || exit
 docker build --no-cache --build-arg CACHEBUST="$(date +%s)" \
-  --tag bsbdock/nexus:"$TAG" \
-  -f Dockerfile_nexus_"$TAG" .
-docker tag bsbdock/nexus:"$TAG" bsbdock/nexus:"$1"
+  --tag bsbdock/nexus:"$IMAGE_TAG" \
+  -f Dockerfile_nexus_"$IMAGE_TAG" .
+docker tag bsbdock/nexus:"$IMAGE_TAG" bsbdock/nexus:"$IMAGE_VERSION"
 
-if [ "$VER" != "dev" ]
+if [ "$IMAGE_VERSION" != "dev" ]
 then
-  docker tag bsbdock/nexus:"$TAG" bsbdock/nexus
-  docker push bsbdock/nexus:"$TAG"
+  docker tag bsbdock/nexus:"$IMAGE_TAG" bsbdock/nexus
+  docker push bsbdock/nexus:"$IMAGE_TAG"
 fi
 
 cd .. || exit
