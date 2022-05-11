@@ -66,7 +66,7 @@ if test -f "$FILE"; then
 
     RESULT=$?
 else
-    echo -e "${YELLOW}Dockerfile $FILE to build image does NOT exists.${NC}"
+    echo -e "${YELLOW}Dockerfile $FILE to build image does ${RED}NOT${NC} exists.${NC}"
     echo -e "${RED}Image build canceld.${NC}"
     RESULT=1
 fi
