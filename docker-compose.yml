@@ -37,7 +37,7 @@ services:
 # If image can not be pulled from docker hub run one of the following commands
 # bash ./build-arm.sh for building an arm architecture image
 # bash ./build-arm64.sh for building an arm64 architecture image
-# bash ./build-amd64.sh for building an amd64 architecture image
+# bash ./build.sh for building an amd64 architecture image
     image: ${NEXUS_IMAGE:-bsbdock/nexus:latest}
 
 # Build environment for nexus container (default ARM-V7 Architectur)
