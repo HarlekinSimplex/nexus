@@ -19,6 +19,7 @@ then
   echo "  build [<Arch>=amd64|arm64|arm] [<Version>=dev"
   echo ""
   echo "Examples:"
+  echo "  build.sh amd64 1.2.3"
   echo "  build.sh        -> build.sh amd64 dev"
   echo "  build.sh dev    -> build.sh amd64 dev"
   echo "  build.sh arm    -> build.sh arm dev"
