@@ -25,6 +25,7 @@ then
   echo "  build.sh dev    -> build.sh amd64 dev"
   echo "  build.sh arm    -> build.sh arm dev"
   echo ""
+  exit 0
 fi
 
 IMAGE_VERSION="${IMAGE_VERSION:-dev}"
