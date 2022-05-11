@@ -51,7 +51,7 @@ if test -f "$FILE"; then
 
     # Set --no-cache if version is dev
     CACHE_OPT=
-    if [ "$IMAGE_VERSION" == "dev" ] ; then
+    if [ "$IMAGE_VERSION" != "dev" ] ; then
       CACHE_OPT=--no-cache
       echo -e "${BLUE}Using option ${YELLOW}--no-cache${BLUE} during build.${NC}"
     fi
