@@ -63,9 +63,22 @@ RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
     chmod 0440 /etc/sudoers.d/bsb
 
-# Copy ressources from context into bsb home
+# Set ownership to usr bsb
+RUN chown -R bsb:bsb .
+
+# Switch to user bsb
+USER bsb
 WORKDIR $HOME
+
+# Upgrade pip
+RUN pip install --upgrade pip
+RUN pip install cryptography rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
+
+# Copy ressources from context into bsb home
 COPY . .
+
+# Install required python packages
+RUN pip install -r ./requirements.txt
 
 # Configure Nginx
 RUN rm /etc/nginx/sites-enabled/default
@@ -84,20 +97,6 @@ RUN mv start_django.sh /usr/local/bin
 
 # Create folder for static files
 RUN mkdir $HOME/nexus_django/static
-
-# Set ownership to usr bsb
-RUN chown -R bsb:bsb .
-
-# Switch to user bsb
-USER bsb
-WORKDIR $HOME
-
-# Upgrade pip
-RUN pip install --upgrade pip
-
-# Install required python packages
-#RUN pip install --no-cache-dir -r ./requirements.txt
-RUN pip install -r ./requirements.txt
 
 # Collect static files
 WORKDIR $HOME/nexus_django
