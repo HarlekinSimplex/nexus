@@ -11,9 +11,11 @@ then
   echo ""
   echo "Usage:"
   echo "  build <Version> [<Arch>=amd64|arm64|arm]"
+  echo ""
   echo "Examples:"
   echo "  build.sh 2.0.0 amd64"
   echo "  build.sh dev"
+  echo ""
 fi
 
 exit
