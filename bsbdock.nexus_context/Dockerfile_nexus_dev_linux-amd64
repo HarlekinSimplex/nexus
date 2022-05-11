@@ -63,9 +63,6 @@ RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
     chmod 0440 /etc/sudoers.d/bsb
 
-# Set ownership to usr bsb
-RUN chown -R bsb:bsb $HOME
-
 # Switch to user bsb
 USER bsb
 WORKDIR $HOME
@@ -76,6 +73,11 @@ RUN pip install cryptography rns lxmf nomadnet rnodeconf requests pytz Django gu
 
 # Copy ressources from context into bsb home
 COPY . .
+# Set ownership to usr bsb
+USER root
+RUN chown -R bsb:bsb $HOME
+USER bsb
+WORKDIR $HOME
 
 # Install required python packages
 RUN pip install -r ./requirements.txt
