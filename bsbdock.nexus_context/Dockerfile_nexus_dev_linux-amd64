@@ -114,7 +114,7 @@ WORKDIR $HOME
 
 # Configure Nginx
 RUN rm /etc/nginx/sites-enabled/default
-RUN ln -s ./nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+RUN ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
 
 # Expose port for Reticulum server TCP Interface (disable as default)
 ENV NEXUS_CONTAINER_RNS_PORT 4242
