@@ -105,6 +105,9 @@ WORKDIR $HOME/nexus_django
 # RUN ./manage.py collectstatic --no-input --clear
 # RUN ./manage.py flush --no-input
 
+# Back to root
+USER root
+
 # Expose port for Reticulum server TCP Interface (disable as default)
 ENV NEXUS_CONTAINER_RNS_PORT 4242
 EXPOSE $NEXUS_CONTAINER_RNS_PORT
