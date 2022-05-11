@@ -3,20 +3,25 @@
 # Build and tag nexus_server2 container
 #
 
-IMAGE_VERSION=$1
-IMAGE_ARCH=$2
+IMAGE_ARCH=$1
+IMAGE_VERSION=$2
+if [ "$IMAGE_ARCH" == "dev" ]
+then
+  IMAGE_VERSION=$IMAGE_ARCH
+  IMAGE_ARCH=
+fi
 
 # Check
 if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ]
 then
   echo ""
   echo "Usage:"
-  echo "  build [<Version>=dev] [<Arch>=amd64|arm64|arm]"
+  echo "  build [<Arch>=amd64|arm64|arm] [<Version>=dev"
   echo ""
   echo "Examples:"
-  echo "  build.sh"
-  echo "  build.sh 2.0.0"
-  echo "  build.sh 2.0.0 arm64"
+  echo "  build.sh        -> build.sh amd64 dev"
+  echo "  build.sh dev    -> build.sh amd64 dev"
+  echo "  build.sh arm    -> build.sh arm dev"
   echo ""
 fi
 
