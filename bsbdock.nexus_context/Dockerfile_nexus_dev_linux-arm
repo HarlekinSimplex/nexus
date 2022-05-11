@@ -29,6 +29,7 @@ RUN apt-get -y install mc nano vim screen
 # Install components for django production deplyment
 #RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
 RUN apt-get -y install nginx systemctl
+RUN systemctl enable nginx
 
 # Install TNC for radio networking (direwolf)
 RUN apt-get -y install direwolf
@@ -51,51 +52,58 @@ RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
     chmod 0440 /etc/sudoers.d/bsb
 
-# Copy ressources from context into bsb home
-WORKDIR $HOME
-COPY . .
-
-# Create folder for static files
-WORKDIR $HOME/nexus_django
-RUN mkdir static
-RUN chmod ugo+x manage.py
-
-# Set ownership to usr bsb
-RUN chown -R bsb:bsb $HOME
-
 # Switch to user bsb
 USER bsb
 WORKDIR $HOME
 
 # Upgrade pip
 RUN pip install --upgrade pip
+# Install requiered python packages
+RUN pip install cryptography rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
+
+# Change to root
+USER root
+# Copy ressources from context into bsb home
+ARG CACHEBUST=1
+COPY . .
+# Set ownership to usr bsb
+RUN chown -R bsb:bsb $HOME
+# Make some scripts executable
+RUN chmod +x entrypoint.sh
+RUN chmod +x start.sh
+RUN chmod +x start_django.sh
+# Move script to bin
+RUN mv entrypoint.sh /usr/local/bin
+RUN mv start.sh /usr/local/bin
+RUN mv start_django.sh /usr/local/bin
+
+# Change to bsb again to install python packages indicated at the rerquirents.txt
+# This will be done without cache usage
+USER bsb
+WORKDIR $HOME
 
 # Install required python packages
-#RUN pip install --no-cache-dir -r ./requirements.txt
 RUN pip install -r ./requirements.txt
 
-# Collect static files
+# Move to Django
 WORKDIR $HOME/nexus_django
+# Make manage.py executable
+RUN chmod +x manage.py
+# Create folder for static files
+RUN mkdir static
+
+# Collect static files
 #RUN python manage.py collectstatic --no-input --clear
 RUN ./manage.py collectstatic --no-input --clear
 RUN ./manage.py flush --no-input
 
-# Back to root
+# Back to root to finalize stuff
 USER root
 WORKDIR $HOME
-
-# Make start script executable
-RUN chmod ugo+x start.sh
-RUN chmod ugo+x start_django.sh
 
 # Configure Nginx
 RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
-RUN systemctl enable nginx
-
-# Copy entrypoint
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod ug+x /usr/local/bin/entrypoint.sh
 
 # Expose port for Reticulum server TCP Interface (disable as default)
 ENV NEXUS_CONTAINER_RNS_PORT 4242
@@ -109,5 +117,4 @@ EXPOSE $NEXUS_CONTAINER_WEB_PORT
 ENV NEXUS_CONTAINER_API_PORT 4281
 EXPOSE $NEXUS_CONTAINER_API_PORT
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-# CMD ["/home/bsb/start.sh"]
+ENTRYPOINT ["entrypoint.sh"]
