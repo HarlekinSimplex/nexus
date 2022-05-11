@@ -49,9 +49,14 @@ if test -f "$FILE"; then
     echo -e "${GREEN}Dockerfile ${CYAN}$FILE${GREEN} to build image exists.${NC}"
     echo -e "${BLUE}Building image ...${NC}"
 
+    # Set --no-cache if version is dev
+    CACHE_OPT=
+    if [ "$IMAGE_VERSION" == "dev" ] ; then
+      CACHE_OPT=--no-cache
+    fi
 
     # Build image according given build parameters
-    docker build --no-cache --build-arg CACHEBUST="$(date +%s)" \
+    docker build --build-arg CACHEBUST="$(date +%s)" "$CACHE_OPT" \
       --tag bsbdock/nexus:"$IMAGE_TAG" \
       -f Dockerfile_nexus_"$IMAGE_TAG" .
 
