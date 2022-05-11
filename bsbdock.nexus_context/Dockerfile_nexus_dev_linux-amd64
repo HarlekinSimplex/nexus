@@ -64,10 +64,11 @@ RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
     chmod 0440 /etc/sudoers.d/bsb
 
 # Set ownership to usr bsb
-WORKDIR $HOME
-RUN chown -R bsb:bsb .
+RUN chown -R bsb:bsb $HOME
+
 # Switch to user bsb
 USER bsb
+WORKDIR $HOME
 
 # Upgrade pip
 RUN pip install --upgrade pip
