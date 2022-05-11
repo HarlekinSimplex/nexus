@@ -5,71 +5,109 @@ FROM python:3.9
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+# set environment variables for python
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 # Update base image if necessary
-RUN apt-get update
-RUN apt-get install tzdata
+RUN apt-get -y update && apt-get -y upgrade
+RUN apt-get -y install tzdata sudo
 
 # Install pip3
-RUN apt -y install python3-pip
-RUN pip install --upgrade pip
+RUN apt-get -y install python3-pip
 
-# Build essentials
-RUN apt -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
-
+# Build essentials for rust
+RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
 # Install rust
-RUN apt -y install curl
+RUN apt-get -y install curl
 RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
 ENV PATH="/root/.cargo/bin:$PATH"
 
-# Build/Install cryptography
-RUN pip3 install cryptography
-
-#############
-
 # Install personal helper tools
-RUN apt -y install mc nano vim screen systemctl nginx
+RUN apt-get -y install mc nano vim screen
 
-# Install direwolf
-RUN apt -y install direwolf
+# Install components for django production deplyment
+#RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
+RUN apt-get -y install nginx systemctl
 
-# Install pip3
-RUN apt -y install python3-pip
+# Install TNC for radio networking (direwolf)
+RUN apt-get -y install direwolf
+
+# grab gosu for easy step-down from root
+RUN set -eux
+RUN	apt-get update
+RUN	apt-get install -y gosu
+RUN	rm -rf /var/lib/apt/lists/*
+# verify that the binary works
+RUN	gosu nobody true
+
+# Set Home dir and path fpr user bsb
+ENV HOME /home/bsb
+ENV PATH="$HOME/.local/bin:$PATH"
+
+# Add local user 'bsb'
+RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
+# Grant him sudo privileges
+RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
+    chmod 0440 /etc/sudoers.d/bsb
+
+# Copy ressources from context into bsb home
+WORKDIR $HOME
+COPY . .
+
+# Create folder for static files
+WORKDIR $HOME/nexus_django
+RUN mkdir static
+RUN chmod ugo+x manage.py
+
+# Set ownership to usr bsb
+RUN chown -R bsb:bsb $HOME
+
+# Switch to user bsb
+USER bsb
+WORKDIR $HOME
+
+# Upgrade pip
 RUN pip install --upgrade pip
 
-# Install Reticulum stack and NomadNet messenger application
-RUN pip3 install rns lxmf nomadnet rnodeconf
+# Install required python packages
+#RUN pip install --no-cache-dir -r ./requirements.txt
+RUN pip install -r ./requirements.txt
 
-# Install additional python packages
-RUN pip3 install requests pytz
+# Collect static files
+WORKDIR $HOME/nexus_django
+#RUN python manage.py collectstatic --no-input --clear
+RUN ./manage.py collectstatic --no-input --clear
+RUN ./manage.py flush --no-input
 
-# Install Django
-RUN pip3 install Django==4.0.4
+# Back to root
+USER root
+WORKDIR $HOME
 
-# Create Directories
-ARG CACHEBUST=0
-RUN mkdir /bsb
-RUN mkdir /bsb/nexus_server
-RUN mkdir /bsb/nexus_web
+# Make start script executable
+RUN chmod ugo+x start.sh
+RUN chmod ugo+x start_django.sh
 
-# Pull in container start script and make it executable
-COPY start.sh /bsb
-RUN chmod ug+x /bsb/start.sh
-
-# Pull in NexusServer
-COPY nexus_server /bsb/nexus_server
-
-# Pull in NexusWeb
-COPY nexus_web /bsb/nexus_web
+# Configure Nginx
 RUN rm /etc/nginx/sites-enabled/default
-RUN ln -s /bsb/nexus_server/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+RUN ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
 RUN systemctl enable nginx
 
-# Expose port for Reticulum server TCP Interface (disable as default)
-EXPOSE 4242
-# Expose ports for Nexus Server Web and API Interface
-EXPOSE 4280
-EXPOSE 4281
+# Copy entrypoint
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod ug+x /usr/local/bin/entrypoint.sh
 
-# Launch Nexus server on start
-CMD /bsb/start.sh
+# Expose port for Reticulum server TCP Interface (disable as default)
+ENV NEXUS_CONTAINER_RNS_PORT 4242
+EXPOSE $NEXUS_CONTAINER_RNS_PORT
+
+# Expose port for Nexus Server Web (Nginx)
+ENV NEXUS_CONTAINER_WEB_PORT 4280
+EXPOSE $NEXUS_CONTAINER_WEB_PORT
+
+# Expose port for Nexus Server API (Gunicorn / Python)
+ENV NEXUS_CONTAINER_API_PORT 4281
+EXPOSE $NEXUS_CONTAINER_API_PORT
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# CMD ["/home/bsb/start.sh"]
