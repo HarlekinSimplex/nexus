@@ -107,6 +107,7 @@ WORKDIR $HOME/nexus_django
 
 # Back to root
 USER root
+WORKDIR $HOME
 
 # Expose port for Reticulum server TCP Interface (disable as default)
 ENV NEXUS_CONTAINER_RNS_PORT 4242
