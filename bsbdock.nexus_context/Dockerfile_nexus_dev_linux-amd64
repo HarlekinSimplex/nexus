@@ -69,7 +69,7 @@ COPY . .
 # Create folder for static files
 WORKDIR $HOME/nexus_django
 RUN mkdir static
-RUN chmod ugo+x manage.py
+RUN chmod ugo+x ./manage.py
 
 # Set ownership to usr bsb
 RUN chown -R bsb:bsb $HOME
