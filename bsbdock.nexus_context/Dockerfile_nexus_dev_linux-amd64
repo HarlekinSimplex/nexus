@@ -40,6 +40,7 @@ RUN apt-get -y install mc nano vim screen
 # Install components for django production deplyment
 #RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
 RUN apt-get -y install nginx systemctl
+RUN systemctl enable nginx
 
 # Install TNC for radio networking (direwolf)
 RUN apt-get -y install direwolf
@@ -66,13 +67,26 @@ RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
 WORKDIR $HOME
 COPY . .
 
+# Configure Nginx
+RUN rm /etc/nginx/sites-enabled/default
+RUN ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+
+# Make some scripts executable
+RUN chmod +x entrypoint.sh
+RUN chmod +x start.sh
+RUN chmod +x start_django.sh
+RUN chmod +x nexus_django/manage.py
+
+# Move script to bin
+RUN mv entrypoint.sh /usr/local/bin
+RUN mv start.sh /usr/local/bin
+RUN mv start_django.sh /usr/local/bin
+
 # Create folder for static files
-WORKDIR $HOME/nexus_django
-RUN mkdir static
-RUN chmod ugo+x ./manage.py
+RUN mkdir nexus_django/static
 
 # Set ownership to usr bsb
-RUN chown -R bsb:bsb $HOME
+RUN chown -R bsb:bsb .
 
 # Switch to user bsb
 USER bsb
@@ -91,23 +105,6 @@ WORKDIR $HOME/nexus_django
 RUN ./manage.py collectstatic --no-input --clear
 RUN ./manage.py flush --no-input
 
-# Back to root
-USER root
-WORKDIR $HOME
-
-# Make start script executable
-RUN chmod ugo+x start.sh
-RUN chmod ugo+x start_django.sh
-
-# Configure Nginx
-RUN rm /etc/nginx/sites-enabled/default
-RUN ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
-RUN systemctl enable nginx
-
-# Copy entrypoint
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod ug+x /usr/local/bin/entrypoint.sh
-
 # Expose port for Reticulum server TCP Interface (disable as default)
 ENV NEXUS_CONTAINER_RNS_PORT 4242
 EXPOSE $NEXUS_CONTAINER_RNS_PORT
@@ -120,5 +117,5 @@ EXPOSE $NEXUS_CONTAINER_WEB_PORT
 ENV NEXUS_CONTAINER_API_PORT 4281
 EXPOSE $NEXUS_CONTAINER_API_PORT
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
 # CMD ["/home/bsb/start.sh"]
