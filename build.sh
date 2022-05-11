@@ -53,6 +53,7 @@ if test -f "$FILE"; then
     CACHE_OPT=
     if [ "$IMAGE_VERSION" == "dev" ] ; then
       CACHE_OPT=--no-cache
+      echo -e "${BLUE}Using option ${YELLOW}--no-cache${BLUE} during build.${NC}"
     fi
 
     # Build image according given build parameters
