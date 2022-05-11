@@ -75,7 +75,7 @@ RUN ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
 RUN chmod +x entrypoint.sh
 RUN chmod +x start.sh
 RUN chmod +x start_django.sh
-RUN chmod +x ./nexus_django/manage.py
+RUN chmod +x $HOME/nexus_django/manage.py
 
 # Move script to bin
 RUN mv entrypoint.sh /usr/local/bin
@@ -83,7 +83,7 @@ RUN mv start.sh /usr/local/bin
 RUN mv start_django.sh /usr/local/bin
 
 # Create folder for static files
-RUN mkdir ./nexus_django/static
+RUN mkdir $HOME/nexus_django/static
 
 # Set ownership to usr bsb
 RUN chown -R bsb:bsb .
