@@ -18,16 +18,16 @@ fi
 # Check
 if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ] ||
    [ "$1" == "?" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then
-  echo ""
-  echo "${YELLOW}Usage:"
-  echo "  build [<Arch>=amd64|arm64|arm] [<Version>=dev]"
-  echo "${NC}"
-  echo "${GREEN}Examples:"
-  echo "  build.sh amd64 1.2.3"
-  echo "  build.sh        -> build.sh amd64 dev"
-  echo "  build.sh dev    -> build.sh amd64 dev"
-  echo "  build.sh arm    -> build.sh arm dev"
-  echo "${NC}"
+  echo -e ""
+  echo -e "${YELLOW}Usage:"
+  echo -e "  build [<Arch>=amd64|arm64|arm] [<Version>=dev]"
+  echo -e "${NC}"
+  echo -e "${GREEN}Examples:"
+  echo -e "  build.sh amd64 1.2.3"
+  echo -e "  build.sh        -> build.sh amd64 dev"
+  echo -e "  build.sh dev    -> build.sh amd64 dev"
+  echo -e "  build.sh arm    -> build.sh arm dev"
+  echo -e "${NC}"
   exit 0
 fi
 
@@ -36,7 +36,7 @@ IMAGE_ARCH="${IMAGE_ARCH:-amd64}"
 IMAGE_OS=linux
 IMAGE_TAG="$IMAGE_VERSION"_"$IMAGE_OS"-"$IMAGE_ARCH"
 
-echo "Using $IMAGE_TAG as image tag."
+echo -e "Using $IMAGE_TAG as image tag."
 
 # Move into image context
 cd ./bsbdock.nexus_context || exit
@@ -44,8 +44,8 @@ cd ./bsbdock.nexus_context || exit
 # Check if Dockerfile exists
 FILE=Dockerfile_nexus_"$IMAGE_TAG"
 if test -f "$FILE"; then
-    echo "${GREEN}Dockerfile $FILE to build image exists."
-    echo "Building image ...{NC}"
+    echo -e "${GREEN}Dockerfile $FILE to build image exists."
+    echo -e "Building image ...{NC}"
 
 
     # Build image according given build parameters
@@ -65,8 +65,8 @@ if test -f "$FILE"; then
 
     RESULT=$?
 else
-    echo "${RED}Dockerfile $FILE to build image does NOT exists."
-    echo "Image build aborted.${NC}"
+    echo -e "${RED}Dockerfile $FILE to build image does NOT exists."
+    echo -e "Image build aborted.${NC}"
     RESULT=1
 fi
 
