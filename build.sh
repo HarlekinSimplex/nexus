@@ -8,6 +8,7 @@ ARCH=$2
 
 if [ -z "$1" ] || { [ "$2" != "arm64" ] && [ "$2" != "arm" ] ; }
 then
+  echo ""
   echo "Usage: build <Version> [<Arch>=amd64|arm64|arm]"
 fi
 
