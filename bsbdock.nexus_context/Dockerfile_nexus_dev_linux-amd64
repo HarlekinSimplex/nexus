@@ -75,41 +75,44 @@ RUN pip install cryptography rns lxmf nomadnet rnodeconf requests pytz Django gu
 ARG CACHEBUST=1
 COPY . .
 # Set ownership to usr bsb
-#USER root
-#RUN chown -R bsb:bsb $HOME
-#USER bsb
-#WORKDIR $HOME
+USER root
+RUN chown -R bsb:bsb $HOME
+USER bsb
+WORKDIR $HOME
 
 # Install required python packages
-#RUN pip install -r ./requirements.txt
+RUN pip install -r ./requirements.txt
 
 # Make some scripts executable
-#RUN chmod +x entrypoint.sh
-#RUN chmod +x start.sh
-#RUN chmod +x start_django.sh
-#RUN chmod +x $HOME/nexus_django/manage.py
+RUN chmod +x entrypoint.sh
+RUN chmod +x start.sh
+RUN chmod +x start_django.sh
 
 # Move script to bin
-#RUN mv entrypoint.sh /usr/local/bin
-#RUN mv start.sh /usr/local/bin
-#RUN mv start_django.sh /usr/local/bin
+RUN mv entrypoint.sh /usr/local/bin
+RUN mv start.sh /usr/local/bin
+RUN mv start_django.sh /usr/local/bin
 
+# Move to Django
+WORKDIR $HOME/nexus_django
+
+# Make manage.py executable
+RUN chmod +x manage.py
 # Create folder for static files
-#RUN mkdir $HOME/nexus_django/static
+RUN mkdir static
 
 # Collect static files
-#WORKDIR $HOME/nexus_django
 #RUN python manage.py collectstatic --no-input --clear
-# RUN ./manage.py collectstatic --no-input --clear
-# RUN ./manage.py flush --no-input
+RUN ./manage.py collectstatic --no-input --clear
+RUN ./manage.py flush --no-input
 
 # Back to root
-#USER root
-#WORKDIR $HOME
+USER root
+WORKDIR $HOME
 
 # Configure Nginx
-#RUN rm /etc/nginx/sites-enabled/default
-#RUN ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+RUN rm /etc/nginx/sites-enabled/default
+RUN ln -s ./nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
 
 # Expose port for Reticulum server TCP Interface (disable as default)
 ENV NEXUS_CONTAINER_RNS_PORT 4242
