@@ -1,0 +1,123 @@
+############################################################
+# bsbdock/nexus Dockerfile
+#
+# How to build this container:
+# bash build.sh arm
+# docker run --rm -it bsbdock/nexus:dev bash
+#
+# How to invoke a shell into this container:
+# docker run --rm -it bsbdock/nexus:dev bash
+#
+FROM python:3.9
+RUN set -eux
+
+# Set timezone and interactive mode
+ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+# set environment variables for python
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Update base image if necessary
+RUN apt-get -y update && apt-get -y upgrade &&\
+    apt-get -y install tzdata sudo
+
+# Install some optional helper tools
+RUN apt-get -y install mc nano vim screen
+
+# Install and upgrde pip3
+RUN apt-get -y install python3-pip &&\
+    pip install --upgrade pip
+
+# Build essentials and install rust
+RUN apt-get -y install curl build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2 &&\
+    curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
+ENV PATH="/root/.cargo/bin:$PATH"
+
+# Install components for django production deplyment
+#RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
+RUN apt-get -y install nginx systemctl &&\
+    systemctl enable nginx
+
+# Install TNC for radio networking (direwolf)
+RUN apt-get -y install direwolf
+
+# grab gosu for easy step-down from root and check if it works
+RUN	apt-get update &&\
+   	apt-get install -y gosu &&\
+   	rm -rf /var/lib/apt/lists/* &&\
+    gosu nobody true
+
+# Set Home dir and path fpr user bsb
+ENV HOME /home/bsb
+ENV PATH="$HOME/.local/bin:$PATH"
+
+# Add local user 'bsb'
+RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
+# Grant him sudo privileges
+RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
+    chmod 0440 /etc/sudoers.d/bsb
+
+# Switch to user bsb
+USER bsb
+WORKDIR $HOME
+
+# Install requiered python packages
+RUN pip install cryptography rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
+
+# Change to root
+USER root
+# Copy ressources from context into bsb home
+ARG CACHEBUST=1
+COPY . .
+# Set ownership to usr bsb
+RUN chown -R bsb:bsb $HOME
+# Make some scripts executable
+RUN chmod +x entrypoint.sh &&\
+    chmod +x start.sh &&\
+    chmod +x start_django.sh
+# Move script to bin
+RUN mv entrypoint.sh /usr/local/bin &&\
+    mv start.sh /usr/local/bin &&\
+    mv start_django.sh /usr/local/bin
+
+# Change to bsb again to install python packages indicated at the rerquirents.txt
+# This will be done without cache usage
+USER bsb
+WORKDIR $HOME
+
+# Install required python packages
+RUN pip install -r ./requirements.txt
+
+# Move to Django
+WORKDIR $HOME/nexus_django
+# Make manage.py executable
+RUN chmod +x manage.py
+# Create folder for static files
+RUN mkdir static
+
+# Collect static files
+#RUN python manage.py collectstatic --no-input --clear
+RUN ./manage.py collectstatic --no-input --clear &&\
+    ./manage.py flush --no-input
+
+# Back to root to finalize stuff
+USER root
+WORKDIR $HOME
+
+# Configure Nginx
+RUN rm /etc/nginx/sites-enabled/default &&\
+    ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+
+# Expose port for Reticulum server TCP Interface (disable as default)
+ENV NEXUS_CONTAINER_RNS_PORT 4242
+EXPOSE $NEXUS_CONTAINER_RNS_PORT
+
+# Expose port for Nexus Server Web (Nginx)
+ENV NEXUS_CONTAINER_WEB_PORT 4280
+EXPOSE $NEXUS_CONTAINER_WEB_PORT
+
+# Expose port for Nexus Server API (Gunicorn / Python)
+ENV NEXUS_CONTAINER_API_PORT 4281
+EXPOSE $NEXUS_CONTAINER_API_PORT
+
+ENTRYPOINT ["entrypoint.sh"]
