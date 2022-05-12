@@ -44,14 +44,12 @@ if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" == "dev" ] ; then
   USE_CACHE=YES
 fi
 
-if [ -z "$USE_CACHE" ] ; then
-  USE_CACHE=YES
-fi
-
-echo Cache:$USE_CACHE
-echo IMAGE_ARCH:$IMAGE_ARCH
-echo IMAGE_VERSION:$IMAGE_VERSION
-exit
+# Set some defaults if still no set
+USE_CACHE="${USE_CACHE:-YES}"
+IMAGE_VERSION="${IMAGE_VERSION:-dev}"
+IMAGE_ARCH="${IMAGE_ARCH:-amd64}"
+IMAGE_OS=linux
+IMAGE_TAG="$IMAGE_VERSION"_"$IMAGE_OS"-"$IMAGE_ARCH"
 
 # Check
 if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ] ||
@@ -73,10 +71,10 @@ if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm6
     exit 0
 fi
 
-IMAGE_VERSION="${IMAGE_VERSION:-dev}"
-IMAGE_ARCH="${IMAGE_ARCH:-amd64}"
-IMAGE_OS=linux
-IMAGE_TAG="$IMAGE_VERSION"_"$IMAGE_OS"-"$IMAGE_ARCH"
+echo Cache:$USE_CACHE
+echo IMAGE_ARCH:$IMAGE_ARCH
+echo IMAGE_VERSION:$IMAGE_VERSION
+exit
 
 echo -e "${BLUE}Using ${CYAN}$IMAGE_TAG${BLUE} as image tag.${NC}"
 
