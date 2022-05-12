@@ -24,35 +24,38 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Check configuration directories"
 echo "-------------------------------------------------------------"
-if [ ! -d "/home/bsb/.reticulum" ]
-then
-    echo "Create .reticulum"
-    mkdir /home/bsb/.reticulum
-else
-    echo ".reticulum exists"
-fi
-chown bsb:bsb -R ~/.reticulum
-chmod -R 755 ~/.reticulum
+# Define home directory
+HOME=/home/bsb
 
-if [ ! -d "/home/bsb/.nomadnetwork" ]
-then
-    echo "Create .nomadnetwork"
-    mkdir /home/bsb/.nomadnetwork
+# Check if nexus config directory exists
+if [ ! -d "$HOME"/.nexus ] ; then
+  echo -e "Nexus config directory '.nexus' ${LIGHT_GREEN}exists${NC}"
 else
-    echo ".nomadnetwork exists"
+  mkdir "$HOME"/.nexus
+  echo -e "Nexus config directory '.nexus' ${YELLOW}created${NC}"
 fi
-chown bsb:bsb -R ~/.nomadnetwork
-chmod -R 755 ~/.nomadnetwork
+chown bsb:bsb -R "$HOME"/.nexus
+chmod -R 755 "$HOME"/.nexus
 
-if [ ! -d "/home/bsb/.nexus" ]
-then
-    echo "Create .nexus"
-    mkdir /home/bsb/.nexus
+# Check if reticulum config directory exists
+if [ ! -d "$HOME"/.reticulum ] ; then
+  echo -e "Reticulum config directory '.nexus' ${LIGHT_GREEN}exists${NC}"
 else
-    echo ".nexus exists"
+  mkdir "$HOME"/.reticulum
+  echo -e "Reticulum config directory '.nexus' ${YELLOW}created${NC}"
 fi
-chown bsb:bsb -R ~/.nexus
-chmod -R 755 ~/.nexus
+chown bsb:bsb -R "$HOME"/.reticulum
+chmod -R 755 "$HOME"/.reticulum
+
+# Check if reticulum config directory exists
+if [ ! -d "$HOME"/.nomadnetwork ] ; then
+  echo -e "Nomadnetwork config directory '.nexus' ${LIGHT_GREEN}exists${NC}"
+else
+  mkdir "$HOME"/.nomadnetwork
+  echo -e "Nomadnetwork config directory '.nexus' ${YELLOW}created${NC}"
+fi
+chown bsb:bsb -R "$HOME"/.nomadnetwork
+chmod -R 755 "$HOME"/.nomadnetwork
 
 # Set Nexus Default environment variables
 export NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
