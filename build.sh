@@ -26,10 +26,6 @@ if [ "$1" == "-c" ] ; then
   USE_CACHE=YES
 fi
 
-echo Cache:$USE_CACHE
-echo IMAGE_ARCH:$IMAGE_ARCH
-echo IMAGE_VERSION:$IMAGE_VERSION
-
 # Check if arch was not given but dev
 IMAGE_ARCH=$1
 IMAGE_VERSION=$2
@@ -37,6 +33,10 @@ if [ "$IMAGE_ARCH" == "dev" ] ; then
   IMAGE_VERSION=$IMAGE_ARCH
   IMAGE_ARCH=
 fi
+
+echo Cache:$USE_CACHE
+echo IMAGE_ARCH:$IMAGE_ARCH
+echo IMAGE_VERSION:$IMAGE_VERSION
 
 if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" == "dev" ] ; then
   USE_CACHE=YES
