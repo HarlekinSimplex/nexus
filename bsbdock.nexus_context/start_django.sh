@@ -75,7 +75,7 @@ else
   echo -e "${YELLOW}Nexus config directory '.nexus' created.${NC}"
 fi
 # Check if nexus database directory exists
-if test -d "database"; then
+if test -d ".nexus/database"; then
   echo -e "${GREEN}Nexus database directory 'database' exists.${NC}"
 else
   mkdir .nexus/database
