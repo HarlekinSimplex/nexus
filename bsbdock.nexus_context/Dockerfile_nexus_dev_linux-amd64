@@ -12,7 +12,7 @@
 # How to run the reticulum stack as a service
 # docker run --rm --name nexus-prod_nexus -it bsbdock/nexus
 #
-FROM python:3.9
+FROM python:3.9-alpine
 RUN set -eux
 
 # Set timezone and interactive mode
@@ -45,12 +45,11 @@ RUN apt-get -y install nginx systemctl &&\
 # Install TNC for radio networking (direwolf)
 RUN apt-get -y install direwolf
 
-# grab gosu for easy step-down from root
+# grab gosu for easy step-down from root and check if it works
 RUN	apt-get update &&\
    	apt-get install -y gosu &&\
-   	rm -rf /var/lib/apt/lists/*
-# verify that the binary works
-RUN	gosu nobody true
+   	rm -rf /var/lib/apt/lists/* &&\
+    gosu nobody true
 
 # Set Home dir and path fpr user bsb
 ENV HOME /home/bsb
