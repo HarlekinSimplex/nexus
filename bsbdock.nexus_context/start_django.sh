@@ -112,5 +112,5 @@ echo "-------------------------------------------------------------"
 cd nexus_django || exit
 exec gunicorn nexus_django.wsgi:application \
  --config gunicorn.config.py \
- --Log-level "$DJANGO_LOG_LEVEL" \
+ --log-level "$DJANGO_LOG_LEVEL" \
  --bind 127.0.0.1:"$NEXUS_PORT"
