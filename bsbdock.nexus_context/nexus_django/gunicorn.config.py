@@ -226,7 +226,7 @@ def worker_abort(worker):
 
 '''
 
-# print_config = True
+print_config = True
 
 
 # def on_starting(server):
