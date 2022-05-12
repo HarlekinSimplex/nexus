@@ -53,9 +53,10 @@ if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm6
   echo -e "  build.sh dev              -> build.sh amd64 dev (using no cache)"
   echo -e "  build.sh arm              -> build.sh arm dev (using cache)"
   echo -e ""
-  echo -e "With versio 'dev' cache usage is activtated, otherwise not."
+  echo -e "With version 'dev' cache usage is activtated, otherwise not."
   echo -e "However, Cache usage is overruled by -c or -nc if specified."
-  exit 0
+  echo -e ""
+    exit 0
 fi
 
 IMAGE_VERSION="${IMAGE_VERSION:-dev}"
