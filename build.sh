@@ -16,13 +16,19 @@ if [ "$1" == "-nc" ] ; then
   1="$2"
   2="$3"
   USE_CACHE=NO
+  echo Cache:$USE_CACHE
 fi
 
 if [ "$1" == "-c" ] ; then
   1="$2"
   2="$3"
   USE_CACHE=YES
+  echo Cache:$USE_CACHE
 fi
+
+echo Cache:$USE_CACHE
+echo $1
+echo $2
 
 IMAGE_ARCH=$1
 IMAGE_VERSION=$2
