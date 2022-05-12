@@ -226,6 +226,7 @@ def worker_abort(worker):
 
 '''
 
+check_config = False
 print_config = True
 
 
