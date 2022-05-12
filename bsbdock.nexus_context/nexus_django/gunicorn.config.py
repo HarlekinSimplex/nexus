@@ -1,4 +1,4 @@
-import RNS
+# import RNS
 
 # Sample Gunicorn configuration file.
 
@@ -73,7 +73,7 @@ import RNS
 # worker_class = 'gevent'
 # worker_connections = 1000
 # timeout = 30
-timeout = 0
+# timeout = 0
 # keepalive = 2
 
 #
@@ -154,7 +154,7 @@ timeout = 0
 
 # errorlog = '-'
 # loglevel = 'info'
-loglevel = 'info'
+# loglevel = 'info'
 # accesslog = '-'
 # access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 
@@ -226,11 +226,11 @@ def worker_abort(worker):
 
 '''
 
-print_config = True
+# print_config = True
 
 
-def on_starting(server):
-    server.log.info("BSB: Starting")
+# def on_starting(server):
+#    server.log.info("BSB: Starting")
 
 
 '''
