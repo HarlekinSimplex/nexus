@@ -1,6 +1,5 @@
 import RNS
 
-
 # Sample Gunicorn configuration file.
 
 #
@@ -229,8 +228,11 @@ def worker_abort(worker):
 
 print_config = True
 
+
 def on_starting(server):
     server.log.info("BSB: Starting")
+
+
 '''
     # Pull up Reticulum stack as configured
     RNS.Reticulum()
