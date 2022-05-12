@@ -28,7 +28,7 @@ echo "-------------------------------------------------------------"
 HOME=/home/bsb
 
 # Check if nexus config directory exists
-if [ ! -d "$HOME"/.nexus ] ; then
+if [ -d "$HOME"/.nexus ] ; then
   echo -e "Nexus config directory '.nexus' ${LIGHT_GREEN}exists${NC}"
 else
   mkdir "$HOME"/.nexus
@@ -38,7 +38,7 @@ chown bsb:bsb -R "$HOME"/.nexus
 chmod -R 755 "$HOME"/.nexus
 
 # Check if reticulum config directory exists
-if [ ! -d "$HOME"/.reticulum ] ; then
+if [ -d "$HOME"/.reticulum ] ; then
   echo -e "Reticulum config directory '.nexus' ${LIGHT_GREEN}exists${NC}"
 else
   mkdir "$HOME"/.reticulum
@@ -48,7 +48,7 @@ chown bsb:bsb -R "$HOME"/.reticulum
 chmod -R 755 "$HOME"/.reticulum
 
 # Check if reticulum config directory exists
-if [ ! -d "$HOME"/.nomadnetwork ] ; then
+if [ -d "$HOME"/.nomadnetwork ] ; then
   echo -e "Nomadnetwork config directory '.nexus' ${LIGHT_GREEN}exists${NC}"
 else
   mkdir "$HOME"/.nomadnetwork
