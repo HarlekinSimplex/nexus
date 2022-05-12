@@ -70,10 +70,10 @@ import RNS
 # workers = 1
 # worker_class = 'sync'
 
-# worker_class = 'gevent'
+worker_class = 'gevent'
 # worker_connections = 1000
 # timeout = 30
-# timeout = 0
+timeout = 0
 # keepalive = 2
 
 #
@@ -135,9 +135,9 @@ import RNS
 # pidfile = None
 # umask = 0
 # user = None
-# user = 'bsb'
+user = 'bsb'
 # group = None
-# group = 'bsb'
+group = 'bsb'
 # tmp_upload_dir = None
 
 #
@@ -154,7 +154,7 @@ import RNS
 
 # errorlog = '-'
 # loglevel = 'info'
-# loglevel = 'info'
+loglevel = 'debug'
 # accesslog = '-'
 # access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 
@@ -228,11 +228,7 @@ def worker_abort(worker):
 
 
 def on_starting(server):
-    server.log.info("BSB: Starting")
-
     # Pull up Reticulum stack as configured
-    RNS.Reticulum()
-
     server.log.info(" ____   _____ ____   _   _                      _____")
     server.log.info("|  _ \\ / ____|  _ \\ | \\ | |                    / ____|")
     server.log.info("| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __")
@@ -241,3 +237,7 @@ def on_starting(server):
     server.log.info("|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|")
     server.log.info("")
     server.log.info("Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License")
+    server.log.info("...............................................................................")
+
+    RNS.Reticulum()
+    server.log.info("Reticulum stack initialized")
