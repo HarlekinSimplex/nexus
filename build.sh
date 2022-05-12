@@ -32,11 +32,6 @@ if [ "$IMAGE_ARCH" == "dev" ] ; then
   IMAGE_ARCH=
 fi
 
-echo Cache:$USE_CACHE
-echo IMAGE_ARCH:$IMAGE_ARCH
-echo IMAGE_VERSION:$IMAGE_VERSION
-exit
-
 if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" == "dev" ] ; then
   USE_CACHE=YES
 fi
@@ -44,6 +39,11 @@ fi
 if [ -z "$USE_CACHE" ] ; then
   USE_CACHE=NO
 fi
+
+echo Cache:$USE_CACHE
+echo IMAGE_ARCH:$IMAGE_ARCH
+echo IMAGE_VERSION:$IMAGE_VERSION
+exit
 
 # Check
 if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ] ||
