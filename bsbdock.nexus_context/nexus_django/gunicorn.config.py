@@ -1,4 +1,4 @@
-# import RNS
+import RNS
 
 # Sample Gunicorn configuration file.
 
@@ -226,12 +226,9 @@ def worker_abort(worker):
 
 '''
 
-check_config = False
-print_config = True
 
-
-# def on_starting(server):
-#    server.log.info("BSB: Starting")
+def on_starting(server):
+    server.log.info("BSB: Starting")
 
 
 '''
