@@ -35,11 +35,7 @@ if [ "$IMAGE_ARCH" == "dev" ] ; then
   IMAGE_ARCH=
 fi
 
-echo Cache:$USE_CACHE
-echo IMAGE_ARCH:$IMAGE_ARCH
-echo IMAGE_VERSION:$IMAGE_VERSION
-
-
+# Check for version build unlike dev to build without cache
 if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" ] && [ "$IMAGE_VERSION" != "dev" ] ; then
   USE_CACHE=NO
 fi
