@@ -92,17 +92,17 @@ cd nexus_django || exit
 ./manage.py migrate
 cd ..
 
-#echo ""
-#echo "-------------------------------------------------------------"
-#echo " Create default Django Super User"
-#echo "-------------------------------------------------------------"
-#cd nexus_django || exit
-#if ! ./manage.py createsuperuser --noinput >/dev/null 2>&1 ; then
-#    echo "Super User already exists and cannot be replaced"
-#else
-#    echo "Default Super User successfully created"
-#fi
-#cd ..
+echo ""
+echo "-------------------------------------------------------------"
+echo " Create default Django Super User"
+echo "-------------------------------------------------------------"
+cd nexus_django || exit
+if ! ./manage.py createsuperuser --noinput >/dev/null 2>&1 ; then
+    echo "Super User already exists and cannot be replaced"
+else
+    echo "Default Super User successfully created"
+fi
+cd ..
 
 echo ""
 echo "-------------------------------------------------------------"
