@@ -41,7 +41,7 @@ echo IMAGE_VERSION:$IMAGE_VERSION
 
 
 if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" ] && [ "$IMAGE_VERSION" != "dev" ] ; then
-  USE_CACHE=YES
+  USE_CACHE=NO
 fi
 
 # Set some defaults if still no set
