@@ -69,23 +69,23 @@ echo " Migrate Database"
 echo "-------------------------------------------------------------"
 # Check if nexus config directory exists
 if test -d ".nexus"; then
-  echo -e "${GREEN}Nexus config directory '.nexus' exists.${NC}"
+  echo -e "Nexus config directory '.nexus' ${GREEN}exists${NC}"
 else
   mkdir .nexus
-  echo -e "${YELLOW}Nexus config directory '.nexus' created.${NC}"
+  echo -e "Nexus config directory '.nexus' ${YELLOW}created${NC}"
 fi
 # Check if nexus database directory exists
 if test -d ".nexus/database"; then
-  echo -e "${GREEN}Nexus database directory 'database' exists.${NC}"
+  echo -e "Nexus database directory 'database' ${GREEN}exists${NC}"
 else
   mkdir .nexus/database
-  echo -e "${YELLOW}Nexus database directory 'database' created.${NC}"
+  echo -e "Nexus database directory 'database' ${YELLOW}created${NC}"
 fi
 # Check if nexus database exists (info onöy)
 if test -f ".nexus/database/nexus.sqlite3"; then
-  echo -e "${GREEN}Nexus database 'nexus.sqlite3' exists.${NC}"
+  echo -e "Nexus database 'nexus.sqlite3' ${GREEN}exists${NC}"
 else
-  echo -e "${YELLOW}Nexus database 'nexus.sqlite3' does not exist (empty database will be created).${NC}"
+  echo -e "Nexus database 'nexus.sqlite3' ${YELLOW}does not exist${NC} (empty database will be created)"
 fi
 # Create database (if not yet there) and apply migrations
 cd nexus_django || exit
@@ -98,9 +98,9 @@ echo " Create default Django Super User"
 echo "-------------------------------------------------------------"
 cd nexus_django || exit
 if ! ./manage.py createsuperuser --noinput >/dev/null 2>&1 ; then
-    echo "Super User already exists and cannot be replaced"
+    echo "Super User ${GREEN}exists${NC}"
 else
-    echo "Default Super User successfully created"
+    echo "Default Super User with default credentials was created ${GREEN}successfully${NC}"
 fi
 cd ..
 
