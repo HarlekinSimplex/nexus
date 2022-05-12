@@ -29,6 +29,11 @@ if [ "$1" == "-c" ] ; then
   USE_CACHE=YES
 fi
 
+# If we have no version then assume dev
+if [ -z "$IMAGE_VERSION" ] ; then
+  IMAGE_VERSION=dev
+fi
+
 # Check if arch was not given but dev
 if [ "$IMAGE_ARCH" == "dev" ] ; then
   IMAGE_VERSION=$IMAGE_ARCH
