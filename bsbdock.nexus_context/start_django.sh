@@ -67,17 +67,17 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Migrate Database"
 echo "-------------------------------------------------------------"
-if ! test -f ".nexus"; then
+if test -f ".nexus"; then
+  echo -e "${GREEN}Nexus config directory '.nexus' exists.${NC}"
+else
   mkdir .nexus
   echo -e "${YELLOW}Nexus config directory '.nexus' created.${NC}"
-else
-  echo -e "${GREEN}Nexus config directory '.nexus' exists.${NC}"
 fi
-if ! test -f "database"; then
-  mkdir database
-  echo -e "${YELLOW}Nexus database directory 'database' created.${NC}"
-else
+if test -f "database"; then
   echo -e "${GREEN}Nexus database directory 'database' exists.${NC}"
+else
+  mkdir .nexus/database
+  echo -e "${YELLOW}Nexus database directory 'database' created.${NC}"
 fi
 cd nexus_django || exit
 ./manage.py migrate
