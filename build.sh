@@ -14,23 +14,21 @@ USE_CACHE=
 
 # Check if we should disable cache
 if [ "$1" == "-nc" ] ; then
-  1="$2"
-  2="$3"
+  IMAGE_ARCH=$2
+  IMAGE_VERSION=$3
   USE_CACHE=NO
-  echo Cache:$USE_CACHE
 fi
 
 # Check if we should enable cache
 if [ "$1" == "-c" ] ; then
-  1="$2"
-  2="$3"
+  IMAGE_ARCH=$2
+  IMAGE_VERSION=$3
   USE_CACHE=YES
-  echo Cache:$USE_CACHE
 fi
 
 echo Cache:$USE_CACHE
-echo 1:$1
-echo 2:$2
+echo IMAGE_ARCH:$IMAGE_ARCH
+echo IMAGE_VERSION:$IMAGE_VERSION
 
 # Check if arch was not given but dev
 IMAGE_ARCH=$1
@@ -40,10 +38,6 @@ if [ "$IMAGE_ARCH" == "dev" ] ; then
   IMAGE_ARCH=
 fi
 
-echo Cache:$USE_CACHE
-echo IMAGE_ARCH:$IMAGE_ARCH
-echo IMAGE_VERSION:$IMAGE_VERSION
-
 if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" == "dev" ] ; then
   USE_CACHE=YES
 fi
@@ -51,10 +45,6 @@ fi
 if [ -z "$USE_CACHE" ] ; then
   USE_CACHE=NO
 fi
-
-echo Cache:$USE_CACHE
-echo IMAGE_ARCH:$IMAGE_ARCH
-echo IMAGE_VERSION:$IMAGE_VERSION
 
 # Check
 if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ] ||
@@ -80,13 +70,6 @@ IMAGE_VERSION="${IMAGE_VERSION:-dev}"
 IMAGE_ARCH="${IMAGE_ARCH:-amd64}"
 IMAGE_OS=linux
 IMAGE_TAG="$IMAGE_VERSION"_"$IMAGE_OS"-"$IMAGE_ARCH"
-
-
-echo Cache:$USE_CACHE
-echo IMAGE_ARCH:$IMAGE_ARCH
-echo IMAGE_VERSION:$IMAGE_VERSION
-
-
 
 echo -e "${BLUE}Using ${CYAN}$IMAGE_TAG${BLUE} as image tag.${NC}"
 
