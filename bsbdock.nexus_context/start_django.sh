@@ -67,13 +67,15 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Migrate Database"
 echo "-------------------------------------------------------------"
-if test -f ".nexus"; then
+# Check if nexus config directory exists
+if test -d ".nexus"; then
   echo -e "${GREEN}Nexus config directory '.nexus' exists.${NC}"
 else
   mkdir .nexus
   echo -e "${YELLOW}Nexus config directory '.nexus' created.${NC}"
 fi
-if test -f "database"; then
+# Check if nexus database directory exists
+if test -d "database"; then
   echo -e "${GREEN}Nexus database directory 'database' exists.${NC}"
 else
   mkdir .nexus/database
