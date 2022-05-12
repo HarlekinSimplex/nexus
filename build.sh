@@ -10,12 +10,20 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-USE_CACHE=No
+USE_CACHE=
 
-if [ "$1" == "-c" ] ; then
+if [ "$1" == "-nc" ] ; then
   1="$2"
   2="$3"
-  USE_CACHE=Yes
+  USE_CACHE=NO
+fi
+
+if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" == "dev" ] ; then
+  USE_CACHE=YES
+fi
+
+if [ -z "$USE_CACHE" ] ; then
+  USE_CACHE=NO
 fi
 
 IMAGE_ARCH=$1
@@ -59,7 +67,7 @@ if test -f "$FILE"; then
 
     # Set --no-cache if version is dev
     CACHE_OPT=
-    if [ "$IMAGE_VERSION" != "dev" ] && [ "$USE_CACHE" == "No" ] ; then
+    if  [ "$USE_CACHE" == "NO" ] ; then
       CACHE_OPT=--no-cache
       echo -e "${BLUE}Using option ${YELLOW}--no-cache${BLUE} during build.${NC}"
     fi
