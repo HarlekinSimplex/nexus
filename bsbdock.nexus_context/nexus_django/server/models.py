@@ -7,7 +7,7 @@ from django.db import models
 
 
 # Create your models here.
-class DistributionTargets(models.Model):
+class DistributionTarget(models.Model):
     destination_hash = models.CharField(max_length=22, db_index=True, null=False, unique=True)
     private_key = models.BinaryField()
     public_key = models.BinaryField()
@@ -18,7 +18,7 @@ class DistributionTargets(models.Model):
         return RNS.prettyhexrep(self.destination_hash)
 
 
-class BridgeTargets(models.Model):
+class BridgeTarget(models.Model):
     url = models.URLField()
     cluster = models.CharField(max_length=32)
 

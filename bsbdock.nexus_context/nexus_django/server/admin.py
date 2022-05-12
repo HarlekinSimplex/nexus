@@ -1,8 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-# Register your models here.
-from .models import DistributionTargets, BridgeTargets
+from .models import DistributionTarget, BridgeTarget
 
-admin.site.register(DistributionTargets)
-admin.site.register(BridgeTargets)
+admin.site.register(DistributionTarget)
+admin.site.register(BridgeTarget)
