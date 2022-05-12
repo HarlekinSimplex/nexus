@@ -2,7 +2,7 @@
 # bsbdock/nexus Dockerfile
 #
 # How to build this container:
-# bash build.sh
+# bash build.sh amd64
 # docker run --rm -it bsbdock/nexus:dev bash
 #
 # How to invoke a shell into this container:
@@ -26,12 +26,15 @@ RUN apt-get -y install mc nano vim screen
 
 # Install and upgrde pip3
 RUN apt-get -y install python3-pip &&\
-    pip install --upgrade pip
+    pip3 install --upgrade pip
 
 # Build essentials and install rust
 RUN apt-get -y install curl build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2 &&\
     curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
 ENV PATH="/root/.cargo/bin:$PATH"
+
+# Install requiered python packages
+RUN pip3 install cryptography
 
 # Install components for django production deplyment
 #RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
@@ -62,7 +65,7 @@ USER bsb
 WORKDIR $HOME
 
 # Install requiered python packages
-RUN pip install cryptography rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
+RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
 
 # Change to root
 USER root
@@ -86,7 +89,7 @@ USER bsb
 WORKDIR $HOME
 
 # Install required python packages
-RUN pip install -r ./requirements.txt
+RUN pip3 install -r ./requirements.txt
 
 # Move to Django
 WORKDIR $HOME/nexus_django
