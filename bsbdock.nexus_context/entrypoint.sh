@@ -39,20 +39,20 @@ chmod -R 755 "$HOME"/.nexus
 
 # Check if reticulum config directory exists
 if [ -d "$HOME"/.reticulum ] ; then
-  echo -e "Reticulum config directory '.nexus' ${LIGHT_GREEN}exists${NC}"
+  echo -e "Reticulum config directory '.reticulum' ${LIGHT_GREEN}exists${NC}"
 else
   mkdir "$HOME"/.reticulum
-  echo -e "Reticulum config directory '.nexus' ${YELLOW}created${NC}"
+  echo -e "Reticulum config directory '.reticulum' ${YELLOW}created${NC}"
 fi
 chown bsb:bsb -R "$HOME"/.reticulum
 chmod -R 755 "$HOME"/.reticulum
 
 # Check if reticulum config directory exists
 if [ -d "$HOME"/.nomadnetwork ] ; then
-  echo -e "Nomadnetwork config directory '.nexus' ${LIGHT_GREEN}exists${NC}"
+  echo -e "Nomadnetwork config directory '.nomadnetwork' ${LIGHT_GREEN}exists${NC}"
 else
   mkdir "$HOME"/.nomadnetwork
-  echo -e "Nomadnetwork config directory '.nexus' ${YELLOW}created${NC}"
+  echo -e "Nomadnetwork config directory '.nomadnetwork' ${YELLOW}created${NC}"
 fi
 chown bsb:bsb -R "$HOME"/.nomadnetwork
 chmod -R 755 "$HOME"/.nomadnetwork
