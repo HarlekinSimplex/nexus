@@ -94,13 +94,13 @@ cd ..
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Create default Django Super User"
+echo " Create default Django super user"
 echo "-------------------------------------------------------------"
 cd nexus_django || exit
 if ! ./manage.py createsuperuser --noinput >/dev/null 2>&1 ; then
-    echo -e "Super User ${GREEN}exists${NC}"
+    echo -e "Django super user ${GREEN}exists${NC}"
 else
-    echo -e "Default Super User with default credentials was created ${GREEN}successfully${NC}"
+    echo -e "Django super user with default credentials was created ${GREEN}successfully${NC}"
 fi
 cd ..
 
