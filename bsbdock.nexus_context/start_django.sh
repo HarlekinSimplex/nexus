@@ -58,17 +58,27 @@ echo "DJANGO_LOG_LEVEL=$DJANGO_LOG_LEVEL"
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Create default Django Super User"
+echo " Migrate Database"
 echo "-------------------------------------------------------------"
 cd nexus_django || exit
-if ! python manage.py createsuperuser --noinput >/dev/null 2>&1 ; then
-    echo "Super User already exists and cannot be replaced"
-else
-    echo "Default Super User successfully created"
-fi
+./manage.py migrate
+cd ..
+
+#echo ""
+#echo "-------------------------------------------------------------"
+#echo " Create default Django Super User"
+#echo "-------------------------------------------------------------"
+#cd nexus_django || exit
+#if ! ./manage.py createsuperuser --noinput >/dev/null 2>&1 ; then
+#    echo "Super User already exists and cannot be replaced"
+#else
+#    echo "Default Super User successfully created"
+#fi
+#cd ..
 
 echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus Django Server startup"
 echo "-------------------------------------------------------------"
+cd nexus_django || exit
 exec gunicorn --config gunicorn.config.py --bind 127.0.0.1:"$NEXUS_PORT" nexus_django.wsgi:application
