@@ -230,6 +230,8 @@ preload = True
 
 
 def on_starting(server):
+    server.log.info("BSB: Starting")
+'''
     # Pull up Reticulum stack as configured
     RNS.Reticulum()
 
@@ -241,3 +243,4 @@ def on_starting(server):
     RNS.log("|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
     RNS.log("", RNS.LOG_INFO)
     RNS.log("Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
+'''
