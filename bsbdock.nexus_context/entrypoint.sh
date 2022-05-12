@@ -13,16 +13,16 @@ export LIGHT_BLUE='\033[1;34m'
 export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
-echo '  _         _         _            _         __                        '
-echo ' | |       | |       | |          | |       / /                        '
-echo ' | |__  ___| |__   __| | ___   ___| | __   / / __   _____  ___   _ ___ '
-echo ' | '\''_ \/ __| '\''_ \ / _'\`' |/ _ \ / __| |/ /  / / '\''_ \ / _ \ \/ / | | / __|'
-echo " | |_) \\__ \\ |_) | (_| | (_) | (__|   <  / /| | | |  __/>  <| |_| \\__ \\"
-echo ' |_ __/|___/_ __/ \__,_|\___/ \___|_|\_\/_/ |_| |_|\___/_/\_\\__,_|___/'
-echo ""
+echo ' _         _         _            _         __                        '
+echo '| |       | |       | |          | |       / /                        '
+echo '| |__  ___| |__   __| | ___   ___| | __   / / __   _____  ___   _ ___ '
+echo '| '\''_ \/ __| '\''_ \ / _'\`' |/ _ \ / __| |/ /  / / '\''_ \ / _ \ \/ / | | / __|'
+echo "| |_) \\__ \\ |_) | (_| | (_) | (__|   <  / /| | | |  __/>  <| |_| \\__ \\"
+echo '|_ __/|___/_ __/ \__,_|\___/ \___|_|\_\/_/ |_| |_|\___/_/\_\\__,_|___/'
+echo "Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License"
 
 echo "-------------------------------------------------------------"
-echo " Check configuration directories"
+echo "Check configuration directories"
 echo "-------------------------------------------------------------"
 # Define home directory
 HOME=/home/bsb
@@ -73,7 +73,7 @@ export DJANGO_LOG_LEVEL="${DJANGO_LOG_LEVEL:-info}"
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Switch from user root to user bsb"
+echo "Switch from user root to user bsb"
 echo "-------------------------------------------------------------"
 # Change uid and gid of node user so it matches ownership of current dir
 if [ "$MAP_NODE_UID" != "no" ]; then
@@ -95,7 +95,7 @@ fi
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Run given start command using GOSU with user bsb"
+echo "Run given start command using GOSU with user bsb"
 echo "-------------------------------------------------------------"
 
 echo 'gosu bsb "$@"'

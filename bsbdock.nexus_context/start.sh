@@ -17,14 +17,15 @@ export LIGHT_BLUE='\033[1;34m'
 export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
-# Log reticulum interface status
-echo ""
-echo "#############################################################"
-echo " Startup of Nexus Server 1.4.0.4 [Python]"
-echo "#############################################################"
+echo "${LIGHT_BLUE}"
+echo "-------------------------------------------------------------"
+echo "Startup of Nexus Server 1.4.0.4 [Python]"
+echo "-------------------------------------------------------------"
+echo "${NC}"
+
 echo ""
 echo "-------------------------------------------------------------"
-echo " Environment variables set:"
+echo "Environment variables set:"
 echo "-------------------------------------------------------------"
 
 # Set default container Nexus API Port to exposed port
@@ -40,52 +41,55 @@ echo "NEXUS_BRIDGE=$NEXUS_BRIDGE"
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Actual Reticulum interface configuration:"
+echo "Actual Reticulum interface configuration:"
 echo "-------------------------------------------------------------"
+# Log reticulum interface configuration
 cat .reticulum/config
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Actual Reticulum interface status:"
+echo "Actual Reticulum interface status:"
 echo "-------------------------------------------------------------"
+# Log reticulum interface status
 rnstatus
 
 echo "-------------------------------------------------------------"
-echo " Nexus Messenger Web App NGINX configuration check and startup"
+echo "Nexus Messenger Web App NGINX configuration check and startup"
 echo "-------------------------------------------------------------"
+# Log nginx status
 sudo nginx -t
 sudo systemctl start nginx
 sudo systemctl status nginx
 
 #echo ""
 #echo "-------------------------------------------------------------"
-#echo " Direwolf startup"
+#echo "Direwolf startup"
 #echo "-------------------------------------------------------------"
 #direwolf -t 0
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Parameters passed to server startup:"
+echo "Parameters passed to server startup:"
 echo "-------------------------------------------------------------"
 echo \
-${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
-${NEXUS_PORT:+--port=$NEXUS_PORT} \
-${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
-${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
-${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
-${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
-${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
+  ${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
+  ${NEXUS_PORT:+--port=$NEXUS_PORT} \
+  ${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
+  ${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
+  ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
+  ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
+  ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Nexus Server startup"
+echo "Nexus Server startup"
 echo "-------------------------------------------------------------"
 # Launch nexus_server2 Server with unbuffered logs (docker takes those logs)
 exec python3 -u ./nexus_server/nexus_server.py \
-${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
-${NEXUS_PORT:+--port=$NEXUS_PORT} \
-${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
-${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
-${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
-${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
-${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
+  ${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
+  ${NEXUS_PORT:+--port=$NEXUS_PORT} \
+  ${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
+  ${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
+  ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
+  ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
+  ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}

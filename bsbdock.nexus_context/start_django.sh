@@ -18,40 +18,43 @@ export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
 # Log reticulum interface status
-echo ""
-echo "#############################################################"
-echo " Startup of Nexus Server [Django]"
-echo "#############################################################"
+echo "${LIGHT_BLUE}"
+echo "-------------------------------------------------------------"
+echo "Startup of Nexus Server [Django]"
+echo "-------------------------------------------------------------"
+echo "${NC}"
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Actual Reticulum interface configuration:"
+echo "Actual Reticulum interface configuration:"
 echo "-------------------------------------------------------------"
+# Log reticulum interface configuration
 cat .reticulum/config
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Actual Reticulum interface status:"
+echo "Actual Reticulum interface status:"
 echo "-------------------------------------------------------------"
+# Log reticulum interface status
 rnstatus
 
 echo "-------------------------------------------------------------"
-echo " Nexus Messenger Web App NGINX configuration check and startup"
+echo "Nexus Messenger Web App NGINX configuration check and startup"
 echo "-------------------------------------------------------------"
+# Log nginx status
 sudo nginx -t
 sudo systemctl start nginx
 sudo systemctl status nginx
 
 #echo ""
 #echo "-------------------------------------------------------------"
-#echo " Direwolf startup"
+#echo "Direwolf startup"
 #echo "-------------------------------------------------------------"
 #direwolf -t 0
 
-
 echo ""
 echo "-------------------------------------------------------------"
-echo " Nexus environment variables set:"
+echo "Nexus environment variables set:"
 echo "-------------------------------------------------------------"
 echo "NEXUS_CONFIG=$NEXUS_CONFIG"
 echo "NEXUS_PORT=$NEXUS_PORT"
@@ -63,7 +66,7 @@ echo "NEXUS_BRIDGE=$NEXUS_BRIDGE"
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Default Django environment variables set:"
+echo "Default Django environment variables set:"
 echo "-------------------------------------------------------------"
 echo "DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME"
 echo "DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD"
@@ -72,7 +75,7 @@ echo "DJANGO_LOG_LEVEL=$DJANGO_LOG_LEVEL"
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Migrate Database"
+echo "Migrate Database"
 echo "-------------------------------------------------------------"
 # Check if nexus database directory exists
 if test -d ".nexus/database"; then
@@ -94,19 +97,19 @@ cd ..
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Check that default Django super user exists"
+echo "Check that default Django super user exists"
 echo "-------------------------------------------------------------"
 cd nexus_django || exit
 if ! ./manage.py createsuperuser --noinput >/dev/null 2>&1 ; then
-    echo -e "Django super user ${LIGHT_GREEN}exists${NC}"
+  echo -e "Django super user ${LIGHT_GREEN}exists${NC}"
 else
-    echo -e "Django super user with default credentials was created ${LIGHT_GREEN}successfully${NC}"
+  echo -e "Django super user with default credentials was created ${LIGHT_GREEN}successfully${NC}"
 fi
 cd ..
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Nexus Django Server startup"
+echo "Nexus Django Server startup"
 echo "-------------------------------------------------------------"
 cd nexus_django || exit
 exec gunicorn nexus_django.wsgi:application \
