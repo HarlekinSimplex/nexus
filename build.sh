@@ -61,7 +61,7 @@ if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm6
   echo -e "  build.sh dev              -> build.sh amd64 dev (using no cache)"
   echo -e "  build.sh arm              -> build.sh arm dev (using cache)"
   echo -e ""
-  echo -e "With version 'dev' cache usage is activtated, otherwise not."
+  echo -e "With version 'dev' cache usage is activated, otherwise not."
   echo -e "However, Cache usage is overruled by -c or -nc if specified."
   echo -e ""
   exit 0
@@ -81,7 +81,6 @@ cd ./bsbdock.nexus_context || exit
 FILE=Dockerfile_nexus_"$IMAGE_TAG"
 if test -f "$FILE"; then
     echo -e "${GREEN}Dockerfile ${CYAN}$FILE${GREEN} to build image exists.${NC}"
-    echo -e "${BLUE}Building image ...${NC}"
 
     # Set --no-cache if version is dev
     CACHE_OPT=
@@ -89,6 +88,8 @@ if test -f "$FILE"; then
       CACHE_OPT=--no-cache
       echo -e "${BLUE}Using option ${YELLOW}--no-cache${BLUE} during build.${NC}"
     fi
+
+    echo -e "${BLUE}Building image ...${NC}"
 
     # Build image according given build parameters
     docker build --build-arg CACHEBUST="$(date +%s)" $CACHE_OPT \
