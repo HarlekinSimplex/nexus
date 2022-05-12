@@ -71,7 +71,7 @@ import RNS
 # workers = 1
 # worker_class = 'sync'
 
-worker_class = 'gevent'
+# worker_class = 'gevent'
 # worker_connections = 1000
 # timeout = 30
 timeout = 0
@@ -136,9 +136,9 @@ timeout = 0
 # pidfile = None
 # umask = 0
 # user = None
-user = 'bsb'
+# user = 'bsb'
 # group = None
-group = 'bsb'
+# group = 'bsb'
 # tmp_upload_dir = None
 
 #
@@ -192,6 +192,7 @@ loglevel = 'info'
 #       A callable that takes a server instance as the sole argument.
 #
 
+'''
 def post_fork(server, worker):
    server.log.info("Worker spawned (pid: %s)", worker.pid)
 
@@ -224,10 +225,9 @@ def worker_int(worker):
 def worker_abort(worker):
     worker.log.info("worker received SIGABRT signal")
 
-reload_engine = 'auto'
-print_config = True
-preload = True
+'''
 
+print_config = True
 
 def on_starting(server):
     server.log.info("BSB: Starting")
