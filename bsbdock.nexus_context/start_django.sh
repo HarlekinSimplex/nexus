@@ -71,4 +71,6 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus Django Server startup"
 echo "-------------------------------------------------------------"
-exec gunicorn nexus_django.wsgi:application --log-level "$DJANGO_LOG_LEVEL" --bind 127.0.0.1:"$NEXUS_PORT"
+exec gunicorn nexus_django.wsgi:application \
+ --bind 127.0.0.1:"$NEXUS_PORT" \
+ --config python:nexus_django
