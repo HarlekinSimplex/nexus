@@ -68,7 +68,7 @@ if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm6
   echo -e "With version 'dev' cache usage is activtated, otherwise not."
   echo -e "However, Cache usage is overruled by -c or -nc if specified."
   echo -e ""
-    exit 0
+  exit 0
 fi
 
 echo Cache:$USE_CACHE
