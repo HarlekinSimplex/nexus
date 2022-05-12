@@ -12,6 +12,9 @@ NC='\033[0m' # No Color
 
 USE_CACHE=
 
+IMAGE_ARCH=$1
+IMAGE_VERSION=$2
+
 # Check if we should disable cache
 if [ "$1" == "-nc" ] ; then
   IMAGE_ARCH=$2
