@@ -228,7 +228,7 @@ def worker_abort(worker):
 
 
 def on_starting(server):
-    # Pull up Reticulum stack as configured
+    server.log.info("...............................................................................")
     server.log.info(" ____   _____ ____   _   _                      _____")
     server.log.info("|  _ \\ / ____|  _ \\ | \\ | |                    / ____|")
     server.log.info("| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __")
@@ -239,5 +239,8 @@ def on_starting(server):
     server.log.info("Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License")
     server.log.info("...............................................................................")
 
+    # Pull up Reticulum stack as configured
     RNS.Reticulum()
     server.log.info("Reticulum stack initialized")
+
+    server.log.info("...............................................................................")
