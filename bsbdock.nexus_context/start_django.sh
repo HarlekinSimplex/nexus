@@ -1,12 +1,19 @@
 #!/bin/bash
 # USE the trap if you need to also do manual cleanup after the service is stopped,
-#     or need to start multiple services in the one container
+#   or need to start multiple services in the one container
 # trap "echo TRAPed signal" HUP INT QUIT TERM
 
+# Exit on error
+set -e
+
+# Set color tags for use with 'echo -e'
 export RED='\033[0;31m'
+export LIGHT_RED='\033[1;31m'
 export YELLOW='\033[1;33m'
 export GREEN='\033[0;32m'
+export LIGHT_GREEN='\033[1;32m'
 export BLUE='\033[0;34m'
+export LIGHT_BLUE='\033[1;34m'
 export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
@@ -69,21 +76,21 @@ echo " Migrate Database"
 echo "-------------------------------------------------------------"
 # Check if nexus config directory exists
 if test -d ".nexus"; then
-  echo -e "Nexus config directory '.nexus' ${GREEN}exists${NC}"
+  echo -e "Nexus config directory '.nexus' ${LIGHT_GREEN}exists${NC}"
 else
   mkdir .nexus
   echo -e "Nexus config directory '.nexus' ${YELLOW}created${NC}"
 fi
 # Check if nexus database directory exists
 if test -d ".nexus/database"; then
-  echo -e "Nexus database directory 'database' ${GREEN}exists${NC}"
+  echo -e "Nexus database directory 'database' ${LIGHT_GREEN}exists${NC}"
 else
   mkdir .nexus/database
   echo -e "Nexus database directory 'database' ${YELLOW}created${NC}"
 fi
 # Check if nexus database exists (info onöy)
 if test -f ".nexus/database/nexus.sqlite3"; then
-  echo -e "Nexus database 'nexus.sqlite3' ${GREEN}exists${NC}"
+  echo -e "Nexus database 'nexus.sqlite3' ${LIGHT_GREEN}exists${NC}"
 else
   echo -e "Nexus database 'nexus.sqlite3' ${YELLOW}does not exist${NC} (empty database will be created)"
 fi
@@ -98,9 +105,9 @@ echo " Create default Django super user"
 echo "-------------------------------------------------------------"
 cd nexus_django || exit
 if ! ./manage.py createsuperuser --noinput >/dev/null 2>&1 ; then
-    echo -e "Django super user ${GREEN}exists${NC}"
+    echo -e "Django super user ${LIGHT_GREEN}exists${NC}"
 else
-    echo -e "Django super user with default credentials was created ${GREEN}successfully${NC}"
+    echo -e "Django super user with default credentials was created ${LIGHT_GREEN}successfully${NC}"
 fi
 cd ..
 

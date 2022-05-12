@@ -1,7 +1,21 @@
 #!/bin/bash
 # USE the trap if you need to also do manual cleanup after the service is stopped,
-#     or need to start multiple services in the one container
+#   or need to start multiple services in the one container
 trap "echo TRAPed signal" HUP INT QUIT TERM
+
+# Exit on error
+set -e
+
+# Set color tags for use with 'echo -e'
+export RED='\033[0;31m'
+export LIGHT_RED='\033[1;31m'
+export YELLOW='\033[1;33m'
+export GREEN='\033[0;32m'
+export LIGHT_GREEN='\033[1;32m'
+export BLUE='\033[0;34m'
+export LIGHT_BLUE='\033[1;34m'
+export CYAN='\033[0;36m'
+export NC='\033[0m' # No Color
 
 # Log reticulum interface status
 echo ""
