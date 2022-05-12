@@ -35,6 +35,7 @@ fi
 echo Cache:$USE_CACHE
 echo IMAGE_ARCH:$IMAGE_ARCH
 echo IMAGE_VERSION:$IMAGE_VERSION
+exit
 
 if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" == "dev" ] ; then
   USE_CACHE=YES
