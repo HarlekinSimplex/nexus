@@ -67,10 +67,10 @@ if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm6
   exit 0
 fi
 
-echo Cache:$USE_CACHE
-echo IMAGE_ARCH:$IMAGE_ARCH
-echo IMAGE_VERSION:$IMAGE_VERSION
-exit
+# echo Cache:$USE_CACHE
+# echo IMAGE_ARCH:$IMAGE_ARCH
+# echo IMAGE_VERSION:$IMAGE_VERSION
+# exit
 
 echo -e "${BLUE}Using ${CYAN}$IMAGE_TAG${BLUE} as image tag.${NC}"
 
@@ -89,8 +89,6 @@ if test -f "$FILE"; then
       CACHE_OPT=--no-cache
       echo -e "${BLUE}Using option ${YELLOW}--no-cache${BLUE} during build.${NC}"
     fi
-
-exit
 
     # Build image according given build parameters
     docker build --build-arg CACHEBUST="$(date +%s)" $CACHE_OPT \
