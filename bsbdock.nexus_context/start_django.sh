@@ -101,7 +101,7 @@ cd ..
 
 echo ""
 echo "-------------------------------------------------------------"
-echo " Create default Django super user"
+echo " Check that default Django super user exists"
 echo "-------------------------------------------------------------"
 cd nexus_django || exit
 if ! ./manage.py createsuperuser --noinput >/dev/null 2>&1 ; then
