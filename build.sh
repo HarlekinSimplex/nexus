@@ -12,6 +12,7 @@ NC='\033[0m' # No Color
 
 USE_CACHE=
 
+# Check if we should disable cache
 if [ "$1" == "-nc" ] ; then
   1="$2"
   2="$3"
@@ -19,6 +20,7 @@ if [ "$1" == "-nc" ] ; then
   echo Cache:$USE_CACHE
 fi
 
+# Check if we should enable cache
 if [ "$1" == "-c" ] ; then
   1="$2"
   2="$3"
@@ -30,6 +32,7 @@ echo Cache:$USE_CACHE
 echo 1:$1
 echo 2:$2
 
+# Check if arch was not given but dev
 IMAGE_ARCH=$1
 IMAGE_VERSION=$2
 if [ "$IMAGE_ARCH" == "dev" ] ; then
