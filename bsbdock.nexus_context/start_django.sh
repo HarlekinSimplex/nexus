@@ -18,11 +18,10 @@ export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
 # Log reticulum interface status
-echo -e "${LIGHT_BLUE}"
-echo -e "-------------------------------------------------------------"
-echo -e "Startup of Nexus Server [Django]"
-echo -e "-------------------------------------------------------------"
-echo -e "${NC}"
+echo -e ""
+echo -e "${LIGHT_BLUE}-------------------------------------------------------------"
+echo -e "${LIGHT_BLUE}Startup of Nexus Server [Django]"
+echo -e "${LIGHT_BLUE}-------------------------------------------------------------"
 
 echo -e ""
 echo -e "-------------------------------------------------------------"

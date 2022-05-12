@@ -17,12 +17,12 @@ export LIGHT_BLUE='\033[1;34m'
 export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
-echo -e "${LIGHT_BLUE}"
-echo -e "-------------------------------------------------------------"
-echo -e "Startup of Nexus Server 1.4.0.4 [Python]"
-echo -e "-------------------------------------------------------------"
-echo -e "${NC}"
+echo -e ""
+echo -e "${LIGHT_BLUE}-------------------------------------------------------------"
+echo -e "${LIGHT_BLUE}Startup of Nexus Server 1.4.0.4 [Python]"
+echo -e "${LIGHT_BLUE}-------------------------------------------------------------"
 
+echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Environment variables set:"
 echo -e "-------------------------------------------------------------"
