@@ -81,6 +81,14 @@ else
   mkdir .nexus/database
   echo -e "${YELLOW}Nexus database directory 'database' created.${NC}"
 fi
+# Check if nexus database exists (info onöy)
+if test -f ".nexus/database/nexus.sqlite3"; then
+  echo -e "${GREEN}Nexus database 'nexus.sqlite3' exists.${NC}"
+else
+  mkdir .nexus/database
+  echo -e "${YELLOW}Nexus database 'nexus.sqlite3' does not exist (empty database will be created).${NC}"
+fi
+# Create database (if not yet there) and apply migrations
 cd nexus_django || exit
 ./manage.py migrate
 cd ..
