@@ -37,7 +37,7 @@ if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" == "dev" ] ; then
 fi
 
 if [ -z "$USE_CACHE" ] ; then
-  USE_CACHE=NO
+  USE_CACHE=YES
 fi
 
 echo Cache:$USE_CACHE
