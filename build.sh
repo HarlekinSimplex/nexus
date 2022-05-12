@@ -18,6 +18,12 @@ if [ "$1" == "-nc" ] ; then
   USE_CACHE=NO
 fi
 
+if [ "$1" == "-c" ] ; then
+  1="$2"
+  2="$3"
+  USE_CACHE=YES
+fi
+
 if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" == "dev" ] ; then
   USE_CACHE=YES
 fi
@@ -38,14 +44,17 @@ if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm6
    [ "$1" == "?" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then
   echo -e ""
   echo -e "${BLUE}Usage:${NC}"
-  echo -e "  build [<Arch>=amd64|arm64|arm] [<Version>=dev]"
+  echo -e "  build [-c|-nc] [<Arch>=amd64|arm64|arm] [<Version>=dev]"
   echo -e ""
   echo -e "${GREEN}Examples:${NC}"
-  echo -e "  build.sh amd64 1.2.3"
-  echo -e "  build.sh        -> build.sh amd64 dev"
-  echo -e "  build.sh dev    -> build.sh amd64 dev"
-  echo -e "  build.sh arm    -> build.sh arm dev"
+  echo -e "  build.sh amd64 1.2.3      -> build 1.2.3_linux-amd64 (using no cache)"
+  echo -e "  build.sh -c amd64 1.2.3   -> build 1.2.3_linux-amd64 (using cache)"
+  echo -e "  build.sh                  -> build.sh amd64 dev (using no cache)"
+  echo -e "  build.sh dev              -> build.sh amd64 dev (using no cache)"
+  echo -e "  build.sh arm              -> build.sh arm dev (using cache)"
   echo -e ""
+  echo -e "With versio 'dev' cache usage is activtated, otherwise not."
+  echo -e "However, Cache usage is overruled by -c or -nc if specified."
   exit 0
 fi
 
