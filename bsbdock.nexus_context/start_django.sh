@@ -71,6 +71,4 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Nexus Django Server startup"
 echo "-------------------------------------------------------------"
-exec gunicorn nexus_django.wsgi:application \
- --bind 127.0.0.1:"$NEXUS_PORT" \
- --config gunicorn.config.py
+exec gunicorn --config gunicorn.config.py --bind 127.0.0.1:"$NEXUS_PORT" nexus_django.wsgi:application
