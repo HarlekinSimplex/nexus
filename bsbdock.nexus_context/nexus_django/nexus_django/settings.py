@@ -27,11 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
-
-
 # Application definition
-
 INSTALLED_APPS = [
     'server.apps.ServerConfig',
     'polls.apps.PollsConfig',
@@ -116,7 +112,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = "/home/bsb/nexus_django/static/"
+STATIC_ROOT = '/home/bsb/nexus_django/static/'
 STATICFILES_DIRS = []
 
 # Default primary key field type
