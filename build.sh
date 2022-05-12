@@ -27,8 +27,8 @@ if [ "$1" == "-c" ] ; then
 fi
 
 echo Cache:$USE_CACHE
-echo $1
-echo $2
+echo 1:$1
+echo 2:$2
 
 IMAGE_ARCH=$1
 IMAGE_VERSION=$2
@@ -37,6 +37,10 @@ if [ "$IMAGE_ARCH" == "dev" ] ; then
   IMAGE_ARCH=
 fi
 
+echo Cache:$USE_CACHE
+echo $IMAGE_ARCH
+echo $IMAGE_VERSION
+
 if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" == "dev" ] ; then
   USE_CACHE=YES
 fi
@@ -44,6 +48,8 @@ fi
 if [ -z "$USE_CACHE" ] ; then
   USE_CACHE=NO
 fi
+
+echo Cache:$USE_CACHE
 
 # Check
 if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ] ||
