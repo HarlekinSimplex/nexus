@@ -24,19 +24,19 @@ if [ "$1" == "-c" ] ; then
   USE_CACHE=YES
 fi
 
+IMAGE_ARCH=$1
+IMAGE_VERSION=$2
+if [ "$IMAGE_ARCH" == "dev" ] ; then
+  IMAGE_VERSION=$IMAGE_ARCH
+  IMAGE_ARCH=
+fi
+
 if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" == "dev" ] ; then
   USE_CACHE=YES
 fi
 
 if [ -z "$USE_CACHE" ] ; then
   USE_CACHE=NO
-fi
-
-IMAGE_ARCH=$1
-IMAGE_VERSION=$2
-if [ "$IMAGE_ARCH" == "dev" ] ; then
-  IMAGE_VERSION=$IMAGE_ARCH
-  IMAGE_ARCH=
 fi
 
 # Check
