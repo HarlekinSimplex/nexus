@@ -3,6 +3,13 @@
 #     or need to start multiple services in the one container
 # trap "echo TRAPed signal" HUP INT QUIT TERM
 
+exort RED='\033[0;31m'
+exort YELLOW='\033[1;33m'
+exort GREEN='\033[0;32m'
+exort BLUE='\033[0;34m'
+exort CYAN='\033[0;36m'
+exort NC='\033[0m' # No Color
+
 # Log reticulum interface status
 echo ""
 echo "#############################################################"
@@ -60,6 +67,18 @@ echo ""
 echo "-------------------------------------------------------------"
 echo " Migrate Database"
 echo "-------------------------------------------------------------"
+if ! test -f ".nexus"; then
+  mkdir .nexus
+  echo -e "${YELLOW}Nexus config directory '.nexus' created.${NC}"
+else
+  echo -e "${GREEN}Nexus config directory '.nexus' exists.${NC}"
+fi
+if ! test -f "database"; then
+  mkdir database
+  echo -e "${YELLOW}Nexus database directory 'database' created.${NC}"
+else
+  echo -e "${GREEN}Nexus database directory 'database' exists.${NC}"
+fi
 cd nexus_django || exit
 ./manage.py migrate
 cd ..

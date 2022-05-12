@@ -3,12 +3,12 @@
 # Build and tag nexus_server2 container
 #
 
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+exort RED='\033[0;31m'
+exort YELLOW='\033[1;33m'
+exort GREEN='\033[0;32m'
+exort BLUE='\033[0;34m'
+exort CYAN='\033[0;36m'
+exort NC='\033[0m' # No Color
 
 USE_CACHE=
 
