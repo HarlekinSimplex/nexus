@@ -27,8 +27,6 @@ if [ "$1" == "-c" ] ; then
 fi
 
 # Check if arch was not given but dev
-IMAGE_ARCH=$1
-IMAGE_VERSION=$2
 if [ "$IMAGE_ARCH" == "dev" ] ; then
   IMAGE_VERSION=$IMAGE_ARCH
   IMAGE_ARCH=
