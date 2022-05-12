@@ -17,60 +17,60 @@ export LIGHT_BLUE='\033[1;34m'
 export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
-echo "${LIGHT_BLUE}"
-echo "-------------------------------------------------------------"
-echo "Startup of Nexus Server 1.4.0.4 [Python]"
-echo "-------------------------------------------------------------"
-echo "${NC}"
+echo -e "${LIGHT_BLUE}"
+echo -e "-------------------------------------------------------------"
+echo -e "Startup of Nexus Server 1.4.0.4 [Python]"
+echo -e "-------------------------------------------------------------"
+echo -e "${NC}"
 
-echo ""
-echo "-------------------------------------------------------------"
-echo "Environment variables set:"
-echo "-------------------------------------------------------------"
+echo -e ""
+echo -e "-------------------------------------------------------------"
+echo -e "Environment variables set:"
+echo -e "-------------------------------------------------------------"
 
 # Set default container Nexus API Port to exposed port
 NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
 
-echo "NEXUS_CONFIG=$NEXUS_CONFIG"
-echo "NEXUS_PORT=$NEXUS_PORT"
-echo "NEXUS_ASPECT=$NEXUS_ASPECT"
-echo "NEXUS_ROLE=$NEXUS_ROLE"
-echo "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
-echo "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
-echo "NEXUS_BRIDGE=$NEXUS_BRIDGE"
+echo -e "NEXUS_CONFIG=$NEXUS_CONFIG"
+echo -e "NEXUS_PORT=$NEXUS_PORT"
+echo -e "NEXUS_ASPECT=$NEXUS_ASPECT"
+echo -e "NEXUS_ROLE=$NEXUS_ROLE"
+echo -e "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
+echo -e "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
+echo -e "NEXUS_BRIDGE=$NEXUS_BRIDGE"
 
-echo ""
-echo "-------------------------------------------------------------"
-echo "Actual Reticulum interface configuration:"
-echo "-------------------------------------------------------------"
+echo -e ""
+echo -e "-------------------------------------------------------------"
+echo -e "Actual Reticulum interface configuration:"
+echo -e "-------------------------------------------------------------"
 # Log reticulum interface configuration
 cat .reticulum/config
 
-echo ""
-echo "-------------------------------------------------------------"
-echo "Actual Reticulum interface status:"
-echo "-------------------------------------------------------------"
+echo -e ""
+echo -e "-------------------------------------------------------------"
+echo -e "Actual Reticulum interface status:"
+echo -e "-------------------------------------------------------------"
 # Log reticulum interface status
 rnstatus
 
-echo "-------------------------------------------------------------"
-echo "Nexus Messenger Web App NGINX configuration check and startup"
-echo "-------------------------------------------------------------"
+echo -e "-------------------------------------------------------------"
+echo -e "Nexus Messenger Web App NGINX configuration check and startup"
+echo -e "-------------------------------------------------------------"
 # Log nginx status
 sudo nginx -t
 sudo systemctl start nginx
 sudo systemctl status nginx
 
-#echo ""
-#echo "-------------------------------------------------------------"
-#echo "Direwolf startup"
-#echo "-------------------------------------------------------------"
+#echo -e ""
+#echo -e "-------------------------------------------------------------"
+#echo -e "Direwolf startup"
+#echo -e "-------------------------------------------------------------"
 #direwolf -t 0
 
-echo ""
-echo "-------------------------------------------------------------"
-echo "Parameters passed to server startup:"
-echo "-------------------------------------------------------------"
+echo -e ""
+echo -e "-------------------------------------------------------------"
+echo -e "Parameters passed to server startup:"
+echo -e "-------------------------------------------------------------"
 echo \
   ${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
   ${NEXUS_PORT:+--port=$NEXUS_PORT} \
@@ -80,10 +80,10 @@ echo \
   ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
   ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
 
-echo ""
-echo "-------------------------------------------------------------"
-echo "Nexus Server startup"
-echo "-------------------------------------------------------------"
+echo -e ""
+echo -e "-------------------------------------------------------------"
+echo -e "Nexus Server startup"
+echo -e "-------------------------------------------------------------"
 # Launch nexus_server2 Server with unbuffered logs (docker takes those logs)
 exec python3 -u ./nexus_server/nexus_server.py \
   ${NEXUS_CONFIG:+--config=$NEXUS_CONFIG} \
