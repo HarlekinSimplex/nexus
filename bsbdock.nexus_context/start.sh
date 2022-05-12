@@ -18,9 +18,9 @@ export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
 echo -e ""
-echo -e "${LIGHT_BLUE}-------------------------------------------------------------"
-echo -e "${LIGHT_BLUE}Startup of Nexus Server 1.4.0.4 [Python]"
-echo -e "${LIGHT_BLUE}-------------------------------------------------------------"
+echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
+echo -e "${LIGHT_BLUE}Startup of Nexus Server 1.4.0.4 [Python]${NC}"
+echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
 
 echo -e ""
 echo -e "-------------------------------------------------------------"

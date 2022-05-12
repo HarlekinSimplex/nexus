@@ -19,9 +19,9 @@ export NC='\033[0m' # No Color
 
 # Log reticulum interface status
 echo -e ""
-echo -e "${LIGHT_BLUE}-------------------------------------------------------------"
-echo -e "${LIGHT_BLUE}Startup of Nexus Server [Django]"
-echo -e "${LIGHT_BLUE}-------------------------------------------------------------"
+echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
+echo -e "${LIGHT_BLUE}Startup of Nexus Server [Django]${NC}"
+echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
 
 echo -e ""
 echo -e "-------------------------------------------------------------"
