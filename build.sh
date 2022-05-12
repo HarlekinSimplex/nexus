@@ -10,6 +10,15 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+USE_CACHE=0
+
+if [ "$1" == "-n" ] ; then
+  1="$2"
+  2="$3"
+  USE_CACHE=1
+fi
+
+
 IMAGE_ARCH=$1
 IMAGE_VERSION=$2
 if [ "$IMAGE_ARCH" == "dev" ] ; then
@@ -51,10 +60,12 @@ if test -f "$FILE"; then
 
     # Set --no-cache if version is dev
     CACHE_OPT=
-    if [ "$IMAGE_VERSION" != "dev" ] ; then
+    if [ "$IMAGE_VERSION" != "dev" ] || [ "$USE_CACHE" == 0 ] ; then
       CACHE_OPT=--no-cache
       echo -e "${BLUE}Using option ${YELLOW}--no-cache${BLUE} during build.${NC}"
     fi
+
+exit
 
     # Build image according given build parameters
     docker build --build-arg CACHEBUST="$(date +%s)" $CACHE_OPT \
