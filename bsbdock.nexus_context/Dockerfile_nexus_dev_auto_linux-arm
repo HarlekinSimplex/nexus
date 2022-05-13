@@ -18,6 +18,8 @@ FROM balenalib/armv7hf-python:3.9
 # Add QEMU
 COPY --from=qemu qemu-arm-static /usr/bin
 
+RUN set -eux
+
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 # set environment variables for python
