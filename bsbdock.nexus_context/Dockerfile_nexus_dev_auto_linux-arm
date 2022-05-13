@@ -14,7 +14,7 @@ FROM alpine AS qemu
 ENV QEMU_URL https://github.com/balena-io/qemu/releases/download/v3.0.0%2Bresin/qemu-3.0.0+resin-arm.tar.gz
 RUN apk add curl && curl -L ${QEMU_URL} | tar zxvf - -C . --strip-components 1
 
-FROM balenalib/armhf-python:3.9
+FROM balenalib/armv7hf-python:3.9
 # Add QEMU
 COPY --from=qemu qemu-arm-static /usr/bin
 
