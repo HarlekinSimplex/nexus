@@ -49,8 +49,7 @@ RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
 USER bsb
 WORKDIR $HOME
 
-
-
+RUN python3 -m venv $HOME/venv
 
 
 # Install and upgrde pip3
