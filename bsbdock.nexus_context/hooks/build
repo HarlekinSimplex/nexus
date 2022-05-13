@@ -1,6 +1,0 @@
-#!/bin/bash
-docker buildx build -t bsbdock/nexus:dev\
- --push\
- --platform linux/amd64,linux/arm64,linux/arm\
- -f Dockerfile_nexus_dev_auto\
- .
