@@ -51,6 +51,8 @@ WORKDIR $HOME
 
 RUN python3 -m venv ~/venv
 RUN . ~/venv/bin/activate
+
+ARG CACHEBUST=1
 # Install and upgrde pip3
 USER root
 RUN apt-get -y install python3-pip
