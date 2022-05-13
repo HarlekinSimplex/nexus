@@ -33,7 +33,25 @@ RUN apt-get -y update && apt-get -y upgrade &&\
 # Install some optional helper tools
 RUN apt-get -y install mc nano vim screen
 
-RUN pip3 install pipenv
+##########
+
+# Set Home dir and path fpr user bsb
+ENV HOME /home/bsb
+ENV PATH="$HOME/.local/bin:$PATH"
+
+# Add local user 'bsb'
+RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
+# Grant him sudo privileges
+RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
+    chmod 0440 /etc/sudoers.d/bsb
+
+# Switch to user bsb
+USER bsb
+WORKDIR $HOME
+
+
+
+
 
 # Install and upgrde pip3
 RUN apt-get -y install python3-pip &&\
@@ -61,77 +79,66 @@ RUN	apt-get update &&\
    	rm -rf /var/lib/apt/lists/* &&\
     gosu nobody true
 
-# Set Home dir and path fpr user bsb
-ENV HOME /home/bsb
-ENV PATH="$HOME/.local/bin:$PATH"
 
-# Add local user 'bsb'
-RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
-# Grant him sudo privileges
-RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
-    chmod 0440 /etc/sudoers.d/bsb
 
-# Switch to user bsb
-USER bsb
-WORKDIR $HOME
 
 # Install requiered python packages
-RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
+#RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
 
 # Change to root
-USER root
+#USER root
 # Copy ressources from context into bsb home
-ARG CACHEBUST=1
-COPY . .
+#ARG CACHEBUST=1
+#COPY . .
 # Set ownership to usr bsb
-RUN chown -R bsb:bsb $HOME
+#RUN chown -R bsb:bsb $HOME
 # Make some scripts executable
-RUN chmod +x entrypoint.sh &&\
-    chmod +x start.sh &&\
-    chmod +x start_django.sh
+#RUN chmod +x entrypoint.sh &&\
+#    chmod +x start.sh &&\
+#    chmod +x start_django.sh
 # Move script to bin
-RUN mv entrypoint.sh /usr/local/bin &&\
-    mv start.sh /usr/local/bin &&\
-    mv start_django.sh /usr/local/bin
+#RUN mv entrypoint.sh /usr/local/bin &&\
+#    mv start.sh /usr/local/bin &&\
+#    mv start_django.sh /usr/local/bin
 
 # Change to bsb again to install python packages indicated at the rerquirents.txt
 # This will be done without cache usage
-USER bsb
-WORKDIR $HOME
+#USER bsb
+#WORKDIR $HOME
 
 # Install required python packages
-RUN pip3 install -r ./requirements.txt
+#RUN pip3 install -r ./requirements.txt
 
 # Move to Django
-WORKDIR $HOME/nexus_django
+#WORKDIR $HOME/nexus_django
 # Make manage.py executable
-RUN chmod +x manage.py
+#RUN chmod +x manage.py
 # Create folder for static files
-RUN mkdir static
+#RUN mkdir static
 
 # Collect static files
 #RUN python manage.py collectstatic --no-input --clear
-RUN ./manage.py collectstatic --no-input --clear &&\
-    ./manage.py flush --no-input
+#RUN ./manage.py collectstatic --no-input --clear &&\
+#    ./manage.py flush --no-input
 
 # Back to root to finalize stuff
-USER root
-WORKDIR $HOME
+#USER root
+#WORKDIR $HOME
 
 # Configure Nginx
-RUN rm /etc/nginx/sites-enabled/default &&\
-    ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+#RUN rm /etc/nginx/sites-enabled/default &&\
+#    ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
 
 # Expose port for Reticulum server TCP Interface (disable as default)
-ENV NEXUS_CONTAINER_RNS_PORT 4242
-EXPOSE $NEXUS_CONTAINER_RNS_PORT
+#ENV NEXUS_CONTAINER_RNS_PORT 4242
+#EXPOSE $NEXUS_CONTAINER_RNS_PORT
 
 # Expose port for Nexus Server Web (Nginx)
-ENV NEXUS_CONTAINER_WEB_PORT 4280
-EXPOSE $NEXUS_CONTAINER_WEB_PORT
+#ENV NEXUS_CONTAINER_WEB_PORT 4280
+#EXPOSE $NEXUS_CONTAINER_WEB_PORT
 
 # Expose port for Nexus Server API (Gunicorn / Python)
-ENV NEXUS_CONTAINER_API_PORT 4281
-EXPOSE $NEXUS_CONTAINER_API_PORT
+#ENV NEXUS_CONTAINER_API_PORT 4281
+#EXPOSE $NEXUS_CONTAINER_API_PORT
 
-ENTRYPOINT ["entrypoint.sh"]
+#ENTRYPOINT ["entrypoint.sh"]
