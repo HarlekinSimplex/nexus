@@ -52,7 +52,7 @@ WORKDIR $HOME
 RUN python3 -m virtualenv $HOME/venv
 RUN source $HOME/venv/bin/activate
 # Install and upgrde pip3
-RUN apt-get -y install python3-pip
+#RUN apt-get -y install python3-pip
 
 
 #    &&\
