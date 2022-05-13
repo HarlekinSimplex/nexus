@@ -50,11 +50,11 @@ USER bsb
 WORKDIR $HOME
 
 RUN python3 -m venv ~/venv
-RUN . $HOME/venv/bin/activate
 
 # Install and upgrde pip3
 USER root
 RUN apt-get -y install python3-pip
+RUN . $HOME/venv/bin/activate
 RUN pip install --upgrade pip
 
 # Build essentials and install rust
