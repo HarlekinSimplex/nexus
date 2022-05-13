@@ -45,9 +45,9 @@ RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
     chmod 0440 /etc/sudoers.d/bsb
 
+ARG CACHEBUST=1
 USER bsb
 WORKDIR $HOME
-ARG CACHEBUST=1
 
 RUN python3 -m venv ~/venv
 RUN . $HOME/venv/bin/activate
@@ -59,7 +59,7 @@ RUN pip install --upgrade pip
 
 # Build essentials and install rust
 #RUN apt-get -y install curl build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2 &&\
-     curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
+#     curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
 #USER bsb
 #ENV PATH="/root/.cargo/bin:$PATH"
 
