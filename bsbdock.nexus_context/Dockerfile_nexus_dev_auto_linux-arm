@@ -48,14 +48,16 @@ RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
 USER bsb
 WORKDIR $HOME
 
+
 RUN python3 -m venv ~/venv
+RUN . $HOME/venv/bin/activate
+
+RUN python -m ensurepip --upgrade
 
 ARG CACHEBUST=1
 # Install and upgrde pip3
-USER root
-RUN apt-get -y install python3-pip
-RUN . $HOME/venv/bin/activate
-RUN pip install --upgrade pip
+#RUN apt-get -y install python3-pip
+#RUN pip install --upgrade pip
 
 # Build essentials and install rust
 #RUN apt-get -y install curl build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2 &&\
