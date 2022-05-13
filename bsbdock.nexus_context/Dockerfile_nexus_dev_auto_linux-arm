@@ -54,6 +54,7 @@ WORKDIR $HOME
 
 RUN python3 -m venv ~/venv
 RUN . $HOME/venv/bin/activate
+# RUN . /root/.cargo/env ????
 ENV PATH="/root/.cargo/bin:$PATH"
 
 RUN python -m ensurepip --upgrade
