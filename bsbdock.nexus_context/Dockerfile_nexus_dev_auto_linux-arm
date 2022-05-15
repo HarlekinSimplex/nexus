@@ -40,7 +40,7 @@ RUN source $HOME/.cargo/env
 #ENV PATH="/root/.cargo/bin:$PATH"
 
 # Build/Install cryptography
-# RUN pip3 install cryptography
+RUN pip3 install cryptography
 
 #RUN python3 -m ensurepip --upgrade
 # Install pip3
