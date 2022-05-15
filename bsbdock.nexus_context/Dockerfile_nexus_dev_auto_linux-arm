@@ -32,7 +32,8 @@ ENV HOME /home/bsb
 RUN apt-get update
 RUN apt-get install tzdata
 
-RUN python -m ensurepip --upgrade
+RUN python -m pip install --upgrade pip
+#RUN python3 -m ensurepip --upgrade
 # Install pip3
 # RUN apt -y install python3-pip
 #RUN pip install --upgrade pip
