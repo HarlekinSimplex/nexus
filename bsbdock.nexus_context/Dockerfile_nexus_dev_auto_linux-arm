@@ -19,6 +19,7 @@ FROM balenalib/armv7hf-python:3.9
 COPY --from=qemu qemu-arm-static /usr/bin
 
 RUN set -eux
+SHELL ["/bin/bash", "-c"]
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
