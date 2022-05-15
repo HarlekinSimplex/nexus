@@ -67,7 +67,7 @@ ARG CACHEBUST=1
 #USER bsb
 
 # Install requiered python packages
-RUN pip3 install cryptography
+# RUN pip3 install cryptography
 
 # Install components for django production deplyment
 #RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
