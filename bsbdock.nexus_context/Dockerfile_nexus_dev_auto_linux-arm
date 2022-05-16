@@ -14,10 +14,9 @@ FROM alpine AS qemu
 ENV QEMU_URL https://github.com/balena-io/qemu/releases/download/v6.0.0%2Bbalena1/qemu-6.0.0.balena1-arm.tar.gz
 RUN apk add curl && curl -L ${QEMU_URL} | tar zxvf - -C . --strip-components 1
 
-FROM balenalib/armv7hf-python:3.9
+FROM --plattform=BUILDPLATFORM=linux/amd64 balenalib/armv7hf-python:3.9
 # Add QEMU
 COPY --from=qemu qemu-arm-static /usr/bin
-ENV BUILDPLATFORM=linux/amd64
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
