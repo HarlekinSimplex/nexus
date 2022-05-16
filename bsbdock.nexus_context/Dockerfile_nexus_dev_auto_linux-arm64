@@ -43,7 +43,7 @@ RUN --mount=type=tmpfs,target=/root/.cargo \
     export PATH="/root/.cargo/bin:$PATH" && \
     pip3 install cryptography && \
     pip3 install rns lxmf nomadnet rnodeconf requests && \
-    pip3 Django gunicorn psycopg2-binary gevent && \
+    pip3 install Django gunicorn psycopg2-binary gevent && \
     cp -r /root/.cargo /root/.cargo.bak
 RUN cp -rT /root/.cargo.bak /root/.cargo && rm -R /root/.cargo.bak
 
