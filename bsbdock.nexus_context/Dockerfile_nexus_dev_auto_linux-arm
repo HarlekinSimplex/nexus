@@ -42,6 +42,13 @@ RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-pytho
 RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
 ENV PATH="/root/.cargo/bin:$PATH"
 
+RUN cp -R /root/.cargo /root/.cargo.bak
+#RUN --mount=type=tmpfs,target=/root/.cargo \
+#    pip3 install cryptography \
+#    cp -R /root/.cargo /root/.cargo.bak
+#RUN cp -R /root/.cargo.bak /root/.cargo && rm -R /root/.cargo.bak
+
+
 #RUN --mount=type=tmpfs,target=/build \
 #    cp -r /src/. /build/ \
 # && cd /build \
