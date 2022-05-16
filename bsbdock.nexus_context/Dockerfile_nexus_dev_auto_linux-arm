@@ -17,7 +17,7 @@ RUN apk add curl && curl -L ${QEMU_URL} | tar zxvf - -C . --strip-components 1
 FROM balenalib/armv7hf-python:3.9
 # Add QEMU
 COPY --from=qemu qemu-arm-static /usr/bin
-ENV BUILDPLATFORM=linux/arm/v7
+ENV BUILDPLATFORM=linux/amd64
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
