@@ -30,7 +30,7 @@ RUN apt-get install tzdata
 
 # Install pip3
 RUN apt-get -y install python3-pip
-#RUN pip install --upgrade pip
+RUN pip install --upgrade pip
 
 # Build essentials
 #RUN apt -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
