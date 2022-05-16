@@ -17,8 +17,6 @@ RUN apk add curl && curl -L ${QEMU_URL} | tar zxvf - -C . --strip-components 1
 FROM balenalib/armv7hf-python:3.9
 # Add QEMU
 COPY --from=qemu qemu-arm-static /usr/bin
-RUN mkdir ~/.cargo
-RUN mount -t tmpfs -o size=2048m tmpfs ~/.cargo
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
@@ -41,8 +39,11 @@ RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-pytho
 RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
 ENV PATH="/root/.cargo/bin:$PATH"
 
+RUN mkdir ~/.cargo
+#  RUN mount -t tmpfs -o size=2048m tmpfs ~/.cargo
+
 # Build/Install cryptography
-RUN pip3 install cryptography
+# RUN pip3 install cryptography
 
 # Install requiered python packages
 #RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
