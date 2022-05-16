@@ -44,8 +44,7 @@ ENV PATH="/root/.cargo/bin:$PATH"
 
 RUN cp -r /root/.cargo /root/.cargo.bak
 RUN --mount=type=tmpfs,target=/root/.cargo \
-     ls /root/.cargo -al && \
-#    pip3 install cryptography \
+    pip3 install cryptography && \
     cp -rT /root/.cargo /root/.cargo.bak
 RUN cp -rT /root/.cargo.bak /root/.cargo && rm -R /root/.cargo.bak
 
