@@ -4,7 +4,7 @@
 #
 
 VER=1.4.0.4
-DEV=2.0.0-dev
+DEV=dev
 OS=linux
 ARCH1=amd64
 ARCH2=arm64
@@ -39,13 +39,13 @@ docker manifest create bsbdock/nexus:$VER \
 echo "Push new $VER multi architecture manifest"
 docker manifest push bsbdock/nexus:$VER
 
-#echo ""
-#echo "Remove previous bsbdock/nexus:$DEV version manifest"
-#docker manifest rm bsbdock/nexus:$DEV
-#echo "Define new $DEV manifest"
-#docker manifest create bsbdock/nexus:$DEV \
-#  --amend bsbdock/nexus:"$DEV"_$OS-$ARCH1 \
-#  --amend bsbdock/nexus:"$DEV"_$OS-$ARCH2 \
-#  --amend bsbdock/nexus:"$DEV"_$OS-$ARCH3
-#echo "Push new $DEV multi architecture manifest"
-#docker manifest push bsbdock/nexus:$DEV
+echo ""
+echo "Remove previous bsbdock/nexus:$DEV version manifest"
+docker manifest rm bsbdock/nexus:$DEV
+echo "Define new $DEV manifest"
+docker manifest create bsbdock/nexus:$DEV \
+  --amend bsbdock/nexus:"$DEV"_$OS-$ARCH1 \
+  --amend bsbdock/nexus:"$DEV"_$OS-$ARCH2 \
+  --amend bsbdock/nexus:"$DEV"_$OS-$ARCH3
+echo "Push new $DEV multi architecture manifest"
+docker manifest push bsbdock/nexus:$DEV
