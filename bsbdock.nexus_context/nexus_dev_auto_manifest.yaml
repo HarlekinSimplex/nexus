@@ -1,15 +1,15 @@
-image: bsbdock/nexus:dev_auto
+image: bsbdock/nexus:dev
 manifests:
-  - image: bsbdock/nexus_dev_auto_linux-amd64
+  - image: bsbdock/nexus_dev_linux-amd64
     platform:
       architecture: amd64
       os: linux
-  - image: bsbdock/nexus_dev_auto_linux-arm64
+  - image: bsbdock/nexus_dev_linux-arm64
     platform:
       architecture: arm64
       os: linux
       variant: v8
-  - image: bsbdock/nexus_dev_auto_linux-arm
+  - image: bsbdock/nexus_dev_linux-arm
     platform:
       architecture: arm
       os: linux
