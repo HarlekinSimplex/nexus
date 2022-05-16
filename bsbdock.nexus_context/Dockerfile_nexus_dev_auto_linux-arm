@@ -28,8 +28,12 @@ RUN apt-get -y update && apt-get -y upgrade
 # Install some optional helper tools
 RUN apt-get -y install mc
 
-RUN mkdir /root/.cargo
-RUN mount -t tmpfs -o size=2048m tmpfs /root/.cargo
+RUN cp /root/.cargo /root/.cargo.bak
+RUN --mount=type=tmpfs,target=/root/.cargo cp -r /root/.cargo.bak/. /root/.cargo/
+
+
+#RUN mkdir /root/.cargo
+#RUN mount -t tmpfs -o size=2048m tmpfs /root/.cargo
 
 
 #RUN apt-get install tzdata
