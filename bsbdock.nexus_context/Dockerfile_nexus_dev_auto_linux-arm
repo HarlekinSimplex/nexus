@@ -39,7 +39,7 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
 # Build essentials
 RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
 
-RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
+#RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
 #ENV export PATH="/root/.cargo/bin:$PATH"
 
 RUN cp -r /root/.cargo /root/.cargo.bak
