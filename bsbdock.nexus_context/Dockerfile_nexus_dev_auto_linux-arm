@@ -41,7 +41,7 @@ RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-pytho
 #ENV PATH="/root/.cargo/bin:$PATH"
 
 # Build/Install cryptography
-#RUN pip3 install cryptography
+RUN pip3 install cryptography
 
 
 ######################
