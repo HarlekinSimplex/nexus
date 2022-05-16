@@ -60,18 +60,17 @@ RUN	apt-get install -y gosu &&\
       gosu nobody true
 
 # Add local user 'bsb'
-RUN apt-get -y upgrade
-RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
+#RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 # Grant him sudo privileges
-RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
-    chmod 0440 /etc/sudoers.d/bsb
+#RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
+#    chmod 0440 /etc/sudoers.d/bsb
 
 # Set Home dir and path fpr user bsb
-ENV HOME /home/bsb
-ENV PATH="$HOME/.local/bin:$PATH"
-ENV HOME /home/bsb
-USER bsb
-WORKDIR $HOME
+#ENV HOME /home/bsb
+#ENV PATH="$HOME/.local/bin:$PATH"
+#ENV HOME /home/bsb
+#USER bsb
+#WORKDIR $HOME
 
 
 # Install requiered python packages
