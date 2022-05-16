@@ -1,0 +1,16 @@
+image: bsbdock/nexus:latest
+manifests:
+  - image: bsbdock/nexus_1.4.0.4_linux-amd64
+    platform:
+      architecture: amd64
+      os: linux
+  - image: bsbdock/nexus_1.4.0.4_linux-arm64
+    platform:
+      architecture: arm64
+      os: linux
+      variant: v8
+  - image: bsbdock/nexus_1.4.0.4_linux-arm
+    platform:
+      architecture: arm
+      os: linux
+      variant: v7

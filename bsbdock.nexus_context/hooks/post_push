@@ -3,3 +3,5 @@ curl -Lo manifest-tool https://github.com/estesp/manifest-tool/releases/download
 chmod +x manifest-tool
 
 ./manifest-tool push from-spec Manifest_nexus_dev.yaml
+./manifest-tool push from-spec Manifest_nexus_latest.yaml
+./manifest-tool push from-spec Manifest_nexus_version.yaml
