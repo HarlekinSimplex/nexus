@@ -47,9 +47,9 @@ RUN apt-get -y install mc nano vim screen
 ##########
 
 # Install components for django production deplyment
-#RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
-#RUN apt-get -y install nginx systemctl &&\
-#    systemctl enable nginx
+RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
+RUN apt-get -y install nginx systemctl &&\
+    systemctl enable nginx
 
 # Install TNC for radio networking (direwolf)
 #RUN apt-get -y install direwolf
