@@ -60,6 +60,7 @@ RUN	apt-get install -y gosu &&\
       gosu nobody true
 
 # Add local user 'bsb'
+RUN apt-get -y upgrade
 RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 # Grant him sudo privileges
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
