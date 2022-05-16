@@ -46,7 +46,6 @@ docker manifest create bsbdock/nexus:$VER \
 echo "Push new $VER multi architecture manifest"
 docker manifest push bsbdock/nexus:$VER
 
-
 echo ""
 echo "Remove previous bsbdock/nexus:$DEV version manifest"
 docker manifest rm bsbdock/nexus:$DEV
