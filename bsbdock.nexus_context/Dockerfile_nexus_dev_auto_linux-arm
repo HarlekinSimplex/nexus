@@ -18,29 +18,57 @@ FROM balenalib/armv7hf-python:3.9
 # Add QEMU
 COPY --from=qemu qemu-arm-static /usr/bin
 
-RUN set -eux
-SHELL ["/bin/bash", "-c"]
+
+FROM python:3.9
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
-# set environment variables for python
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
 
 # Update base image if necessary
 RUN apt-get update
 RUN apt-get install tzdata
 
-RUN python -m pip install --upgrade pip
+# Install pip3
+#RUN apt -y install python3-pip
+#RUN pip install --upgrade pip
 
-RUN apt-get -y install curl build-essential libssl-dev libffi-dev python-dev-is-python3 python3-dev python3
-RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
+# Build essentials
+#RUN apt -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
 
-#RUN source $HOME/.cargo/env
-ENV PATH="/root/.cargo/bin:$PATH"
+# Install rust
+#RUN apt -y install curl
+#RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
+#ENV PATH="/root/.cargo/bin:$PATH"
 
 # Build/Install cryptography
-RUN pip3 install cryptography
+#RUN pip3 install cryptography
+
+
+######################
+
+#RUN set -eux
+#SHELL ["/bin/bash", "-c"]
+
+# Set timezone and interactive mode
+#ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+# set environment variables for python
+#ENV PYTHONDONTWRITEBYTECODE 1
+#ENV PYTHONUNBUFFERED 1
+
+# Update base image if necessary
+#RUN apt-get update
+#RUN apt-get install tzdata
+
+#RUN python -m pip install --upgrade pip
+
+#RUN apt-get -y install curl build-essential libssl-dev libffi-dev python-dev-is-python3 python3-dev python3
+#RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
+
+#RUN source $HOME/.cargo/env
+#ENV PATH="/root/.cargo/bin:$PATH"
+
+# Build/Install cryptography
+#RUN pip3 install cryptography
 
 #RUN python3 -m ensurepip --upgrade
 # Install pip3
