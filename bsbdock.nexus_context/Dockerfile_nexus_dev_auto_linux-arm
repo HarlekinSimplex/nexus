@@ -52,13 +52,13 @@ RUN apt-get -y install nginx systemctl &&\
     systemctl enable nginx
 
 # Install TNC for radio networking (direwolf)
-#RUN apt-get -y install direwolf
+RUN apt-get -y install direwolf
 
 # grab gosu for easy step-down from root and check if it works
-#RUN	apt-get update &&\
-#   	apt-get install -y gosu &&\
-#   	rm -rf /var/lib/apt/lists/* &&\
-#      gosu nobody true
+RUN	apt-get update &&\
+   	apt-get install -y gosu &&\
+   	rm -rf /var/lib/apt/lists/* &&\
+      gosu nobody true
 
 # Add local user 'bsb'
 #RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
