@@ -43,7 +43,8 @@ RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --defaul
 ENV PATH="/root/.cargo/bin:$PATH"
 
 RUN cp -R /root/.cargo /root/.cargo.bak
-RUN --mount=type=tmpfs,target=/root/.cargo && ls /root/.cargo -al \
+RUN --mount=type=tmpfs,target=/root/.cargo \
+    ls /root/.cargo -al \
 #    pip3 install cryptography \
     cp -R /root/.cargo/ /root/.cargo.bak/
 RUN cp -R /root/.cargo.bak/ /root/.cargo/ && rm -R /root/.cargo.bak
