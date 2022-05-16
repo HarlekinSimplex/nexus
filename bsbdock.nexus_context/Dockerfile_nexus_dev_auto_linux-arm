@@ -55,8 +55,7 @@ RUN apt-get -y install nginx systemctl &&\
 RUN apt-get -y install direwolf
 
 # grab gosu for easy step-down from root and check if it works
-RUN	apt-get update &&\
-   	apt-get install -y gosu &&\
+RUN	apt-get install -y gosu &&\
    	rm -rf /var/lib/apt/lists/* &&\
       gosu nobody true
 
