@@ -18,18 +18,19 @@ FROM balenalib/armv7hf-python:3.9
 # Add QEMU
 COPY --from=qemu qemu-arm-static /usr/bin
 
+# Set timezone and interactive mode
+ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+
+# Update base image if necessary
+RUN apt-get -y update && apt-get -y upgrade
+# SHELL ["/bin/bash", "-c"]
+
 # Install some optional helper tools
 RUN apt-get -y install mc
 
 RUN mkdir /root/.cargo
 RUN mount -t tmpfs -o size=2048m tmpfs /root/.cargo
 
-# Set timezone and interactive mode
-#ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
-
-# Update base image if necessary
-#RUN apt-get -y update && apt-get -y upgrade
-# SHELL ["/bin/bash", "-c"]
 
 #RUN apt-get install tzdata
 
