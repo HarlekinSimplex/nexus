@@ -30,19 +30,14 @@ RUN apt-get -y install mc
 
 RUN apt-get install tzdata
 
-# Install pip3
-# RUN apt-get -y install python3-pip
+# Bootstrap pip3
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
 
-#  RUN pip install --upgrade pip
-
-# Build essentials
+# Intsall build essentials
 RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
 
-#RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly
-#ENV export PATH="/root/.cargo/bin:$PATH"
-
-# RUN cp -r /root/.cargo /root/.cargo.bak
+# Build and install Rust and crxptography using a temporary fs (buildkit requiered)
+# to overcome the qmenu cargo filesystem issue (takes a very long time to complete approx. 20min)
 RUN --mount=type=tmpfs,target=/root/.cargo \
     curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly && \
     export PATH="/root/.cargo/bin:$PATH" && \
@@ -50,21 +45,11 @@ RUN --mount=type=tmpfs,target=/root/.cargo \
     cp -r /root/.cargo /root/.cargo.bak
 RUN cp -r /root/.cargo.bak /root/.cargo && rm -R /root/.cargo.bak
 
-#RUN --mount=type=tmpfs,target=/build \
-#    cp -r /src/. /build/ \
-# && cd /build \
-# && make your_project \
-# && cp /build/result.bin /result.bin
-#...
-
-# Build/Install cryptography
-# RUN pip3 install cryptography
-
 # Install requiered python packages
-#RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
+RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
 
 # Install some optional helper tools
-#RUN apt-get -y install mc nano vim screen
+RUN apt-get -y install nano vim screen
 
 ##########
 
