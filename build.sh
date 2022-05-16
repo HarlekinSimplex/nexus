@@ -95,7 +95,7 @@ if test -f "$FILE"; then
     echo -e "${BLUE}Building image ...${NC}"
 
     # Build image according given build parameters
-    docker build --build-arg CACHEBUST="$(date +%s)" $CACHE_OPT \
+    docker buildx build --build-arg CACHEBUST="$(date +%s)" $CACHE_OPT \
       --tag bsbdock/nexus:"$IMAGE_TAG" \
       -f Dockerfile_nexus_"$IMAGE_TAG" .
 
