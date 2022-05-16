@@ -49,6 +49,7 @@ IMAGE_VERSION="${IMAGE_VERSION:-dev}"
 IMAGE_ARCH="${IMAGE_ARCH:-amd64}"
 IMAGE_OS=linux
 IMAGE_TAG="$IMAGE_VERSION"_"$IMAGE_OS"-"$IMAGE_ARCH"
+BUILD_FILE=dev_"$IMAGE_OS"-"$IMAGE_ARCH"
 
 # Check
 if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ] ||
@@ -81,7 +82,7 @@ echo -e "${BLUE}Using ${CYAN}$IMAGE_TAG${BLUE} as image tag.${NC}"
 cd ./bsbdock.nexus_context || exit
 
 # Check if Dockerfile exists
-FILE=Dockerfile_nexus_"$IMAGE_TAG"
+FILE=Dockerfile_nexus_"$BUILD_FILE"
 if test -f "$FILE"; then
     echo -e "${GREEN}Dockerfile ${CYAN}$FILE${GREEN} to build image exists.${NC}"
 
@@ -97,7 +98,7 @@ if test -f "$FILE"; then
     # Build image according given build parameters
     docker buildx build --build-arg CACHEBUST="$(date +%s)" $CACHE_OPT \
       --tag bsbdock/nexus:"$IMAGE_TAG" \
-      -f Dockerfile_nexus_"$IMAGE_TAG" .
+      -f Dockerfile_nexus_"$BUILD_FILE" .
 
     # Tag actual build image with given version
     docker tag bsbdock/nexus:"$IMAGE_TAG" bsbdock/nexus:"$IMAGE_VERSION"
