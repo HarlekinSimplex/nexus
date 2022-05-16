@@ -23,12 +23,12 @@ ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 
 # Update base image if necessary
 RUN apt-get -y update && apt-get -y upgrade
-SHELL ["/bin/bash", "-c"]
+# SHELL ["/bin/bash", "-c"]
 
 RUN apt-get install tzdata
 
 # Install pip3
-RUN apt-get -y install python3-pip
+# RUN apt-get -y install python3-pip
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
 
 #  RUN pip install --upgrade pip
