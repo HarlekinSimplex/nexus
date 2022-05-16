@@ -1,7 +1,55 @@
 #!/bin/bash
-curl -Lo manifest-tool https://github.com/estesp/manifest-tool/releases/download/v0.9.0/manifest-tool-linux-amd64
-chmod +x manifest-tool
+#curl -Lo manifest-tool https://github.com/estesp/manifest-tool/releases/download/v0.9.0/manifest-tool-linux-amd64
+#chmod +x manifest-tool
 
-./manifest-tool push from-spec Manifest_nexus_dev.yaml
-./manifest-tool push from-spec Manifest_nexus_latest.yaml
-./manifest-tool push from-spec Manifest_nexus_version.yaml
+#./manifest-tool push from-spec Manifest_nexus_dev.yaml
+#./manifest-tool push from-spec Manifest_nexus_latest.yaml
+#./manifest-tool push from-spec Manifest_nexus_version.yaml
+#!/bin/bash
+#################################################
+# Build and tag nexus_server2 container
+#
+
+VER=1.4.0.4
+OS=linux
+ARCH1=amd64
+ARCH2=arm64
+ARCH3=arm
+
+echo "Version:$VER"
+echo "Version:$OS"
+echo "Arch 1:$ARCH1"
+echo "Arch 2:$ARCH2"
+echo "Arch 3:$ARCH2"
+
+echo "Remove previous bsbdock/nexus:latest manifest"
+docker manifest rm bsbdock/nexus:latest
+
+echo "Define new latest manifest"
+docker manifest create bsbdock/nexus:latest \
+--amend bsbdock/nexus:$VER_$OS-$ARCH1 \
+--amend bsbdock/nexus:$VER_$OS-$ARCH2 \
+--amend bsbdock/nexus:$VER_$OS-$ARCH3
+
+echo "Push new latest multi architecture manifest"
+docker manifest push bsbdock/nexus:latest
+
+echo "Remove previous bsbdock/nexus:$VER version manifest"
+docker manifest rm bsbdock/nexus:$VER
+
+echo "Define new $VER manifest"
+docker manifest create bsbdock/nexus:$VER \
+--amend bsbdock/nexus:$VER_$OS-$ARCH1 \
+--amend bsbdock/nexus:$VER_$OS-$ARCH2 \
+--amend bsbdock/nexus:$VER_$OS-$ARCH3
+
+echo "Push new $VER multi architecture manifest"
+docker manifest push bsbdock/nexus:$VER
+
+VER=dev
+docker manifest rm bsbdock/nexus:$VER
+docker manifest create bsbdock/nexus:$VER \
+--amend bsbdock/nexus:$VER_$OS-$ARCH1 \
+--amend bsbdock/nexus:$VER_$OS-$ARCH2 \
+--amend bsbdock/nexus:$VER_$OS-$ARCH3
+docker manifest push bsbdock/nexus:$VER
