@@ -40,7 +40,7 @@ RUN curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --defaul
 ENV PATH="/root/.cargo/bin:$PATH"
 
 # Build/Install cryptography
-# RUN pip3 install cryptography
+RUN pip3 install cryptography
 
 # Install requiered python packages
 #RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
