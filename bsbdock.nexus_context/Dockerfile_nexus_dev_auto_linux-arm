@@ -34,7 +34,7 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
 #  RUN pip install --upgrade pip
 
 # Build essentials
-#RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
+RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
 
 # Build/Install cryptography
 RUN pip3 install cryptography
