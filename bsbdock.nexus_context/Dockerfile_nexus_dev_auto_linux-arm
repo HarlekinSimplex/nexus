@@ -46,7 +46,8 @@ RUN --mount=type=tmpfs,target=/root/.cargo \
 RUN cp -r /root/.cargo.bak /root/.cargo && rm -R /root/.cargo.bak
 
 # Install requiered python packages
-RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
+RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn gevent
+#RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
 
 # Install some optional helper tools
 RUN apt-get -y install nano vim screen
