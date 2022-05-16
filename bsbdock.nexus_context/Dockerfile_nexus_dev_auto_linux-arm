@@ -20,10 +20,11 @@ COPY --from=qemu qemu-arm-static /usr/bin
 
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
-SHELL ["/bin/bash", "-c"]
 
 # Update base image if necessary
-RUN apt-get update
+RUN apt-get update && apt-get upgrade
+SHELL ["/bin/bash", "-c"]
+
 RUN apt-get install tzdata
 
 # Install pip3
