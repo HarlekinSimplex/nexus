@@ -1,11 +1,4 @@
 #!/bin/bash
-#curl -Lo manifest-tool https://github.com/estesp/manifest-tool/releases/download/v0.9.0/manifest-tool-linux-amd64
-#chmod +x manifest-tool
-
-#./manifest-tool push from-spec Manifest_nexus_dev.yaml
-#./manifest-tool push from-spec Manifest_nexus_latest.yaml
-#./manifest-tool push from-spec Manifest_nexus_version.yaml
-#!/bin/bash
 #################################################
 # Build and tag nexus_server2 container
 #
