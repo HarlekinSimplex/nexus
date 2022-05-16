@@ -43,6 +43,9 @@ RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-pytho
 # Build/Install cryptography
 RUN pip3 install cryptography
 
+# Install requiered python packages
+RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
+
 
 ######################
 
