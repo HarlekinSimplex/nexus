@@ -18,9 +18,6 @@ FROM balenalib/armv7hf-python:3.9
 # Add QEMU
 COPY --from=qemu qemu-arm-static /usr/bin
 
-
-FROM python:3.9
-
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 
@@ -36,28 +33,28 @@ RUN pip install --upgrade pip
 RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2
 
 # Build/Install cryptography
-RUN pip3 install cryptography
+#RUN pip3 install cryptography
 
 # Install requiered python packages
-RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
+#RUN pip3 install rns lxmf nomadnet rnodeconf requests pytz Django gunicorn psycopg2-binary gevent
 
 # Install some optional helper tools
-RUN apt-get -y install mc nano vim screen
+#RUN apt-get -y install mc nano vim screen
 
 ##########
 
 # Install components for django production deplyment
-RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
-RUN apt-get -y install nginx systemctl &&\
-    systemctl enable nginx
+#RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
+#RUN apt-get -y install nginx systemctl &&\
+#    systemctl enable nginx
 
 # Install TNC for radio networking (direwolf)
-RUN apt-get -y install direwolf
+#RUN apt-get -y install direwolf
 
 # grab gosu for easy step-down from root and check if it works
-RUN	apt-get install -y gosu &&\
-   	rm -rf /var/lib/apt/lists/* &&\
-      gosu nobody true
+#RUN	apt-get install -y gosu &&\
+#   	rm -rf /var/lib/apt/lists/* &&\
+#      gosu nobody true
 
 # Add local user 'bsb'
 #RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
