@@ -37,6 +37,7 @@ if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
   rnsd -s &
+  echo "RNS PID="$(pgrep rnsd)
 fi
 
 echo -e ""
@@ -52,6 +53,7 @@ if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
   nomadnet --daemon &
+  echo "nomadnet PID="$(pgrep nomadnet)
 fi
 
 if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
@@ -59,7 +61,8 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   echo -e "Autostart Direwolf"
   echo -e "-------------------------------------------------------------"
-  direwolf -t 0
+  direwolf -t 0 &
+  echo "direwolf PID="$(pgrep direwolf)
 fi
 
 echo -e ""
