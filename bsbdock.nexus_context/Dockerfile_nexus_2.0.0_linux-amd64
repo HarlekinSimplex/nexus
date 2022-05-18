@@ -76,12 +76,12 @@ COPY . .
 RUN chown -R bsb:bsb $HOME
 # Make some scripts executable
 RUN chmod +x entrypoint.sh &&\
-    chmod +x start.sh &&\
-    chmod +x start_django.sh
+    chmod +x start_nexus_legacy.sh &&\
+    chmod +x start_nexus.sh
 # Move script to bin
 RUN mv entrypoint.sh /usr/local/bin &&\
-    mv start.sh /usr/local/bin &&\
-    mv start_django.sh /usr/local/bin
+    mv start_nexus_legacy.sh /usr/local/bin &&\
+    mv start_nexus.sh /usr/local/bin
 
 # Change to bsb again to install python packages indicated at the rerquirents.txt
 # This will be done without cache usage

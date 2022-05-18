@@ -46,7 +46,7 @@ services:
       dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile_nexus_dev_linux-arm}
 
     restart: unless-stopped
-    command: ${NEXUS_COMMAND:-start.sh}
+    command: ${NEXUS_COMMAND:-start_nexus_legacy.sh}
     ports:
 # Port for the reticulum server API for reticulum client access if required
 # Can be set to 127.0.0.1:4242:4242 to permit access other than from localhost
@@ -76,6 +76,9 @@ services:
       - type: bind
         source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.nexus}
         target: ${NEXUS_ROOT:-/home/bsb/.nexus}
+      - type: bind
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.direwolf}
+        target: ${NEXUS_ROOT:-/home/bsb/.direwolf}
     logging:
       driver: "json-file"
       options:

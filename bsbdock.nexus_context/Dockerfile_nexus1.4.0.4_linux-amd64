@@ -38,8 +38,8 @@ RUN mkdir /bsb/nexus_server
 RUN mkdir /bsb/nexus_web
 
 # Pull in container start script and make it executable
-COPY start.sh /bsb
-RUN chmod ug+x /bsb/start.sh
+COPY start_nexus_legacy.sh /bsb
+RUN chmod ug+x /bsb/start_nexus_legacy.sh
 
 # Pull in NexusServer
 COPY nexus_server /bsb/nexus_server
