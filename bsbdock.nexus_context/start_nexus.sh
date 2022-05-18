@@ -65,7 +65,7 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   direwolf -t 0 &
   sleep 1
-  echo "direwolf PID="""$(pgrep direwolf)"
+  echo "direwolf PID=""$(pgrep direwolf)"
 fi
 
 echo -e ""
