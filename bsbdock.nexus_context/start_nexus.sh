@@ -74,6 +74,8 @@ sudo nginx -t
 sudo systemctl start nginx
 sudo systemctl status nginx
 
+#-------------------------------------------------------------------------------------------------
+
 echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Migrate Database"
@@ -85,7 +87,7 @@ else
   mkdir .nexus/database
   echo -e "Nexus database directory 'database' ${YELLOW}created${NC}"
 fi
-# Check if nexus database exists (info onöy)
+# Check if nexus database exists
 if test -f ".nexus/database/nexus.sqlite3"; then
   echo -e "Nexus database 'nexus.sqlite3' ${LIGHT_GREEN}exists${NC}"
 else
