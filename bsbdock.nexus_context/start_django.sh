@@ -28,14 +28,39 @@ echo -e "-------------------------------------------------------------"
 echo -e "Actual Reticulum interface configuration:"
 echo -e "-------------------------------------------------------------"
 # Log reticulum interface configuration
-cat .reticulum/config
+cat "$RNS_CONFIG"/config
+
+if [ "$RNS_AUTOSTART" != "False" ] ; then
+  echo -e ""
+  echo -e "-------------------------------------------------------------"
+  echo -e "Autostart RNS as service"
+  echo -e "-------------------------------------------------------------"
+  # Log reticulum interface status
+  rns -s &
+fi
 
 echo -e ""
 echo -e "-------------------------------------------------------------"
-echo -e "Actual Reticulum interface status:"
+echo -e "Actual RNS interface status"
 echo -e "-------------------------------------------------------------"
-# Log reticulum interface status
 rnstatus
+
+if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
+  echo -e ""
+  echo -e "-------------------------------------------------------------"
+  echo -e "Autostart Nomadnetwork as service"
+  echo -e "-------------------------------------------------------------"
+  # Log reticulum interface status
+  nomadnet --daemon &
+fi
+
+if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
+  echo -e ""
+  echo -e "-------------------------------------------------------------"
+  echo -e "Autostart Direwolf"
+  echo -e "-------------------------------------------------------------"
+  direwolf -t 0
+fi
 
 echo -e "-------------------------------------------------------------"
 echo -e "Nexus Messenger Web App NGINX configuration check and startup"
@@ -44,33 +69,6 @@ echo -e "-------------------------------------------------------------"
 sudo nginx -t
 sudo systemctl start nginx
 sudo systemctl status nginx
-
-#echo -e ""
-#echo -e "-------------------------------------------------------------"
-#echo -e "Direwolf startup"
-#echo -e "-------------------------------------------------------------"
-#direwolf -t 0
-
-echo -e ""
-echo -e "-------------------------------------------------------------"
-echo -e "Nexus environment variables set:"
-echo -e "-------------------------------------------------------------"
-echo -e "NEXUS_CONFIG=$NEXUS_CONFIG"
-echo -e "NEXUS_PORT=$NEXUS_PORT"
-echo -e "NEXUS_ASPECT=$NEXUS_ASPECT"
-echo -e "NEXUS_ROLE=$NEXUS_ROLE"
-echo -e "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
-echo -e "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
-echo -e "NEXUS_BRIDGE=$NEXUS_BRIDGE"
-
-echo -e ""
-echo -e "-------------------------------------------------------------"
-echo -e "Default Django environment variables set:"
-echo -e "-------------------------------------------------------------"
-echo -e "DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME"
-echo -e "DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD"
-echo -e "DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL"
-echo -e "DJANGO_LOG_LEVEL=$DJANGO_LOG_LEVEL"
 
 echo -e ""
 echo -e "-------------------------------------------------------------"
@@ -108,7 +106,7 @@ cd ..
 
 echo -e ""
 echo -e "-------------------------------------------------------------"
-echo -e "Nexus Django Server startup"
+echo -e "Nexus Django Server startup (exec -> PID 1)"
 echo -e "-------------------------------------------------------------"
 cd nexus_django || exit
 exec gunicorn nexus_django.wsgi:application \

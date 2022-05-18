@@ -22,21 +22,8 @@ echo -e "${LIGHT_BLUE}----------------------------------------------------------
 echo -e "${LIGHT_BLUE}Startup of Nexus Server 1.4.0.4 [Python]${NC}"
 echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
 
-echo -e ""
-echo -e "-------------------------------------------------------------"
-echo -e "Environment variables set:"
-echo -e "-------------------------------------------------------------"
-
 # Set default container Nexus API Port to exposed port
 NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
-
-echo -e "NEXUS_CONFIG=$NEXUS_CONFIG"
-echo -e "NEXUS_PORT=$NEXUS_PORT"
-echo -e "NEXUS_ASPECT=$NEXUS_ASPECT"
-echo -e "NEXUS_ROLE=$NEXUS_ROLE"
-echo -e "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
-echo -e "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
-echo -e "NEXUS_BRIDGE=$NEXUS_BRIDGE"
 
 echo -e ""
 echo -e "-------------------------------------------------------------"

@@ -27,39 +27,28 @@ echo "-------------------------------------------------------------"
 echo "Check configuration directories"
 echo "-------------------------------------------------------------"
 # Define home directory
-HOME=/home/bsb
+export HOME=/home/bsb
 
-# Check if nexus config directory exists
-if [ -d "$HOME"/.nexus ] ; then
-  echo -e "Nexus config directory '.nexus' ${LIGHT_GREEN}exists${NC}"
-else
-  mkdir "$HOME"/.nexus
-  echo -e "Nexus config directory '.nexus' ${YELLOW}created${NC}"
-fi
-chown bsb:bsb -R "$HOME"/.nexus
-chmod -R 755 "$HOME"/.nexus
+# Set Reticulum default environment variables
+export RNS_CONFIG="${RNS_CONFIG:-$HOME/.reticulum}"
+export RNS_AUTOSTART="${RNS_AUTOSTART:-True}"
 
-# Check if reticulum config directory exists
-if [ -d "$HOME"/.reticulum ] ; then
-  echo -e "Reticulum config directory '.reticulum' ${LIGHT_GREEN}exists${NC}"
-else
-  mkdir "$HOME"/.reticulum
-  echo -e "Reticulum config directory '.reticulum' ${YELLOW}created${NC}"
-fi
-chown bsb:bsb -R "$HOME"/.reticulum
-chmod -R 755 "$HOME"/.reticulum
+# Set Nomadnet default environment variables
+export NOMADNET_CONFIG="${NOMADNET_CONFIG:-$HOME/.nomadnetwork}"
+export NOMADNET_AUTOSTART="${NOMADNET_AUTOSTART:-True}"
 
-# Check if reticulum config directory exists
-if [ -d "$HOME"/.nomadnetwork ] ; then
-  echo -e "Nomadnetwork config directory '.nomadnetwork' ${LIGHT_GREEN}exists${NC}"
-else
-  mkdir "$HOME"/.nomadnetwork
-  echo -e "Nomadnetwork config directory '.nomadnetwork' ${YELLOW}created${NC}"
-fi
-chown bsb:bsb -R "$HOME"/.nomadnetwork
-chmod -R 755 "$HOME"/.nomadnetwork
+# Set Direwolf default environment variables
+export DIREWOLF_CONFIG="${DIREWOLF_CONFIG:-$HOME/.direwolf}"
+export DIREWOLF_AUTOSTART="${DIREWOLF_AUTOSTART:-False}"
 
-# Set Nexus Default environment variables
+# Set default super user credentials for django
+export DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}"
+export DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-admin}"
+export DJANGO_SUPERUSER_EMAIL="${DJANGO_SUPERUSER_EMAIL:-admin@example.com}"
+export DJANGO_LOG_LEVEL="${DJANGO_LOG_LEVEL:-info}"
+
+# Set Nexus default environment variables
+export NEXUS_CONFIG="${NEXUS_CONFIG:-$HOME/.nexus}"
 export NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
 export NEXUS_ASPECT="${NEXUS_ASPECT:-home}"
 export NEXUS_ROLE="${NEXUS_ROLE:-{\"cluster\":\"home\"}"
@@ -67,11 +56,82 @@ export NEXUS_LONGPOLL="${NEXUS_LONGPOLL:-17280}"
 export NEXUS_TIMEOUT="${NEXUS_TIMEOUT:-43200}"
 export NEXUS_BRIDGE="${NEXUS_BRIDGE:-[]}"
 
-# Set default super user credentials for django
-export DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}"
-export DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-admin}"
-export DJANGO_SUPERUSER_EMAIL="${DJANGO_SUPERUSER_EMAIL:-admin@example.com}"
-export DJANGO_LOG_LEVEL="${DJANGO_LOG_LEVEL:-info}"
+echo -e ""
+echo -e "-------------------------------------------------------------"
+echo -e "Environment variables set:"
+echo -e "-------------------------------------------------------------"
+
+echo -e "${LIGHT_BLUE}Reticulum configuration environment:${NC}"
+echo -e "RNS_CONFIG=$RNS_CONFIG"
+echo -e "RNS_AUTOSTART=$RNS_AUTOSTART"
+
+echo -e "${LIGHT_BLUE}Nomadnetwork configuration environment:${NC}"
+echo -e "NOMADNET_CONFIG=$NOMADNET_CONFIG"
+echo -e "NOMADNET_AUTOSTART=$NOMADNET_AUTOSTART"
+
+echo -e "${LIGHT_BLUE}Direwolf configuration environment:${NC}"
+echo -e "DIREWOLF_CONFIG=$DIREWOLF_CONFIG"
+echo -e "DIREWOLF_AUTOSTART=$DIREWOLF_AUTOSTART"
+
+echo -e "${LIGHT_BLUE}Django configuration environment:${NC}"
+echo -e "DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME"
+echo -e "DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD"
+echo -e "DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL"
+echo -e "DJANGO_LOG_LEVEL=$DJANGO_LOG_LEVEL"
+
+echo -e "${LIGHT_BLUE}Nexus configuration environment:${NC}"
+echo -e "NEXUS_CONFIG=$NEXUS_CONFIG"
+echo -e "NEXUS_PORT=$NEXUS_PORT"
+echo -e "NEXUS_ASPECT=$NEXUS_ASPECT"
+echo -e "NEXUS_ROLE=$NEXUS_ROLE"
+echo -e "NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
+echo -e "NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
+echo -e "NEXUS_BRIDGE=$NEXUS_BRIDGE"
+
+echo -e ""
+echo -e "-------------------------------------------------------------"
+echo -e "Check configuration environment:"
+echo -e "-------------------------------------------------------------"
+
+# Check if reticulum config directory exists
+if [ -d "$RNS_CONFIG" ] ; then
+  echo -e "Reticulum config directory '$RNS_CONFIG' ${LIGHT_GREEN}exists${NC}"
+else
+  mkdir "$RNS_CONFIG"
+  echo -e "Reticulum config directory '$RNS_CONFIG' ${YELLOW}created${NC}"
+fi
+chown bsb:bsb -R "$RNS_CONFIG"
+chmod -R 755 "$RNS_CONFIG"
+
+# Check if nomadnetwork config directory exists
+if [ -d "$NOMADNET_CONFIG" ] ; then
+  echo -e "Nomadnetwork config directory '$NOMADNET_CONFIG' ${LIGHT_GREEN}exists${NC}"
+else
+  mkdir "$NOMADNET_CONFIG"
+  echo -e "Nomadnetwork config directory '$NOMADNET_CONFIG' ${YELLOW}created${NC}"
+fi
+chown bsb:bsb -R "$NOMADNET_CONFIG"
+chmod -R 755 "$NOMADNET_CONFIG"
+
+# Check if direwolf config directory exists
+if [ -d "$DIREWOLF_CONFIG" ] ; then
+  echo -e "Nomadnetwork config directory '$DIREWOLF_CONFIG' ${LIGHT_GREEN}exists${NC}"
+else
+  mkdir "$DIREWOLF_CONFIG"
+  echo -e "Nomadnetwork config directory '$DIREWOLF_CONFIG' ${YELLOW}created${NC}"
+fi
+chown bsb:bsb -R "$DIREWOLF_CONFIG"
+chmod -R 755 "$DIREWOLF_CONFIG"
+
+# Check if nexus config directory exists
+if [ -d "$NEXUS_CONFIG" ] ; then
+  echo -e "Nexus config directory '$NEXUS_CONFIG' ${LIGHT_GREEN}exists${NC}"
+else
+  mkdir "$NEXUS_CONFIG"
+  echo -e "Nexus config directory '$NEXUS_CONFIG' ${YELLOW}created${NC}"
+fi
+chown bsb:bsb -R "$NEXUS_CONFIG"
+chmod -R 755 "$NEXUS_CONFIG"
 
 echo ""
 echo "-------------------------------------------------------------"
