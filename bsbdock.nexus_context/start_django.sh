@@ -36,7 +36,7 @@ if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e "Autostart RNS as service"
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
-  rns -s &
+  rnsd -s &
 fi
 
 echo -e ""
@@ -62,6 +62,7 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   direwolf -t 0
 fi
 
+echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Nexus Messenger Web App NGINX configuration check and startup"
 echo -e "-------------------------------------------------------------"
