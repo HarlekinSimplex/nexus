@@ -54,8 +54,8 @@ RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
 RUN apt-get -y install nginx systemctl &&\
     systemctl enable nginx
 
-# Install TNC for radio networking (direwolf)
-RUN apt-get -y install direwolf
+# Install TNCs for radio networking (direwolf)
+RUN apt-get -y install direwolf soundmodem
 
 # grab gosu for easy step-down from root and check if it works
 RUN	apt-get install -y gosu &&\
