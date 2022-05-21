@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Log reticulum interface status
-echo -e ""
-echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
-echo -e "${LIGHT_BLUE}Startup Server Backend${NC}"
-echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
-
 echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Actual Reticulum interface configuration:"
