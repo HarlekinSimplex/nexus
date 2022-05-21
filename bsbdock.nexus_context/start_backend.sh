@@ -20,6 +20,7 @@ if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
   rnsd -s &
+  sleep 1
   echo "RNS PID="$(pgrep rnsd)
 fi
 
