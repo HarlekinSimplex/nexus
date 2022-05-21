@@ -70,8 +70,13 @@ echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Actual Reticulum interface configuration:"
 echo -e "-------------------------------------------------------------"
+if [ -f "$RNS_CONFIG"/config ] ; then
+  cat "$RNS_CONFIG"/config
+else
+  echo -e "Reticulum default config '$RNS_CONFIG/config' ${LIGHT_YELLOW}does not exists${NC}"
+fi
+
 # Log reticulum interface configuration
-cat "$RNS_CONFIG"/config
 
 if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e ""
