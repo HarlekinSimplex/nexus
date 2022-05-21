@@ -30,6 +30,7 @@ if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
   nomadnet --daemon &
+  sleep 1
   echo "nomadnet PID="$(pgrep nomadnet)
 fi
 
