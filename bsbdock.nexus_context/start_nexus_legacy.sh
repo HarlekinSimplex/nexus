@@ -88,6 +88,7 @@ echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Actual RNS interface status"
 echo -e "-------------------------------------------------------------"
+sleep 3
 rnstatus
 
 if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
