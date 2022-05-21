@@ -22,10 +22,6 @@ echo '|_ __/|___/_ __/ \__,_|\___/ \___|_|\_\/_/ |_| |_|\___/_/\_\\__,_|___/'
 echo ""
 echo "Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License"
 
-echo ""
-echo "-------------------------------------------------------------"
-echo "Check configuration directories"
-echo "-------------------------------------------------------------"
 # Define home directory
 export HOME=/home/bsb
 
