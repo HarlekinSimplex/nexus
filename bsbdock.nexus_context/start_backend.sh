@@ -1,6 +1,10 @@
 #!/bin/bash
-#-------------------------------------------------------------------------------------------------
 
+# Log reticulum interface status
+echo -e ""
+echo -e "${BLUE}-------------------------------------------------------------${NC}"
+echo -e "${BLUE}Startup Server Backend${NC}"
+echo -e "${BLUE}-------------------------------------------------------------${NC}"
 echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Environment variables set:"
@@ -62,7 +66,6 @@ if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
   rnsd -s &
-  sleep 1
   echo "RNS PID="$(pgrep rnsd)
 fi
 
@@ -73,7 +76,6 @@ if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
   nomadnet --daemon &
-  sleep 1
   echo "nomadnet PID="$(pgrep nomadnet)
 fi
 
@@ -83,7 +85,6 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   echo -e "Autostart Direwolf"
   echo -e "-------------------------------------------------------------"
   direwolf -t 0 &
-  sleep 1
   echo "direwolf PID=""$(pgrep direwolf)"
 fi
 
@@ -95,5 +96,3 @@ echo -e "-------------------------------------------------------------"
 sudo nginx -t
 sudo systemctl start nginx
 sudo systemctl status nginx
-
-#-------------------------------------------------------------------------------------------------
