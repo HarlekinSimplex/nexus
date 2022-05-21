@@ -27,7 +27,7 @@
   [[RNode LoRa Interface]]
     type = RNodeInterface
     interface_enabled = False
-    outgoing = true
+    outgoing = True
     port = /dev/ttyLORA
     frequency = 867200000
     bandwidth = 125000
