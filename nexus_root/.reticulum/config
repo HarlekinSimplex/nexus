@@ -3,7 +3,6 @@
   share_instance = Yes
   shared_instance_port = 37428
   instance_control_port = 37429
-  panic_on_interface_error = No
 
 [logging]
   # Valid log levels are 0 through 7:
@@ -29,7 +28,7 @@
     type = RNodeInterface
     interface_enabled = False
     outgoing = true
-    port = /dev/ttyACM0
+    port = /dev/ttyLORA
     frequency = 867200000
     bandwidth = 125000
     txpower = 7

@@ -57,7 +57,7 @@ services:
       - ${NEXUS_PORT_JSONAPI:-4281}:4281
     devices:
 # USB Port mapped to container to be used by RNode LoRa interface
-      - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyACM0
+      - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyLORA
     env_file:
       - .env
     networks:
