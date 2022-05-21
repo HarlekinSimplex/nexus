@@ -73,7 +73,7 @@ echo -e "-------------------------------------------------------------"
 if [ -f "$RNS_CONFIG"/config ] ; then
   cat "$RNS_CONFIG"/config
 else
-  echo -e "Reticulum default config '$RNS_CONFIG/config' ${LIGHT_YELLOW}does not exists${NC}"
+  echo -e "Reticulum default config '$RNS_CONFIG/config' ${YELLOW}does not exists${NC}"
 fi
 
 # Log reticulum interface configuration
