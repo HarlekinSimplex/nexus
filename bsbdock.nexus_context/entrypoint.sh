@@ -41,6 +41,10 @@ export NOMADNET_AUTOSTART="${NOMADNET_AUTOSTART:-True}"
 export DIREWOLF_CONFIG="${DIREWOLF_CONFIG:-$HOME/.direwolf}"
 export DIREWOLF_AUTOSTART="${DIREWOLF_AUTOSTART:-False}"
 
+# Set Soundmodem default environment variables
+export SOUNDMODEM_CONFIG="${SOUNDMODEM_CONFIG:-$HOME/.SOUNDMODEM}"
+export SOUNDMODEM_AUTOSTART="${SOUNDMODEM_AUTOSTART:-False}"
+
 # Set default super user credentials for django
 export DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}"
 export DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-admin}"
@@ -74,6 +78,11 @@ echo -e ""
 echo -e "${LIGHT_BLUE}Direwolf configuration environment:${NC}"
 echo -e "DIREWOLF_CONFIG=$DIREWOLF_CONFIG"
 echo -e "DIREWOLF_AUTOSTART=$DIREWOLF_AUTOSTART"
+
+echo -e ""
+echo -e "${LIGHT_BLUE}Soundmodem configuration environment:${NC}"
+echo -e "SOUNDMODEM_CONFIG=$SOUNDMODEM_CONFIG"
+echo -e "SOUNDMODEM_AUTOSTART=$SOUNDMODEM_AUTOSTART"
 
 echo -e ""
 echo -e "${LIGHT_BLUE}Django configuration environment:${NC}"
@@ -119,13 +128,23 @@ chmod -R 755 "$NOMADNET_CONFIG"
 
 # Check if direwolf config directory exists
 if [ -d "$DIREWOLF_CONFIG" ] ; then
-  echo -e "Nomadnetwork config directory '$DIREWOLF_CONFIG' ${LIGHT_GREEN}exists${NC}"
+  echo -e "Direwolf config directory '$DIREWOLF_CONFIG' ${LIGHT_GREEN}exists${NC}"
 else
   mkdir "$DIREWOLF_CONFIG"
-  echo -e "Nomadnetwork config directory '$DIREWOLF_CONFIG' ${YELLOW}created${NC}"
+  echo -e "Direwolf config directory '$DIREWOLF_CONFIG' ${YELLOW}created${NC}"
 fi
 chown bsb:bsb -R "$DIREWOLF_CONFIG"
 chmod -R 755 "$DIREWOLF_CONFIG"
+
+# Check if soundmodem config directory exists
+if [ -d "$SOUNDMODEM_CONFIG" ] ; then
+  echo -e "Soundmodem config directory '$SOUNDMODEM_CONFIG' ${LIGHT_GREEN}exists${NC}"
+else
+  mkdir "$SOUNDMODEM_CONFIG"
+  echo -e "Soundmodem config directory '$SOUNDMODEM_CONFIG' ${YELLOW}created${NC}"
+fi
+chown bsb:bsb -R "$SOUNDMODEM_CONFIG"
+chmod -R 755 "$SOUNDMODEM_CONFIG"
 
 # Check if nexus config directory exists
 if [ -d "$NEXUS_CONFIG" ] ; then
