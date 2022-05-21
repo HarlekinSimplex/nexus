@@ -63,7 +63,6 @@ RUN	apt-get install -y gosu &&\
     gosu nobody true
 
 # Add local user 'bsb'
-ARG CACHEBUST=1
 RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 # Grant him sudo privileges and dialout accedd
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb &&\
@@ -80,6 +79,7 @@ WORKDIR $HOME
 # Change to root
 USER root
 # Copy ressources from context into bsb home
+ARG CACHEBUST=1
 COPY . .
 # Set ownership to usr bsb
 RUN chown -R bsb:bsb $HOME
