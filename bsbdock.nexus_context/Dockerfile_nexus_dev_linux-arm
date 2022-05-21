@@ -26,8 +26,9 @@ RUN apt-get -y update && apt-get -y upgrade
 # SHELL ["/bin/bash", "-c"]
 
 # Install some optional helper tools
-RUN apt-get -y install mc nano vim screen
-RUN yum install unzip
+RUN apt -y install mc nano vim screen
+RUN apt update
+RUN apt install unzip
 
 RUN apt-get install tzdata
 
