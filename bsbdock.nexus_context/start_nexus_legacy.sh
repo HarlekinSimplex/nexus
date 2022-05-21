@@ -40,11 +40,11 @@ if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo "RNS PID="$(pgrep rnsd)
 fi
 
-echo -e ""
-echo -e "-------------------------------------------------------------"
-echo -e "Actual RNS interface status"
-echo -e "-------------------------------------------------------------"
-rnstatus
+#echo -e ""
+#echo -e "-------------------------------------------------------------"
+#echo -e "Actual RNS interface status"
+#echo -e "-------------------------------------------------------------"
+#rnstatus
 
 if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo -e ""
