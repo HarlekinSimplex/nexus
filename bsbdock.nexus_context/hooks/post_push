@@ -10,8 +10,8 @@ ARCH1=amd64
 ARCH2=arm64
 ARCH3=arm
 
-echo ":latest -> $VER"
-echo ":dev -> $DEV"
+echo ":latest <- $VER"
+echo ":dev <- $DEV"
 echo "OS=$OS"
 echo "Arch1=$ARCH1"
 echo "Arch2=$ARCH2"
