@@ -1281,6 +1281,7 @@ def initialize_server(
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
+    print("RNS Startup complete")
 
     # Startup log with used parameter
     RNS.log(" ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
