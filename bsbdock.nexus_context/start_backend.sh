@@ -29,6 +29,7 @@ if [ -f "$RNS_CONFIG"/config ] ; then
   cat "$RNS_CONFIG"/config
 else
   echo -e "Reticulum config file "$RNS_CONFIG"/config is ${YELLOW}missing${NC} (RNS defaults will be used)"
+  echo -e "First RNS startup will create and use a default config file"
 fi
 
 echo -e ""
