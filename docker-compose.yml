@@ -59,7 +59,7 @@ services:
 # USB Port mapped to container to be used by RNode LoRa interface
       - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyLORA
 # USB Port mapped to container to be used by TNC software
-      - ${NEXUS_TNC_DEVICE:-/dev/tty1}:/dev/ttyTNC
+      - ${NEXUS_TNC_DEVICE:-/dev/snd}:/dev/snd
     env_file:
       - .env
     networks:
