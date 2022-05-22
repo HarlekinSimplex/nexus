@@ -25,7 +25,11 @@ echo -e "-------------------------------------------------------------"
 echo -e "Actual Reticulum interface configuration:"
 echo -e "-------------------------------------------------------------"
 # Log reticulum interface configuration
-cat "$RNS_CONFIG"/config
+if [ -f "$RNS_CONFIG"/config ] ; then
+  cat "$RNS_CONFIG"/config
+else
+  echo -e "Reticulum config file "$RNS_CONFIG"/config is ${YELLOW}missing${NC} (RNS defaults will be used)"
+fi
 
 echo -e ""
 echo -e "-------------------------------------------------------------"
