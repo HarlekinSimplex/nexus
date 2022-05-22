@@ -1274,6 +1274,7 @@ def initialize_server(
     global BRIDGE_TARGETS
     global NEXUS_LXM_SOCKET
 
+    print("-------------------------------------------------------------")
     if configpath is not None:
         print("RNS Startup using config at " + configpath)
     else:
@@ -1282,6 +1283,7 @@ def initialize_server(
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
     print("RNS Startup complete")
+    print("-------------------------------------------------------------")
 
     # Startup log with used parameter
     RNS.log(" ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
