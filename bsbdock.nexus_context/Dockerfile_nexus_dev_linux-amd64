@@ -47,7 +47,7 @@ RUN apt-get -y install nginx systemctl &&\
     systemctl enable nginx
 
 # Install TNCs for radio networking (direwolf)
-RUN apt-get -y install direwolf soundmodem alsa-utils
+RUN apt-get -y install direwolf soundmodem alsa-base alsa-utils pulseaudio
 
 # grab gosu for easy step-down from root and check if it works
 RUN	apt-get install -y gosu &&\
