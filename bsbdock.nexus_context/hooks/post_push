@@ -48,4 +48,4 @@ docker manifest create bsbdock/nexus:dev \
   --amend bsbdock/nexus:"$DEV"_$OS-$ARCH2 \
   --amend bsbdock/nexus:"$DEV"_$OS-$ARCH3
 echo "Push new dev multi architecture manifest"
-docker manifest push bsbdock/nexus:de
+docker manifest push bsbdock/nexus:dev
