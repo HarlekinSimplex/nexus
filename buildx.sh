@@ -77,6 +77,7 @@ if [ "$IMAGE_ARCH" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm6
   exit 0
 fi
 
+#
 # echo Cache:$USE_CACHE
 # echo IMAGE_ARCH:$IMAGE_ARCH
 # echo IMAGE_VERSION:$IMAGE_VERSION
