@@ -10,12 +10,12 @@ ARCH1=amd64
 ARCH2=arm64
 ARCH3=arm
 
-echo ":latest:$VER"
-echo ":dev:$DEV"
-echo "OS:$OS"
-echo "Arch 1:$ARCH1"
-echo "Arch 2:$ARCH2"
-echo "Arch 3:$ARCH2"
+echo ":latest -> $VER"
+echo ":dev -> $DEV"
+echo "OS=$OS"
+echo "Arch1=$ARCH1"
+echo "Arch2=$ARCH2"
+echo "Arch3=$ARCH2"
 
 echo ""
 echo "Remove previous bsbdock/nexus:latest manifest"
