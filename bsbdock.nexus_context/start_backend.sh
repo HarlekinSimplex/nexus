@@ -40,8 +40,17 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   echo -e "Autostart Direwolf"
   echo -e "-------------------------------------------------------------"
-  direwolf -t 0 &
+  direwolf -t 0 -c "$DIREWOLF_CONFIG"/direwolf.conf &
   echo "direwolf PID=""$(pgrep direwolf)"
+fi
+
+if [ "$SOUNDMODEM_AUTOSTART" != "False" ] ; then
+  echo -e ""
+  echo -e "-------------------------------------------------------------"
+  echo -e "Autostart Soundmodem"
+  echo -e "-------------------------------------------------------------"
+  sudo soundmodem "$SOUNDMODEM_CONFIG"/soundmodem.conf &
+  echo "soundmodem PID=""$(pgrep soundmodem)"
 fi
 
 echo -e ""
