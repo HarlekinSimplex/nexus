@@ -105,7 +105,8 @@ RUN pip3 install -r ./requirements.txt
 # Move to Django
 WORKDIR $HOME/nexus_django
 # Make manage.py executable
-RUN chmod +x $HOME/nexus_django/manage.py
+RUN ls -al
+RUN chmod +x manage.py
 # Create folder for static files
 RUN mkdir static
 
