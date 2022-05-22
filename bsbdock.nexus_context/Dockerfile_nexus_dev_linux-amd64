@@ -78,11 +78,13 @@ COPY . .
 RUN chown -R bsb:bsb $HOME
 # Make some scripts executable
 RUN chmod +x entrypoint.sh &&\
+    chmod +x shell.sh &&\
     chmod +x start_backend.sh &&\
     chmod +x start_nexus_legacy.sh &&\
     chmod +x start_nexus.sh
 # Move script to bin
 RUN mv entrypoint.sh /usr/local/bin &&\
+    mv shell.sh /usr/local/bin &&\
     mv start_backend.sh /usr/local/bin &&\
     mv start_nexus_legacy.sh /usr/local/bin &&\
     mv start_nexus.sh /usr/local/bin
