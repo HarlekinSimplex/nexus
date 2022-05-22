@@ -11,7 +11,7 @@ ARCH2=arm64
 ARCH3=arm
 
 echo ":latest:$VER"
-echo ":dev:$VER"
+echo ":dev:$DEV"
 echo "OS:$OS"
 echo "Arch 1:$ARCH1"
 echo "Arch 2:$ARCH2"
