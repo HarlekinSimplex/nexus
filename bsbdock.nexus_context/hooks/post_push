@@ -40,12 +40,24 @@ echo "Push new $VER multi architecture manifest"
 docker manifest push bsbdock/nexus:$VER
 
 echo ""
-echo "Remove previous bsbdock/nexus:dev version manifest"
-docker manifest rm bsbdock/nexus:dev
-echo "Define $DEV as new :dev manifest"
-docker manifest create bsbdock/nexus:dev \
+echo "Remove previous bsbdock/nexus:$DEV version manifest"
+docker manifest rm bsbdock/nexus:$DEV
+echo "Define new $DEV manifest"
+docker manifest create bsbdock/nexus:$DEV \
   --amend bsbdock/nexus:"$DEV"_$OS-$ARCH1 \
   --amend bsbdock/nexus:"$DEV"_$OS-$ARCH2 \
   --amend bsbdock/nexus:"$DEV"_$OS-$ARCH3
 echo "Push new dev multi architecture manifest"
 docker manifest push bsbdock/nexus:"$DEV"
+
+echo ""
+echo "Remove previous bsbdock/nexus:dev version manifest"
+docker manifest rm bsbdock/nexus:dev
+echo "Define new dev manifest"
+docker manifest create bsbdock/nexus:dev \
+  --amend bsbdock/nexus:dev_$OS-$ARCH1 \
+  --amend bsbdock/nexus:dev_$OS-$ARCH2 \
+  --amend bsbdock/nexus:dev_$OS-$ARCH3
+echo "Push new dev multi architecture manifest"
+docker manifest push bsbdock/nexus:dev
+
