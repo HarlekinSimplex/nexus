@@ -15,7 +15,7 @@ if [ "$SOUNDMODEM_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   echo -e "Autostart Soundmodem"
   echo -e "-------------------------------------------------------------"
-  sudo soundmodem "$SOUNDMODEM_CONFIG"/soundmodem.conf &
+  soundmodem "$SOUNDMODEM_CONFIG"/soundmodem.conf &
   sleep 1
   echo "soundmodem PID=""$(pgrep soundmodem)"
 fi
@@ -31,7 +31,7 @@ echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Actual RNS interface status"
 echo -e "-------------------------------------------------------------"
-rnstatus
+rnstatus --config "$RNS_CONFIG"
 
 if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e ""
@@ -39,7 +39,7 @@ if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e "Autostart RNS as service"
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
-  rnsd -s &
+  rnsd -s --config "$RNS_CONFIG" &
   sleep 1
   echo "RNS PID="$(pgrep rnsd)
 fi
@@ -50,7 +50,7 @@ if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo -e "Autostart Nomadnetwork as service"
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
-  nomadnet --daemon &
+  nomadnet --daemon --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" &
   sleep 1
   echo "nomadnet PID="$(pgrep nomadnet)
 fi
@@ -60,6 +60,6 @@ echo -e "-------------------------------------------------------------"
 echo -e "Nexus Messenger Web App NGINX configuration check and startup"
 echo -e "-------------------------------------------------------------"
 # Log nginx status
-sudo nginx -t
-sudo systemctl start nginx
-sudo systemctl status nginx
+nginx -t
+systemctl start nginx
+systemctl status nginx

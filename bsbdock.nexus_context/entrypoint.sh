@@ -152,6 +152,14 @@ fi
 chown bsb:bsb -R "$NEXUS_CONFIG"
 chmod -R 755 "$NEXUS_CONFIG"
 
+echo -e ""
+echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
+echo -e "${LIGHT_BLUE}Startup server backend${NC}"
+echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
+
+# Initialize server backend
+start_backend.sh
+
 echo ""
 echo "-------------------------------------------------------------"
 echo "Switch from user root to user bsb"

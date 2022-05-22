@@ -17,14 +17,10 @@ export LIGHT_BLUE='\033[1;34m'
 export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
-# Log reticulum interface status
 echo -e ""
 echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
 echo -e "${LIGHT_BLUE}Startup of Nexus Server [Legacy]${NC}"
 echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
-
-# Initialize server backend
-start_backend.sh
 
 echo -e ""
 echo -e "-------------------------------------------------------------"
