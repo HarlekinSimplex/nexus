@@ -38,10 +38,10 @@ if [ "$IMAGE_ARCH" == "dev" ] ; then
   IMAGE_ARCH=
 fi
 
-# Check for version build unlike dev to build without cache
-if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" ] && [ "$IMAGE_VERSION" != "dev" ] ; then
-  USE_CACHE=NO
-fi
+## Check for version build unlike dev to build without cache
+#if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" ] && [ "$IMAGE_VERSION" != "dev" ] ; then
+#  USE_CACHE=NO
+#fi
 
 # Set some defaults if still no set
 USE_CACHE="${USE_CACHE:-YES}"
@@ -86,7 +86,7 @@ FILE=Dockerfile_nexus_"$BUILD_FILE"
 if test -f "$FILE"; then
     echo -e "${GREEN}Dockerfile ${CYAN}$FILE${GREEN} to build image exists.${NC}"
 
-    # Set --no-cache if version is dev
+    # Set --no-cache
     CACHE_OPT=
     if  [ "$USE_CACHE" == "NO" ] ; then
       CACHE_OPT=--no-cache
