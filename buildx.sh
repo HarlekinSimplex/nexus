@@ -111,7 +111,7 @@ if test -f "$FILE"; then
     docker tag bsbdock/nexus:"$IMAGE_TAG" bsbdock/nexus:"$IMAGE_VERSION"
 
     # Push image ig version was given
-    if [ "$DOCKER_PUSH" != "YES" ]
+    if [ "$DOCKER_PUSH" == "YES" ]
     then
       docker tag bsbdock/nexus:"$IMAGE_TAG" bsbdock/nexus
       docker push bsbdock/nexus:"$IMAGE_TAG"
