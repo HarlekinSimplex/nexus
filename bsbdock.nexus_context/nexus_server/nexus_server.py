@@ -1275,9 +1275,9 @@ def initialize_server(
     global NEXUS_LXM_SOCKET
 
     if configpath is not None:
-        print(" Used RNS Config   " + configpath)
+        print("RNS Startup using config at " + configpath)
     else:
-        print(" Used RNS Config   " + "RNS Default Location")
+        print("RNS Startup using default location (~/.reticulum)")
 
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
