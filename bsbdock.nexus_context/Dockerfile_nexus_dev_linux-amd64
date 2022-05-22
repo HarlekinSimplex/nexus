@@ -47,7 +47,7 @@ RUN apt-get -y install nginx systemctl &&\
     systemctl enable nginx
 
 # Install TNCs for radio networking (direwolf)
-RUN apt-get -y install direwolf soundmodem alsa-utils pulseaudio
+RUN apt-get -y install direwolf soundmodem alsa-utils
 
 # grab gosu for easy step-down from root and check if it works
 RUN	apt-get install -y gosu &&\
@@ -59,7 +59,8 @@ RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 # Grant him sudo privileges and dialout accedd
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb &&\
     chmod 0440 /etc/sudoers.d/bsb &&\
-    adduser bsb dialout
+    adduser bsb dialout &&\
+    adduser bsb audiot
 
 # Set Home dir and path fpr user bsb
 ENV HOME /home/bsb
