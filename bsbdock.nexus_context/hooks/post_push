@@ -1,7 +1,7 @@
 #!/bin/bash
 #################################################
 # Build and tag nexus_server2 container
-#
+# bash bsbdock.nexus_context/hooks/post_push
 
 VER=1.4.0.4
 DEV=2.0.0-dev
@@ -18,26 +18,15 @@ echo "Arch2=$ARCH2"
 echo "Arch3=$ARCH2"
 
 echo ""
-echo "Remove previous bsbdock/nexus:latest manifest"
-docker manifest rm bsbdock/nexus:latest
-echo "Define new latest manifest"
-docker manifest create bsbdock/nexus:latest \
-  --amend bsbdock/nexus:"$VER"_$OS-$ARCH1 \
-  --amend bsbdock/nexus:"$VER"_$OS-$ARCH2 \
-  --amend bsbdock/nexus:"$VER"_$OS-$ARCH3
-echo "Push new latest multi architecture manifest"
-docker manifest push bsbdock/nexus:latest
-
-echo ""
-echo "Remove previous bsbdock/nexus:$VER version manifest"
-docker manifest rm bsbdock/nexus:$VER
-echo "Define new $VER manifest"
-docker manifest create bsbdock/nexus:$VER \
-  --amend bsbdock/nexus:"$VER"_$OS-$ARCH1 \
-  --amend bsbdock/nexus:"$VER"_$OS-$ARCH2 \
-  --amend bsbdock/nexus:"$VER"_$OS-$ARCH3
-echo "Push new $VER multi architecture manifest"
-docker manifest push bsbdock/nexus:$VER
+echo "Remove previous bsbdock/nexus:dev version manifest"
+docker manifest rm bsbdock/nexus:dev
+echo "Define new dev manifest"
+docker manifest create bsbdock/nexus:dev \
+  --amend bsbdock/nexus:dev_$OS-$ARCH1 \
+  --amend bsbdock/nexus:dev_$OS-$ARCH2 \
+  --amend bsbdock/nexus:dev_$OS-$ARCH3
+echo "Push new dev multi architecture manifest"
+docker manifest push bsbdock/nexus:dev
 
 echo ""
 echo "Remove previous bsbdock/nexus:$DEV version manifest"
@@ -51,13 +40,24 @@ echo "Push new dev multi architecture manifest"
 docker manifest push bsbdock/nexus:"$DEV"
 
 echo ""
-echo "Remove previous bsbdock/nexus:dev version manifest"
-docker manifest rm bsbdock/nexus:dev
-echo "Define new dev manifest"
-docker manifest create bsbdock/nexus:dev \
-  --amend bsbdock/nexus:dev_$OS-$ARCH1 \
-  --amend bsbdock/nexus:dev_$OS-$ARCH2 \
-  --amend bsbdock/nexus:dev_$OS-$ARCH3
-echo "Push new dev multi architecture manifest"
-docker manifest push bsbdock/nexus:dev
+echo "Remove previous bsbdock/nexus:$VER version manifest"
+docker manifest rm bsbdock/nexus:$VER
+echo "Define new $VER manifest"
+docker manifest create bsbdock/nexus:$VER \
+  --amend bsbdock/nexus:"$VER"_$OS-$ARCH1 \
+  --amend bsbdock/nexus:"$VER"_$OS-$ARCH2 \
+  --amend bsbdock/nexus:"$VER"_$OS-$ARCH3
+echo "Push new $VER multi architecture manifest"
+docker manifest push bsbdock/nexus:$VER
+
+echo ""
+echo "Remove previous bsbdock/nexus:latest manifest"
+docker manifest rm bsbdock/nexus:latest
+echo "Define new latest manifest"
+docker manifest create bsbdock/nexus:latest \
+  --amend bsbdock/nexus:"$VER"_$OS-$ARCH1 \
+  --amend bsbdock/nexus:"$VER"_$OS-$ARCH2 \
+  --amend bsbdock/nexus:"$VER"_$OS-$ARCH3
+echo "Push new latest multi architecture manifest"
+docker manifest push bsbdock/nexus:latest
 

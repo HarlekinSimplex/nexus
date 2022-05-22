@@ -2,7 +2,7 @@
 # bsbdock/nexus Dockerfile
 #
 # How to build this container:
-# bash build.sh arm64
+# bash buildx.sh arm64
 # docker run --rm -it bsbdock/nexus:dev bash
 #
 # How to invoke a shell into this container:
