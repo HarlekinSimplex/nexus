@@ -14,6 +14,7 @@ export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
 USE_CACHE=
+DOCKER_PUSH=
 
 IMAGE_ARCH=$1
 IMAGE_VERSION=$2
@@ -42,6 +43,11 @@ fi
 #if [ -z "$USE_CACHE" ] && [ "$IMAGE_VERSION" ] && [ "$IMAGE_VERSION" != "dev" ] ; then
 #  USE_CACHE=NO
 #fi
+
+# Push image if any version was given
+if [ "$IMAGE_VERSION" ]  ; then
+  DOCKER_PUSH=YES
+fi
 
 # Set some defaults if still no set
 USE_CACHE="${USE_CACHE:-YES}"
@@ -103,8 +109,8 @@ if test -f "$FILE"; then
     # Tag actual build image with given version
     docker tag bsbdock/nexus:"$IMAGE_TAG" bsbdock/nexus:"$IMAGE_VERSION"
 
-    # Non dev image builds will be tagged as :latest and pushed to GitHub
-    if [ "$IMAGE_VERSION" != "dev" ]
+    # Push image ig version was given
+    if [ "$DOCKER_PUSH" != "YES" ]
     then
       docker tag bsbdock/nexus:"$IMAGE_TAG" bsbdock/nexus
       docker push bsbdock/nexus:"$IMAGE_TAG"
