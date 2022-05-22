@@ -60,7 +60,7 @@ RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb &&\
     chmod 0440 /etc/sudoers.d/bsb &&\
     adduser bsb dialout &&\
-    adduser bsb audiot
+    adduser bsb audio
 
 # Set Home dir and path fpr user bsb
 ENV HOME /home/bsb
