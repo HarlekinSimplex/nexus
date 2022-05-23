@@ -35,7 +35,7 @@ if [ "$SOUNDMODEM_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "${LIGHT_BLUE}Start soundmodem:${NC}"
   echo -e "Using configuration from ${LIGHT_GREEN}$SOUNDMODEM_CONFIG/soundmodem.conf${NC}"
-  soundmodem -sM "$SOUNDMODEM_CONFIG"/soundmodem.conf &
+  soundmodem -v 2 "$SOUNDMODEM_CONFIG"/soundmodem.conf &> "$SOUNDMODEM_CONFIG"/soundmodem.log &
   sleep 1
   echo "soundmodem PID=""$(pgrep soundmodem)"
 fi
