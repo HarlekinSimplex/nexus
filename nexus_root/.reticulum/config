@@ -47,8 +47,8 @@
     databits = 8
     parity = none
     stopbits = 1
-    preamble = 150
-    txtail = 10
+    preamble = 300
+    txtail = 20
     slottime = 20
     flow_control = false
 
@@ -61,8 +61,8 @@
     databits = 8
     parity = none
     stopbits = 1
-    preamble = 150
-    txtail = 10
+    preamble = 300
+    txtail = 20
     slottime = 20
     flow_control = false
 
@@ -78,8 +78,8 @@
     parity = none
     stopbits = 1
     flow_control = false
-    preamble = 150
-    txtail = 10
+    preamble = 300
+    txtail = 20
     persistence = 200
     slottime = 20
 
@@ -95,7 +95,7 @@
     parity = none
     stopbits = 1
     flow_control = false
-    preamble = 150
-    txtail = 10
+    preamble = 300
+    txtail = 20
     persistence = 200
     slottime = 20
