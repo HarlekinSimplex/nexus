@@ -13,7 +13,7 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
     echo -e "Direwolf sound setup script file $DIREWOLF_CONFIG/direwolf-sound.sh is ${YELLOW}missing${NC}"
   fi
   echo -e ""
-  echo -e "${LIGHT_BLUE}Start direwolf using $DIREWOLF_CONFIG"/direwolf.conf:${NC}"
+  echo -e "${LIGHT_BLUE}Start direwolf using $DIREWOLF_CONFIG/direwolf.conf:${NC}"
   direwolf -t 0 -c "$DIREWOLF_CONFIG"/direwolf.conf &
   sleep 1
   echo "direwolf PID=""$(pgrep direwolf)"
