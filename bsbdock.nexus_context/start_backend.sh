@@ -52,12 +52,6 @@ else
   echo -e "First RNS startup will create and use a default config file"
 fi
 
-echo -e ""
-echo -e "-------------------------------------------------------------"
-echo -e "Actual RNS interface status"
-echo -e "-------------------------------------------------------------"
-rnstatus --config "$RNS_CONFIG"
-
 # Check if we shall RNS explicitly as service
 if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e ""
@@ -69,6 +63,12 @@ if [ "$RNS_AUTOSTART" != "False" ] ; then
   sleep 1
   echo "RNS PID=$(pgrep rnsd)"
 fi
+
+echo -e ""
+echo -e "-------------------------------------------------------------"
+echo -e "Actual RNS interface status"
+echo -e "-------------------------------------------------------------"
+rnstatus --config "$RNS_CONFIG"
 
 # Check if we shall start nomadnet as headless daemon (for serving pages or as LXMF propagation node)
 if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
