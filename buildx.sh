@@ -2,6 +2,7 @@
 #################################################
 # Build and tag nexus_server2 container
 #
+# bash buildx.sh arm dev && bash buildx.sh arm64 dev && bash buildx.sh amd64 dev && bash bsbdock.nexus_context/hooks/post_push
 
 export RED='\033[0;31m'
 export LIGHT_RED='\033[1;31m'

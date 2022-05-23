@@ -15,24 +15,27 @@
 # amixer -c 1 contents
 #
 
-# Set SOUNDMODEM default sound config
+# Set soundmodem default sound config
 export SOUNDMODEM_SOUND_CARD="${SOUNDMODEM_SOUND_CARD:-1}"
 export SOUNDMODEM_SPEAKER_VOLUME="${SOUNDMODEM_SPEAKER_VOLUME:-80%}"
 export SOUNDMODEM_MIC_VOLUME="${SOUNDMODEM_MIC_VOLUME:-80%}"
 export SOUNDMODEM_MIC_AGC="${SOUNDMODEM_MIC_AGC:-off}"
 
 # Log all sound cards available
+echo -e ""
 echo -e "${LIGHT_BLUE}Sound cards available:${NC}"
 aplay -l
 
 # Log all sound cards available
-echo -e "${LIGHT_BLUE}SOUNDMODEM sound configuration used:${NC}"
+echo -e ""
+echo -e "${LIGHT_BLUE}Soundmodem sound configuration used:${NC}"
 echo -e "SOUNDMODEM_SOUND_CARD=$SOUNDMODEM_SOUND_CARD"
 echo -e "SOUNDMODEM_SPEAKER_VOLUME=$SOUNDMODEM_SPEAKER_VOLUME"
 echo -e "SOUNDMODEM_MIC_VOLUME=$SOUNDMODEM_MIC_VOLUME"
 echo -e "SOUNDMODEM_MIC_AGC=$SOUNDMODEM_MIC_AGC"
 
 # Log all controls for selected sound card
+echo -e ""
 echo -e "${LIGHT_BLUE}Available controls for card $SOUNDMODEM_SOUND_CARD:${NC}"
 amixer -c "$SOUNDMODEM_SOUND_CARD" scontrols
 
@@ -42,5 +45,6 @@ amixer -c "$SOUNDMODEM_SOUND_CARD" sset 'Mic',0 "$SOUNDMODEM_MIC_VOLUME"
 amixer -c "$SOUNDMODEM_SOUND_CARD" sset 'Auto Gain Control',0 "$SOUNDMODEM_MIC_AGC"
 
 # Log all controls for selected sound card
+echo -e ""
 echo -e "${LIGHT_BLUE}Sound control contents set for card $SOUNDMODEM_SOUND_CARD:${NC}"
 amixer -c "$SOUNDMODEM_SOUND_CARD" contents

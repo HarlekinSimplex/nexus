@@ -12,6 +12,8 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   else
     echo -e "Direwolf sound setup script file $DIREWOLF_CONFIG/direwolf-sound.sh is ${YELLOW}missing${NC}"
   fi
+  echo -e ""
+  echo -e "${LIGHT_BLUE}Start direwolf:${NC}"
   direwolf -t 0 -c "$DIREWOLF_CONFIG"/direwolf.conf &
   sleep 1
   echo "direwolf PID=""$(pgrep direwolf)"
@@ -29,6 +31,8 @@ if [ "$SOUNDMODEM_AUTOSTART" != "False" ] ; then
   else
     echo -e "Soundmodem sound setup script file $SOUNDMODEM_CONFIG/soundmodem-sound.sh is ${YELLOW}missing${NC}"
   fi
+  echo -e ""
+  echo -e "${LIGHT_BLUE}Start soundmodem:${NC}"
   soundmodem "$SOUNDMODEM_CONFIG"/soundmodem.conf &
   sleep 1
   echo "soundmodem PID=""$(pgrep soundmodem)"
