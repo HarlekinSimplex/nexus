@@ -15,7 +15,7 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "${LIGHT_BLUE}Start direwolf:${NC}"
   echo -e "Using configuration from ${LIGHT_GREEN}$DIREWOLF_CONFIG/direwolf.conf${NC}"
-  direwolf -t 0 -c "$DIREWOLF_CONFIG"/direwolf.conf &
+  direwolf -t 0 -p -c "$DIREWOLF_CONFIG"/direwolf.conf -l "$DIREWOLF_CONFIG"/log &
   sleep 1
   echo "direwolf PID=""$(pgrep direwolf)"
 fi

@@ -28,7 +28,7 @@ aplay -l
 
 # Log all sound cards available
 echo -e ""
-echo -e "${LIGHT_BLUE}Soundmodem sound configuration used:${NC}"
+echo -e "${LIGHT_BLUE}ALSA Mixer settings used:${NC}"
 echo -e "SOUNDMODEM_SOUND_CARD=$SOUNDMODEM_SOUND_CARD"
 echo -e "SOUNDMODEM_SPEAKER_VOLUME=$SOUNDMODEM_SPEAKER_VOLUME"
 echo -e "SOUNDMODEM_MIC_VOLUME=$SOUNDMODEM_MIC_VOLUME"
