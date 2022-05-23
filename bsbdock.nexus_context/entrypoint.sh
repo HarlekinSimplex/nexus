@@ -158,7 +158,7 @@ echo -e "${LIGHT_BLUE}Startup server backend${NC}"
 echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
 
 # Initialize server backend
-start_backend.sh
+source start_backend.sh
 
 echo ""
 echo "-------------------------------------------------------------"

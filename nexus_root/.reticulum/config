@@ -38,11 +38,11 @@
     id_interval = 600
     flow_control = False
 
-  [[Packet Radio KISS Interface]]
+  [[Packet Radio KISS Interface (soundmodem)]]
     type = KISSInterface
     interface_enabled = False
     outgoing = true
-    port = /dev/ttyUSB1
+    port = /dev/soundmodem0
     speed = 115200
     databits = 8
     parity = none
@@ -52,7 +52,38 @@
     slottime = 20
     flow_control = false
 
-  [[Packet Radio AX.25 KISS Interface]]
+  [[Packet Radio KISS Interface (direwolf)]]
+    type = KISSInterface
+    interface_enabled = False
+    outgoing = true
+    port = /dev/ttyUSB2
+    speed = 115200
+    databits = 8
+    parity = none
+    stopbits = 1
+    preamble = 150
+    txtail = 10
+    slottime = 20
+    flow_control = false
+
+  [[Packet Radio AX.25 KISS Interface (soundmodem)]]
+    type = AX25KISSInterface
+    callsign = NO1CLL
+    ssid = 0
+    interface_enabled = False
+    outgoing = true
+    port = /dev/soundmodem0
+    speed = 115200
+    databits = 8
+    parity = none
+    stopbits = 1
+    flow_control = false
+    preamble = 150
+    txtail = 10
+    persistence = 200
+    slottime = 20
+
+  [[Packet Radio AX.25 KISS Interface (direwolf)]]
     type = AX25KISSInterface
     callsign = NO1CLL
     ssid = 0
