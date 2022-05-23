@@ -24,7 +24,7 @@ export SOUNDMODEM_MIC_AGC="${SOUNDMODEM_MIC_AGC:-off}"
 # Log all sound cards available
 echo -e ""
 echo -e "${LIGHT_BLUE}Sound cards available:${NC}"
-aplay -l
+arecord -l
 
 # Log all sound cards available
 echo -e ""
