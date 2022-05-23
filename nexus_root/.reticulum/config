@@ -56,7 +56,7 @@
     type = KISSInterface
     interface_enabled = False
     outgoing = true
-    port = /dev/ttyUSB2
+    port = /tmp/kisstnc
     speed = 115200
     databits = 8
     parity = none
@@ -89,7 +89,7 @@
     ssid = 0
     interface_enabled = False
     outgoing = true
-    port = /dev/ttyUSB2
+    port = /tmp/kisstnc
     speed = 115200
     databits = 8
     parity = none
