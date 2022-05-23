@@ -41,8 +41,8 @@ services:
 
 # Build environment for nexus container (default ARM-V7 Architectur)
 # Use NEXUS_DOCKERFILE=./Dockerfile_nexus_linux-amd-64 at .env if you want to build for the AMD64 Architecture
-    build:
-      context: ${NEXUS_COMPOSE_HOME:-~/nexus}/bsbdock.nexus_context
+#    build:
+#      context: ${NEXUS_COMPOSE_HOME:-~/nexus}/bsbdock.nexus_context
 #      dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile_nexus_dev_linux-arm}
 
     restart: unless-stopped
