@@ -15,7 +15,7 @@ echo ":dev <- $DEV"
 echo "OS=$OS"
 echo "Arch1=$ARCH1"
 echo "Arch2=$ARCH2"
-echo "Arch3=$ARCH2"
+echo "Arch3=$ARCH3"
 
 echo ""
 echo "Remove previous bsbdock/nexus:dev version manifest"
