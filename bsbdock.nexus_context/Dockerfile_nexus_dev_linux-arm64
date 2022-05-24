@@ -138,4 +138,4 @@ ENV NEXUS_CONTAINER_API_PORT 4281
 EXPOSE $NEXUS_CONTAINER_API_PORT
 
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["start_nexus_legacy"]
+CMD ["start_nexus_legacy.sh"]
