@@ -60,7 +60,7 @@ BUILD_FILE=dev_"$IMAGE_OS"-"$IMAGE_ARCH"
 
 # Check
 if [ "$IMAGE_ARCH" ] &&
-   [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ] ||
+   [ "$IMAGE_ARCH" != "i386" ] && [ "$IMAGE_ARCH" != "amd64" ] && [ "$IMAGE_ARCH" != "arm64" ] && [ "$IMAGE_ARCH" != "arm" ] ||
    [ "$1" == "?" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then
   echo -e ""
   echo -e "${BLUE}Usage:${NC}"
