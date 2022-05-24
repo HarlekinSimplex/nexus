@@ -13,6 +13,11 @@ FROM balenalib/amd64-python:3.9
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 
+##########
+
+# Set timezone and interactive mode
+ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+
 # Update base image if necessary
 RUN apt-get -y update && apt-get -y upgrade
 # SHELL ["/bin/bash", "-c"]
@@ -128,3 +133,4 @@ ENV NEXUS_CONTAINER_API_PORT 4281
 EXPOSE $NEXUS_CONTAINER_API_PORT
 
 ENTRYPOINT ["entrypoint.sh"]
+

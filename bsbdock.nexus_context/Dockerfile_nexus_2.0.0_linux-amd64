@@ -2,7 +2,7 @@
 # bsbdock/nexus Dockerfile
 #
 # How to build this container:
-# bash build.sh arm
+# bash buildx.sh arm
 # docker run --rm -it bsbdock/nexus:dev bash
 #
 # How to invoke a shell into this container:
@@ -13,12 +13,17 @@ FROM balenalib/amd64-python:3.9
 # Set timezone and interactive mode
 ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
 
+##########
+
+# Set timezone and interactive mode
+ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+
 # Update base image if necessary
 RUN apt-get -y update && apt-get -y upgrade
 # SHELL ["/bin/bash", "-c"]
 
 # Install some optional helper tools
-RUN apt-get -y install mc nano vim screen
+RUN apt-get -y install mc nano vim screen unzip
 
 RUN apt-get install tzdata
 
@@ -46,8 +51,8 @@ RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
 RUN apt-get -y install nginx systemctl &&\
     systemctl enable nginx
 
-# Install TNC for radio networking (direwolf)
-RUN apt-get -y install direwolf
+# Install TNCs for radio networking (direwolf)
+RUN apt-get -y install direwolf soundmodem alsa-utils
 
 # grab gosu for easy step-down from root and check if it works
 RUN	apt-get install -y gosu &&\
@@ -56,9 +61,11 @@ RUN	apt-get install -y gosu &&\
 
 # Add local user 'bsb'
 RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
-# Grant him sudo privileges
-RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb && \
-    chmod 0440 /etc/sudoers.d/bsb
+# Grant him sudo privileges and dialout accedd
+RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb &&\
+    chmod 0440 /etc/sudoers.d/bsb &&\
+    adduser bsb dialout &&\
+    adduser bsb audio
 
 # Set Home dir and path fpr user bsb
 ENV HOME /home/bsb
@@ -76,10 +83,12 @@ COPY . .
 RUN chown -R bsb:bsb $HOME
 # Make some scripts executable
 RUN chmod +x entrypoint.sh &&\
+    chmod +x start_backend.sh &&\
     chmod +x start_nexus_legacy.sh &&\
     chmod +x start_nexus.sh
 # Move script to bin
 RUN mv entrypoint.sh /usr/local/bin &&\
+    mv start_backend.sh /usr/local/bin &&\
     mv start_nexus_legacy.sh /usr/local/bin &&\
     mv start_nexus.sh /usr/local/bin
 
@@ -124,3 +133,4 @@ ENV NEXUS_CONTAINER_API_PORT 4281
 EXPOSE $NEXUS_CONTAINER_API_PORT
 
 ENTRYPOINT ["entrypoint.sh"]
+
