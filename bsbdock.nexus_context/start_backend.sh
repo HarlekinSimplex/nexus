@@ -38,6 +38,7 @@ if [ "$SOUNDMODEM_AUTOSTART" != "False" ] ; then
 #  su bsb -c "soundmodem -v 2 $SOUNDMODEM_CONFIG/soundmodem.conf &> $SOUNDMODEM_CONFIG/soundmodem.log &"
   su root -c "soundmodem -v 2 $SOUNDMODEM_CONFIG/soundmodem.conf &> $SOUNDMODEM_CONFIG/soundmodem.log &"
   sleep 1
+  chmod a+rw /dev/soundmodem0
   echo "soundmodem PID=""$(pgrep soundmodem)"
 fi
 
