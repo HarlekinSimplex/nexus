@@ -1,10 +1,9 @@
-#.........................................................................................
-#  ____   _____ ____   _   _                      _____
-# |  _ \ / ____|  _ \ | \ | |                    / ____|
-# | |_) | (___ | |_) ||  \| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __
-# |  _ < \___ \|  _ < | . ` |/ _ \ \/ / | | / __|\___ \ / _ \ '__\ \ / / _ \ '__|
-# | |_) |____) | |_) || |\  |  __/>  <| |_| \__ \____) |  __/ |   \ V /  __/ |
-# |____/|_____/|____(_)_| \_|\___/_/\_\\__,_|___/_____/ \___|_|    \_/ \___|_|
+#  _         _         _            _         __
+# | |       | |       | |          | |       / /
+# | |__  ___| |__   __| | ___   ___| | __   / / __   _____  ___   _ ___
+# | '_ \/ __| '_ \ / _` |/ _ \ / __| |/ /  / / '_ \ / _ \ \/ / | | / __|
+# | |_) \__ \ |_) | (_| | (_) | (__|   <  / /| | | |  __/>  <| |_| \__ \
+# |_ __/|___/_ __/ \__,_|\___/ \___|_|\_\/_/ |_| |_|\___/_/\_\\__,_|___/
 #
 # Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License
 #
@@ -37,17 +36,17 @@ services:
 # If image can not be pulled from docker hub run one of the following commands
 # bash ./build-arm.sh for building an arm architecture image
 # bash ./build-arm64.sh for building an arm64 architecture image
-# bash ./build-amd64.sh for building an amd64 architecture image
+# bash ./build.sh for building an amd64 architecture image
     image: ${NEXUS_IMAGE:-bsbdock/nexus:latest}
 
 # Build environment for nexus container (default ARM-V7 Architectur)
 # Use NEXUS_DOCKERFILE=./Dockerfile_nexus_linux-amd-64 at .env if you want to build for the AMD64 Architecture
-    build:
-      context: ${NEXUS_COMPOSE_HOME:-~/nexus}/bsbdock.nexus_context
-      dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile_nexus_linux-arm}
+#    build:
+#      context: ${NEXUS_COMPOSE_HOME:-~/nexus}/bsbdock.nexus_context
+#      dockerfile: ${NEXUS_DOCKERFILE:-./Dockerfile_nexus_dev_linux-arm}
 
     restart: unless-stopped
-    command: ${NEXUS_COMMAND:-/bsb/start.sh}
+    command: [ "${NEXUS_COMMAND:-start_nexus_legacy.sh}" ]
     ports:
 # Port for the reticulum server API for reticulum client access if required
 # Can be set to 127.0.0.1:4242:4242 to permit access other than from localhost
@@ -58,7 +57,9 @@ services:
       - ${NEXUS_PORT_JSONAPI:-4281}:4281
     devices:
 # USB Port mapped to container to be used by RNode LoRa interface
-      - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyACM0
+      - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyLORA
+# USB Port mapped to container to be used by TNC software
+      - ${NEXUS_TNC_DEVICE:-/dev/snd}:/dev/snd
     env_file:
       - .env
     networks:
@@ -67,10 +68,22 @@ services:
 # Hostname alias of container within the network spanned by docker
           - ${NEXUS_CONTAINER_ALIAS:-nexus-server_node01}
     volumes:
+      # Mapping used to externalize config files of reticulum, nomadnet and nexus
       - type: bind
-# Mapping used to externalize config files of reticulum, nomadnet and nexus
-        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root}
-        target: ${NEXUS_ROOT:-/root}
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.reticulum}
+        target: ${NEXUS_ROOT:-/home/bsb/.reticulum}
+      - type: bind
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.nomadnetwork}
+        target: ${NEXUS_ROOT:-/home/bsb/.nomadnetwork}
+      - type: bind
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.nexus}
+        target: ${NEXUS_ROOT:-/home/bsb/.nexus}
+      - type: bind
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.direwolf}
+        target: ${NEXUS_ROOT:-/home/bsb/.direwolf}
+      - type: bind
+        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.soundmodem}
+        target: ${NEXUS_ROOT:-/home/bsb/.soundmodem}
     logging:
       driver: "json-file"
       options:
@@ -80,7 +93,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=1"
 
 #################################################
-# BSB.NexusServer automatic update service
+# Watchtower automatic update service
   nexus-watchtower:
     profiles:
       - auto-update

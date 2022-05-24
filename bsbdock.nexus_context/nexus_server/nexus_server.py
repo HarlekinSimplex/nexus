@@ -92,8 +92,8 @@ DISTRIBUTION_TARGETS = {}
 # These links are use as additional distribution targets
 # Links ar specified using an array of json map as startup parameter --bridge
 # BRIDGE_LINKS = [
-#    {'url': 'https://nexus.deltamatrix.org:8241', 'tag': 'dev.test01'},
-#    {'url': 'https://nexus.deltamatrix.org:8242', 'tag': 'dev.test02'}
+#    {'url': 'https://nexus.deltamatrix.org:8241', 'cluster': 'delta'},
+#    {'url': 'https://nexus.deltamatrix.org:8242', 'cluster': 'dev'}
 # ]
 BRIDGE_TARGETS = []
 
@@ -1274,8 +1274,36 @@ def initialize_server(
     global BRIDGE_TARGETS
     global NEXUS_LXM_SOCKET
 
+    print("-------------------------------------------------------------")
+    if configpath is not None:
+        print("RNS Startup using config at " + configpath)
+    else:
+        print("RNS Startup using default location (~/.reticulum)")
+
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
+    print("-------------------------------------------------------------")
+
+    # Startup log with used parameter
+    RNS.log(" ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
+    RNS.log("|  _ \\ / ____|  _ \\ | \\ | |                    / ____|", RNS.LOG_INFO)
+    RNS.log("| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __", RNS.LOG_INFO)
+    RNS.log("|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|", RNS.LOG_INFO)
+    RNS.log("| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
+    RNS.log("|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
+    RNS.log("", RNS.LOG_INFO)
+    RNS.log("Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
+    RNS.log("...............................................................................", RNS.LOG_INFO)
+    RNS.log("Installed Versions:", RNS.LOG_INFO)
+    RNS.log(" Nexus Server      v" + __server_version__, RNS.LOG_INFO)
+    RNS.log(" Mesh Role         v" + __role_version__, RNS.LOG_INFO)
+    RNS.log(" Command Processor v" + __command_version__, RNS.LOG_INFO)
+    RNS.log(" Message Format    v" + __message_version__, RNS.LOG_INFO)
+
+    if configpath is not None:
+        RNS.log(" Used RNS Config   " + configpath, RNS.LOG_INFO)
+    else:
+        RNS.log(" Used RNS Config   " + "RNS Default Location", RNS.LOG_INFO)
 
     # Set default server port if not specified otherwise
     if server_port is not None:
@@ -1313,21 +1341,6 @@ def initialize_server(
         # Overwrite default role with specified role
         BRIDGE_TARGETS = json.loads(bridge_links)
 
-    # Startup log with used parameter
-    RNS.log(" ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
-    RNS.log("|  _ \\ / ____|  _ \\ | \\ | |                    / ____|", RNS.LOG_INFO)
-    RNS.log("| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __", RNS.LOG_INFO)
-    RNS.log("|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|", RNS.LOG_INFO)
-    RNS.log("| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
-    RNS.log("|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
-    RNS.log("", RNS.LOG_INFO)
-    RNS.log("Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
-    RNS.log("...............................................................................", RNS.LOG_INFO)
-    RNS.log("Installed Versions:", RNS.LOG_INFO)
-    RNS.log(" Nexus Server      v" + __server_version__, RNS.LOG_INFO)
-    RNS.log(" Mesh Role         v" + __role_version__, RNS.LOG_INFO)
-    RNS.log(" Command Processor v" + __command_version__, RNS.LOG_INFO)
-    RNS.log(" Message Format    v" + __message_version__, RNS.LOG_INFO)
     RNS.log("...............................................................................", RNS.LOG_INFO)
     RNS.log("Server Configuration:", RNS.LOG_INFO)
     RNS.log(" Port     " + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)

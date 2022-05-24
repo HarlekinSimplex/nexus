@@ -1,0 +1,136 @@
+############################################################
+# bsbdock/nexus Dockerfile
+#
+# How to build this container:
+# bash buildx.sh arm
+# docker run --rm -it bsbdock/nexus:dev bash
+#
+# How to invoke a shell into this container:
+# docker run --rm -it bsbdock/nexus:dev bash
+#
+FROM balenalib/amd64-python:3.9
+
+# Set timezone and interactive mode
+ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+
+##########
+
+# Set timezone and interactive mode
+ENV TZ=Europe/Berlin DEBIAN_FRONTEND=noninteractive
+
+# Update base image if necessary
+RUN apt-get -y update && apt-get -y upgrade
+# SHELL ["/bin/bash", "-c"]
+
+# Install some optional helper tools
+RUN apt-get -y install mc nano vim screen unzip
+
+RUN apt-get install tzdata
+
+# Bootstrap pip3
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
+
+# Intsall build essentials
+RUN apt-get -y install build-essential libssl-dev libffi-dev python-dev-is-python3 python2-dev python2 libpq-dev
+
+# Build and install Rust and cryptography and other Python packages using a temporary fs (buildkit requiered)
+# to overcome the qmenu cargo filesystem issue (takes a very long time to complete approx. 20min)
+RUN --mount=type=tmpfs,target=/root/.cargo \
+    curl https://sh.rustup.rs -sSf -y1 | sh  -s -- -y --profile minimal --default-toolchain nightly && \
+    export PATH="/root/.cargo/bin:$PATH" && \
+    pip3 install cryptography && \
+    pip3 install rns lxmf nomadnet rnodeconf requests && \
+    pip3 install Django gunicorn psycopg2-binary gevent && \
+    cp -r /root/.cargo /root/.cargo.bak
+RUN cp -rT /root/.cargo.bak /root/.cargo && rm -R /root/.cargo.bak
+
+##########
+
+# Install components for django production deplyment
+RUN apt-get -y install systemctl uwsgi uwsgi-plugin-python3 nginx
+RUN apt-get -y install nginx systemctl &&\
+    systemctl enable nginx
+
+# Install TNCs for radio networking (direwolf)
+RUN apt-get -y install direwolf soundmodem alsa-utils
+
+# grab gosu for easy step-down from root and check if it works
+RUN	apt-get install -y gosu &&\
+   	rm -rf /var/lib/apt/lists/* &&\
+    gosu nobody true
+
+# Add local user 'bsb'
+RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
+# Grant him sudo privileges and dialout accedd
+RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb &&\
+    chmod 0440 /etc/sudoers.d/bsb &&\
+    adduser bsb dialout &&\
+    adduser bsb audio
+
+# Set Home dir and path fpr user bsb
+ENV HOME /home/bsb
+ENV PATH="$HOME/.local/bin:$PATH"
+ENV HOME /home/bsb
+USER bsb
+WORKDIR $HOME
+
+# Change to root
+USER root
+# Copy ressources from context into bsb home
+ARG CACHEBUST=1
+COPY . .
+# Set ownership to usr bsb
+RUN chown -R bsb:bsb $HOME
+# Make some scripts executable
+RUN chmod +x entrypoint.sh &&\
+    chmod +x start_backend.sh &&\
+    chmod +x start_nexus_legacy.sh &&\
+    chmod +x start_nexus.sh
+# Move script to bin
+RUN mv entrypoint.sh /usr/local/bin &&\
+    mv start_backend.sh /usr/local/bin &&\
+    mv start_nexus_legacy.sh /usr/local/bin &&\
+    mv start_nexus.sh /usr/local/bin
+
+# Change to bsb again to install python packages indicated at the rerquirents.txt
+# This will be done without cache usage
+USER bsb
+WORKDIR $HOME
+
+# Install required python packages
+RUN pip3 install -r ./requirements.txt
+
+# Move to Django
+WORKDIR $HOME/nexus_django
+# Make manage.py executable
+RUN chmod +x manage.py
+# Create folder for static files
+RUN mkdir static
+
+# Collect static files
+RUN python manage.py collectstatic --no-input --clear
+RUN ./manage.py collectstatic --no-input --clear &&\
+    ./manage.py flush --no-input
+
+# Back to root to finalize stuff
+USER root
+WORKDIR $HOME
+
+# Configure Nginx
+RUN rm /etc/nginx/sites-enabled/default &&\
+    ln -s /home/bsb/nexus.nginx.conf /etc/nginx/sites-enabled/nexus.nginx.conf
+
+# Expose port for Reticulum server TCP Interface (disable as default)
+ENV NEXUS_CONTAINER_RNS_PORT 4242
+EXPOSE $NEXUS_CONTAINER_RNS_PORT
+
+# Expose port for Nexus Server Web (Nginx)
+ENV NEXUS_CONTAINER_WEB_PORT 4280
+EXPOSE $NEXUS_CONTAINER_WEB_PORT
+
+# Expose port for Nexus Server API (Gunicorn / Python)
+ENV NEXUS_CONTAINER_API_PORT 4281
+EXPOSE $NEXUS_CONTAINER_API_PORT
+
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["start_nexus_legacy.sh"]
