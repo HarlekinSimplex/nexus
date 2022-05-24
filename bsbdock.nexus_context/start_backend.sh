@@ -15,7 +15,7 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "${LIGHT_BLUE}Start direwolf:${NC}"
   echo -e "Using configuration from ${LIGHT_GREEN}$DIREWOLF_CONFIG/direwolf.conf${NC}"
-  su bsb -c "direwolf -t 0 -p -c $DIREWOLF_CONFIG/direwolf.conf -l $DIREWOLF_CONFIG/log &"
+  su bsb -c "direwolf -t 0 -q hd -p -c $DIREWOLF_CONFIG/direwolf.conf -l $DIREWOLF_CONFIG/log &"
   sleep 1
   echo "direwolf PID=""$(pgrep direwolf)"
 fi
@@ -35,7 +35,6 @@ if [ "$SOUNDMODEM_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "${LIGHT_BLUE}Start soundmodem:${NC}"
   echo -e "Using configuration from ${LIGHT_GREEN}$SOUNDMODEM_CONFIG/soundmodem.conf${NC}"
-#  su bsb -c "soundmodem -v 2 $SOUNDMODEM_CONFIG/soundmodem.conf &> $SOUNDMODEM_CONFIG/soundmodem.log &"
   su root -c "soundmodem -v 2 $SOUNDMODEM_CONFIG/soundmodem.conf &> $SOUNDMODEM_CONFIG/soundmodem.log &"
   sleep 1
   chmod a+rw /dev/soundmodem0
