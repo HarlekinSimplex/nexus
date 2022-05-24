@@ -24,4 +24,3 @@
   node_name = BSB.NexusServer [01]
   announce_interval = 360
   announce_at_start = Yes
-
