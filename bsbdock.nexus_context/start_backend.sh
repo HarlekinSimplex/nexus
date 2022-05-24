@@ -15,7 +15,7 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "${LIGHT_BLUE}Start direwolf:${NC}"
   echo -e "Using configuration from ${LIGHT_GREEN}$DIREWOLF_CONFIG/direwolf.conf${NC}"
-  direwolf -t 0 -p -c "$DIREWOLF_CONFIG"/direwolf.conf -l "$DIREWOLF_CONFIG"/log &
+  su bsb -c "direwolf -t 0 -p -c $DIREWOLF_CONFIG/direwolf.conf -l $DIREWOLF_CONFIG/log &"
   sleep 1
   echo "direwolf PID=""$(pgrep direwolf)"
 fi
@@ -35,7 +35,7 @@ if [ "$SOUNDMODEM_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "${LIGHT_BLUE}Start soundmodem:${NC}"
   echo -e "Using configuration from ${LIGHT_GREEN}$SOUNDMODEM_CONFIG/soundmodem.conf${NC}"
-  soundmodem -v 2 "$SOUNDMODEM_CONFIG"/soundmodem.conf &> "$SOUNDMODEM_CONFIG"/soundmodem.log &
+  su bsb -c "soundmodem -v 2 $SOUNDMODEM_CONFIG/soundmodem.conf &> $SOUNDMODEM_CONFIG/soundmodem.log &"
   sleep 1
   echo "soundmodem PID=""$(pgrep soundmodem)"
 fi
@@ -59,7 +59,7 @@ if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e "Autostart RNS as service"
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
-  rnsd -s --config "$RNS_CONFIG" &
+  su bsb -c "rnsd -s --config $RNS_CONFIG &"
   sleep 1
   echo "RNS PID=$(pgrep rnsd)"
 fi
@@ -68,7 +68,7 @@ echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Actual RNS interface status"
 echo -e "-------------------------------------------------------------"
-rnstatus --config "$RNS_CONFIG"
+su bsb -c "rnstatus --config $RNS_CONFIG"
 
 # Check if we shall start nomadnet as headless daemon (for serving pages or as LXMF propagation node)
 if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
@@ -77,7 +77,7 @@ if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo -e "Autostart Nomadnetwork as service"
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
-  nomadnet --daemon --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" &
+  su bsb -c "nomadnet --daemon --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG &"
   sleep 1
   echo "nomadnet PID=$(pgrep nomadnet)"
 fi
