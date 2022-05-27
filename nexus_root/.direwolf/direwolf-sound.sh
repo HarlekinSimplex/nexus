@@ -98,13 +98,13 @@ amixer -c "$DIREWOLF_OUTPUT_SOUND_CARD" cset name='Speaker Playback Volume' "$DI
 # Set Card ID for single device setup
 if [ "$DIREWOLF_DUAL_SOUND_CARD" == "Yes" ] ; then
   echo -e ""
-  echo -e "${LIGHT_BLUE}Sound control contents set for input card $DIREWOLF_SOUND_CARD:${NC}"
+  echo -e "${LIGHT_BLUE}Actual contents set for input card $DIREWOLF_SOUND_CARD:${NC}"
   amixer -c "$DIREWOLF_INPUT_SOUND_CARD" contents
   echo -e ""
-  echo -e "${LIGHT_BLUE}Sound control contents set for output card $DIREWOLF_SOUND_CARD:${NC}"
+  echo -e "${LIGHT_BLUE}Actual contents set for output card $DIREWOLF_SOUND_CARD:${NC}"
   amixer -c "$DIREWOLF_OUTPUT_SOUND_CARD" contents
 else
   echo -e ""
-  echo -e "${LIGHT_BLUE}Sound control contents set for input/output card $DIREWOLF_SOUND_CARD:${NC}"
+  echo -e "${LIGHT_BLUE}Actual contents set for input/output card $DIREWOLF_SOUND_CARD:${NC}"
   amixer -c "$DIREWOLF_SOUND_CARD" contents
 fi
