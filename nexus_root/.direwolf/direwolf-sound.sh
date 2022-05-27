@@ -13,7 +13,6 @@
 #
 # amixer -c 1 cset name='Mic Capture Switch' on
 #
-#
 
 # Set sound card default
 export DIREWOLF_SOUND_CARD="${DIREWOLF_SOUND_CARD:-1}"
