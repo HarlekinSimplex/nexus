@@ -15,6 +15,8 @@
 #
 #
 
+# Set sound card default
+export DIREWOLF_SOUND_CARD="${DIREWOLF_SOUND_CARD:-1}"
 # Check if we have a dual device configuration set up
 # Default is 'No'
 export DIREWOLF_DUAL_SOUND_CARD="${DIREWOLF_DUAL_SOUND_CARD:-No}"
