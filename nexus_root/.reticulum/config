@@ -28,7 +28,7 @@
     type = RNodeInterface
     interface_enabled = False
     outgoing = True
-    port = /dev/ttyLORA
+    port = /dev/ttyRNODE
     frequency = 867200000
     bandwidth = 125000
     txpower = 7

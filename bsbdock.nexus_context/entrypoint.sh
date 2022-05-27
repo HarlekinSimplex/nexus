@@ -35,6 +35,7 @@ export NOMADNET_AUTOSTART="${NOMADNET_AUTOSTART:-True}"
 
 # Set Direwolf default environment variables
 export DIREWOLF_CONFIG="${DIREWOLF_CONFIG:-$HOME/.direwolf}"
+export DIREWOLF_INTERFACE_NAME="${DIREWOLF_INTERFACE_NAME:-default}"
 export DIREWOLF_AUTOSTART="${DIREWOLF_AUTOSTART:-False}"
 
 # Set Soundmodem default environment variables
@@ -73,6 +74,7 @@ echo -e "NOMADNET_AUTOSTART=$NOMADNET_AUTOSTART"
 echo -e ""
 echo -e "${LIGHT_BLUE}Direwolf configuration environment:${NC}"
 echo -e "DIREWOLF_CONFIG=$DIREWOLF_CONFIG"
+echo -e "DIREWOLF_INTERFACE_NAME=$DIREWOLF_INTERFACE_NAME"
 echo -e "DIREWOLF_AUTOSTART=$DIREWOLF_AUTOSTART"
 
 echo -e ""

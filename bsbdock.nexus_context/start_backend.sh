@@ -6,16 +6,16 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   echo -e "Autostart Direwolf"
   echo -e "-------------------------------------------------------------"
-  if [ -f "$DIREWOLF_CONFIG"/direwolf-sound.sh ] ; then
-    chmod +x "$DIREWOLF_CONFIG"/direwolf-sound.sh
-    "$DIREWOLF_CONFIG"/direwolf-sound.sh
+  if [ -f "$DIREWOLF_CONFIG"/"$DIREWOLF_INTERFACE_NAME".sh ] ; then
+    chmod +x "$DIREWOLF_CONFIG"/"$DIREWOLF_INTERFACE_NAME".sh
+    "$DIREWOLF_CONFIG"/"$DIREWOLF_INTERFACE_NAME".sh
   else
-    echo -e "Direwolf sound setup script file $DIREWOLF_CONFIG/direwolf-sound.sh is ${YELLOW}missing${NC}"
+    echo -e "Direwolf sound setup script file $DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME.sh is ${YELLOW}missing${NC}"
   fi
   echo -e ""
   echo -e "${LIGHT_BLUE}Start direwolf:${NC}"
-  echo -e "Using configuration from ${LIGHT_GREEN}$DIREWOLF_CONFIG/direwolf.conf${NC}"
-  su bsb -c "direwolf -t 0 -p -c $DIREWOLF_CONFIG/direwolf.conf -l $DIREWOLF_CONFIG/log &"
+  echo -e "Using configuration from ${LIGHT_GREEN}$DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME.conf${NC}"
+  su bsb -c "direwolf -t 0 -p -c $DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME.conf -l $DIREWOLF_CONFIG/log &"
   sleep 1
   echo "direwolf PID=""$(pgrep direwolf)"
 fi

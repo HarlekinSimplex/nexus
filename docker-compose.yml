@@ -56,10 +56,12 @@ services:
 # Port of the nexus server web client and mobile app JSON TCP/IP API
       - ${NEXUS_PORT_JSONAPI:-4281}:4281
     devices:
+# Sound Device mapped to container to be used by TNC software
+      - ${NEXUS_SND_DEVICE:-/dev/snd}:/dev/snd
 # USB Port mapped to container to be used by RNode LoRa interface
-      - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyLORA
-# USB Port mapped to container to be used by TNC software
-      - ${NEXUS_TNC_DEVICE:-/dev/snd}:/dev/snd
+      - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyRNODE
+# USB Port mapped to container to be used for CAT (PPT)
+      - ${NEXUS_CAT_DEVICE:-/dev/tty0}:/dev/ttyCAT
     env_file:
       - .env
     networks:
