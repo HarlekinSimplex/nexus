@@ -52,18 +52,18 @@ echo -e "DIREWOLF_INPUT_SOUND_CARD=$DIREWOLF_INPUT_SOUND_CARD"
 echo -e "DIREWOLF_OUTPUT_SOUND_CARD=$DIREWOLF_OUTPUT_SOUND_CARD"
 echo -e ""
 echo -e "${LIGHT_BLUE}Sound input channel parameters:${NC}"
-echo -e "DIREWOLF_MIC_MUTE=$DIREWOLF_MIC_MUTE"
-echo -e "DIREWOLF_MIC_VOLUME=$DIREWOLF_MIC_VOLUME"
-echo -e "DIREWOLF_MIC_AGC=$DIREWOLF_MIC_AGC"
-echo -e "DIREWOLF_CAPTURE_VOLUME=$DIREWOLF_CAPTURE_VOLUME"
+echo -e "DIREWOLF_MIC_CAPTURE_SWITCH=$DIREWOLF_MIC_CAPTURE_SWITCH"
+echo -e "DIREWOLF_MIC_CAPTURE_VOLUME=$DIREWOLF_MIC_CAPTURE_VOLUME"
+echo -e "DIREWOLF_MIC_PLAYBACK_VOLUME=$DIREWOLF_MIC_PLAYBACK_VOLUME"
+echo -e "DIREWOLF_AUTO_GAIN_CONTROL=$DIREWOLF_AUTO_GAIN_CONTROL"
 echo -e ""
 echo -e "${LIGHT_BLUE}Sound output channel parameters:${NC}"
-echo -e "DIREWOLF_SPEAKER_MUTE=$DIREWOLF_SPEAKER_MUTE"
-echo -e "DIREWOLF_SPEAKER_VOLUME=$DIREWOLF_SPEAKER_VOLUME"
+echo -e "DIREWOLF_SPEAKER_PLAYBACK_SWITCH=$DIREWOLF_SPEAKER_PLAYBACK_SWITCH"
+echo -e "DIREWOLF_SPEAKER_PLAYBACK_VOLUME=$DIREWOLF_SPEAKER_PLAYBACK_VOLUME"
 
 # Log all controls for selected sound card spec
 # Set Card ID for single device setup
-if [ "$DIREWOLF_DUAL_SOUND_CARD" != "Yes" ] ; then
+if [ "$DIREWOLF_DUAL_SOUND_CARD" == "Yes" ] ; then
   echo -e ""
   echo -e "${LIGHT_BLUE}Available controls for input card $DIREWOLF_INPUT_SOUND_CARD:${NC}"
   amixer -c "$DIREWOLF_INPUT_SOUND_CARD" controls
@@ -79,15 +79,15 @@ fi
 # Set mixer configuration as defined
 echo -e ""
 echo -e "${LIGHT_BLUE}Set input parameters:${NC}"
-amixer -c "$DIREWOLF_INPUT_SOUND_CARD" cset name='Mic Capture Switch' "$DIREWOLF_MIC_MUTE"
-amixer -c "$DIREWOLF_INPUT_SOUND_CARD" cset name='Mic Capture Volume' "$DIREWOLF_CAPTURE_VOLUME"
-amixer -c "$DIREWOLF_INPUT_SOUND_CARD" cset name='Mic Playback Volume' "$DIREWOLF_MIC_VOLUME"
-amixer -c "$DIREWOLF_INPUT_SOUND_CARD" cset name='Auto Gain Control' "$DIREWOLF_MIC_AGC"
+amixer -c "$DIREWOLF_INPUT_SOUND_CARD" cset name='Mic Capture Switch' "$DIREWOLF_MIC_CAPTURE_SWITCH"
+amixer -c "$DIREWOLF_INPUT_SOUND_CARD" cset name='Mic Capture Volume' "$DIREWOLF_MIC_CAPTURE_VOLUME"
+amixer -c "$DIREWOLF_INPUT_SOUND_CARD" cset name='Mic Playback Volume' "$DIREWOLF_MIC_PLAYBACK_VOLUME"
+amixer -c "$DIREWOLF_INPUT_SOUND_CARD" cset name='Auto Gain Control' "$DIREWOLF_AUTO_GAIN_CONTROL"
 
 echo -e ""
 echo -e "${LIGHT_BLUE}Set output parameters:${NC}"
-amixer -c "$DIREWOLF_OUTPUT_SOUND_CARD" cset name='Speaker Playback Switch' "$DIREWOLF_SPEAKER_MUTE"
-amixer -c "$DIREWOLF_OUTPUT_SOUND_CARD" cset name='Speaker Playback Volume' "$DIREWOLF_SPEAKER_VOLUME"
+amixer -c "$DIREWOLF_OUTPUT_SOUND_CARD" cset name='Speaker Playback Switch' "$DIREWOLF_SPEAKER_PLAYBACK_SWITCH"
+amixer -c "$DIREWOLF_OUTPUT_SOUND_CARD" cset name='Speaker Playback Volume' "$DIREWOLF_SPEAKER_PLAYBACK_VOLUME"
 
 # Log all controls for selected sound card spec
 # Set Card ID for single device setup
