@@ -14,6 +14,7 @@
 #
 # amixer -c 1 contents
 #
+#
 
 # Check if we have a dual device configuration set up
 # Default is 'No'
