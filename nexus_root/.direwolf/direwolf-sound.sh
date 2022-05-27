@@ -3,16 +3,15 @@
 # This file sets the audio parameters used by direwolf for communicating with the external USB sound device
 #
 # amixer --help
-# amixer scontrols
-# amixer -c 1 scontrols
+# amixer -c 1 controls
+# amixer -c 1 contents
 #
 # amixer -c 1 sset 'Speaker',0 80%
 # amixer -c 1 sset 'Mic',0 70%
-#
 # amixer -c 1 sset 'Auto Gain Control',0 off
 # amixer -c 1 sset 'Auto Gain Control',0 on
 #
-# amixer -c 1 contents
+# amixer -c 1 cset name='Mic Capture Switch' on
 #
 #
 
