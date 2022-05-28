@@ -62,3 +62,4 @@ amixer -c "$DIREWOLF_SOUND_CARD" cset name='PCM Playback Volume' "$DIREWOLF_PCM_
 echo -e ""
 echo -e "${LIGHT_BLUE}Actual contents set for input/output card $DIREWOLF_SOUND_CARD:${NC}"
 amixer -c "$DIREWOLF_SOUND_CARD" contents
+
