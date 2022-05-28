@@ -936,15 +936,15 @@ class NexusLXMSocket:
     @staticmethod
     def lxmf_delivery_callback(message):
         # Log message as delivery receipt
-        NexusLXMSocket.log_lxm_message(message, "LXMF Delivery receipt (success)")
+        NexusLXMSocket.log_lxm_message(message, "LXMF Delivery receipt (success)", RNS.LOG_DEBUG)
 
     @staticmethod
     def lxmf_delivery_failed_callback(message):
         # Log message as delivery receipt
-        NexusLXMSocket.log_lxm_message(message, "LXMF Delivery receipt (failed)")
+        NexusLXMSocket.log_lxm_message(message, "LXMF Delivery receipt (failed)", RNS.LOG_ERROR)
 
     @staticmethod
-    def log_lxm_message(message, message_tag="LXMF Message log"):
+    def log_lxm_message(message, message_tag="LXMF Message log", debug_level=RNS.LOG_DEBUG):
         # Log Message
         # Create time stamp for logging
         time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(message.timestamp))
@@ -962,15 +962,15 @@ class NexusLXMSocket:
         title = message.title.decode('utf-8')
         content = message.content.decode('utf-8')
         fields = message.fields
-        RNS.log(message_tag + " - " + time_string, RNS.LOG_DEBUG)
-        RNS.log("-       Title: " + title, RNS.LOG_DEBUG)
-        RNS.log("-     Content: " + content, RNS.LOG_DEBUG)
-        RNS.log("-      Fields: " + str(fields), RNS.LOG_DEBUG)
+        RNS.log(message_tag + " - " + time_string, debug_level)
+        RNS.log("-       Title: " + title, debug_level)
+        RNS.log("-     Content: " + content, debug_level)
+        RNS.log("-      Fields: " + str(fields), debug_level)
         RNS.log("-        Size: " + str(len(title) + len(content) + len(title) + len(pickle.dumps(fields))) + " bytes",
-                RNS.LOG_DEBUG)
-        RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash), RNS.LOG_DEBUG)
-        RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash), RNS.LOG_DEBUG)
-        RNS.log("-   Signature: " + signature_string, RNS.LOG_DEBUG)
+                debug_level)
+        RNS.log("-      Source: " + RNS.prettyhexrep(message.source_hash), debug_level)
+        RNS.log("- Destination: " + RNS.prettyhexrep(message.destination_hash), debug_level)
+        RNS.log("-   Signature: " + signature_string, debug_level)
 
     @staticmethod
     def long_poll(initial=False):
@@ -1031,50 +1031,17 @@ def message_received_callback(lxmessage):
 # an n:m redundant server cluster that exchange and mirror all messages received within the cluster.
 # This is simply achieved by specifying the same cluster name inside the nexus server role that is appended to the
 # reticulum target announcement.
-# Using e.g. {"c":"MyCluster"} as the nexus server role of 3 distinct servers anywhere at the reticulum network will
-# trigger an automatic subscription and message forwarding mechanism that provides for having new messages mirrored
-# to all serves in that cluster.
+# Using e.g. {"cluster":"MyCluster"} as the nexus server role of 3 distinct servers anywhere at the reticulum network
+# will trigger an automatic subscription and message forwarding mechanism that provides for having new messages
+# mirrored to all serves in that cluster.
 # Nexus servers using different cluster name will not automatically subscribe to each other thus being standalone
 # servers or separate clusters.
 #
-# The Gateway names specified at the server role acts identical to the cluster name in a way that an automatic
-# subscription ist triggered if the received announcement contained a nexus server role with has a cluster name that
-# matches the cluster name of the actual server OR the gateway name matches the gateway name of the actual server.
-# This establishes a second layer to create automatic connections. These can be used to daisy chain nexus servers
-# without any redundancy or to connect one cluster to another cluster.
-#
-# Role configuration example for three separate standalone nexus servers:
-# Role of Server #1: {"c":"Cluster_A"}
-# Role of Server #2: {"c":"Cluster_B"}
-# Role of Server #3: {"c":"Cluster_C"}
-#
-# Role configuration example for a single redundant nexus server cluster consisting of three servers:
-# Role of Server #1: {"c":"Cluster_A"}
-# Role of Server #2: {"c":"Cluster_A"}
-# Role of Server #3: {"c":"Cluster_A"}
-#
-# Role configuration example for two redundant but not connected nexus server clusters consisting of three servers each:
-# Role of Server #1: {"c":"Cluster_A"}
-# Role of Server #2: {"c":"Cluster_A"}
-# Role of Server #3: {"c":"Cluster_A"}
-# Role of Server #4: {"c":"Cluster_B"}
-# Role of Server #5: {"c":"Cluster_B"}
-# Role of Server #6: {"c":"Cluster_B"}
-#
-# Role configuration example of four redundant but daisy-chained nexus servers (less traffic than with a cluster):
-# Role of Server #1: {"c":"Cluster_A"}
-# Role of Server #2: {"c":"Cluster_A","g":"GateWayAB"}
-# Role of Server #3: {"c":"Cluster_B","g":"GateWayAB"}
-# Role of Server #4: {"c":"Cluster_B"}
-#
-# Role configuration example for two redundant and connected nexus server clusters consisting of three servers each and
-# having one of those servers acting as a forwarding gateway to the other cluster:
-# Role of Server #1: {"c":"Cluster_A"}
-# Role of Server #2: {"c":"Cluster_A"}
-# Role of Server #3: {"c":"Cluster_A","g":"GateWayAB"}}
-# Role of Server #4: {"c":"Cluster_B","g":"GateWayAB"}}
-# Role of Server #5: {"c":"Cluster_B"}
-# Role of Server #6: {"c":"Cluster_B"}
+# The Gateway names specified at the server role e.g. {"cluster":"MyCluster","gate":"myGate"} acts identical to the
+# cluster name in a way that an automatic subscription ist triggered if the received announcement contained a nexus
+# server role with has a cluster name that matches the cluster name of the actual server OR the gateway name matches
+# the gateway name of the actual server. This establishes a second layer to create automatic connections. These can be
+# used to daisy chain nexus servers without any redundancy or to connect one cluster to another cluster.
 #
 # To have this automatic subscription mechanism available effectively provides for having a deterministic client server
 # network with automatic replication on top of the Reticulum mesh network.
