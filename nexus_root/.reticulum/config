@@ -48,8 +48,9 @@
     parity = none
     stopbits = 1
     preamble = 300
-    txtail = 20
-    slottime = 20
+    slottime = 30
+    txdelay = 50
+    txtail = 10
     flow_control = false
 
   [[Packet Radio KISS Interface (direwolf)]]
@@ -60,10 +61,10 @@
     speed = 115200
     databits = 8
     parity = none
-    stopbits = 1
     preamble = 300
-    txtail = 20
-    slottime = 20
+    slottime = 30
+    txdelay = 50
+    txtail = 10
     flow_control = false
 
   [[Packet Radio AX.25 KISS Interface (soundmodem)]]
@@ -77,11 +78,12 @@
     databits = 8
     parity = none
     stopbits = 1
-    flow_control = false
     preamble = 300
-    txtail = 20
+    slottime = 30
+    txdelay = 50
+    txtail = 10
+    flow_control = false
     persistence = 200
-    slottime = 20
 
   [[Packet Radio AX.25 KISS Interface (direwolf)]]
     type = AX25KISSInterface
@@ -94,8 +96,9 @@
     databits = 8
     parity = none
     stopbits = 1
-    flow_control = false
     preamble = 300
-    txtail = 20
+    slottime = 30
+    txdelay = 50
+    txtail = 10
+    flow_control = false
     persistence = 200
-    slottime = 20
