@@ -55,8 +55,8 @@ amixer -c "$DIREWOLF_SOUND_CARD" controls
 # Set mixer configuration as defined
 echo -e ""
 echo -e "${LIGHT_BLUE}Set output parameters:${NC}"
-amixer -c "$DIREWOLF_SOUND_CARD" cset name='PCM Playback Switch' "DIREWOLF_PCM_PLAYBACK_SWITCH"
-amixer -c "$DIREWOLF_SOUND_CARD" cset name='PCM Playback Volume' "DIREWOLF_PCM_PLAYBACK_VOLUME"
+amixer -c "$DIREWOLF_SOUND_CARD" cset name='PCM Playback Switch' "$DIREWOLF_PCM_PLAYBACK_SWITCH"
+amixer -c "$DIREWOLF_SOUND_CARD" cset name='PCM Playback Volume' "$DIREWOLF_PCM_PLAYBACK_VOLUME"
 
 # Log all controls for selected sound card spec
 echo -e ""
