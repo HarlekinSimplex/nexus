@@ -116,3 +116,4 @@ else
   echo -e "${LIGHT_BLUE}Actual contents set for input/output card $DIREWOLF_SOUND_CARD:${NC}"
   amixer -c "$DIREWOLF_SOUND_CARD" contents
 fi
+
