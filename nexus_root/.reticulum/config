@@ -48,9 +48,9 @@
     parity = none
     stopbits = 1
     preamble = 300
-    slottime = 30
+    slottime = 300
     txdelay = 50
-    txtail = 10
+    txtail = 100
     flow_control = false
 
   [[Packet Radio KISS Interface (direwolf)]]
@@ -62,9 +62,9 @@
     databits = 8
     parity = none
     preamble = 300
-    slottime = 30
+    slottime = 300
     txdelay = 50
-    txtail = 10
+    txtail = 100
     flow_control = false
 
   [[Packet Radio AX.25 KISS Interface (soundmodem)]]
@@ -79,9 +79,9 @@
     parity = none
     stopbits = 1
     preamble = 300
-    slottime = 30
+    slottime = 300
     txdelay = 50
-    txtail = 10
+    txtail = 100
     flow_control = false
     persistence = 200
 
@@ -97,8 +97,8 @@
     parity = none
     stopbits = 1
     preamble = 300
-    slottime = 30
+    slottime = 300
     txdelay = 50
-    txtail = 10
+    txtail = 100
     flow_control = false
     persistence = 200
