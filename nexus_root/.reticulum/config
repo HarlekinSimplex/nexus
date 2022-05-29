@@ -42,14 +42,12 @@
     type = KISSInterface
     interface_enabled = False
     outgoing = true
-    port = /dev/soundmodem0
+    port = /tmp/kisstnc
     speed = 115200
     databits = 8
     parity = none
     stopbits = 1
-    preamble = 300
     slottime = 300
-    txdelay = 50
     txtail = 100
     flow_control = false
 
@@ -61,9 +59,8 @@
     speed = 115200
     databits = 8
     parity = none
-    preamble = 300
+    stopbits = 1
     slottime = 300
-    txdelay = 50
     txtail = 100
     flow_control = false
 

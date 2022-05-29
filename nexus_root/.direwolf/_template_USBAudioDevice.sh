@@ -4,6 +4,25 @@
 # This script can be used for single or dual channel configurations
 #
 
+# Use these environment variables in .env to setup device parameters for this backend startup script
+# Direwolf default interface name
+#DIREWOLF_INTERFACE_NAME=<Interface Name>
+#
+# Direwolf default interface device configuration
+#DIREWOLF_SOUND_CARD=1
+#DIREWOLF_DUAL_SOUND_CARD=No
+#DIREWOLF_INPUT_SOUND_CARD=1
+#DIREWOLF_OUTPUT_SOUND_CARD=1
+#
+# Direwolf default amixer content values
+#DIREWOLF_MIC_CAPTURE_SWITCH=on
+#DIREWOLF_MIC_CAPTURE_VOLUME=80%
+#DIREWOLF_MIC_PLAYBACK_SWITCH=off
+#DIREWOLF_MIC_PLAYBACK_VOLUME=0%
+#DIREWOLF_AUTO_GAIN_CONTROL=off
+#DIREWOLF_SPEAKER_PLAYBACK_SWITCH=on
+#DIREWOLF_SPEAKER_PLAYBACK_VOLUME=80%
+
 # Set sound card default
 export DIREWOLF_SOUND_CARD="${DIREWOLF_SOUND_CARD:-1}"
 # Check if we have a dual device configuration set up

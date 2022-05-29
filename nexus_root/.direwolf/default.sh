@@ -6,7 +6,7 @@
 
 # Use these environment variables in .env to setup device parameters for this backend startup script
 # Direwolf default interface name
-#DIREWOLF_INTERFACE_NAME=default
+#DIREWOLF_INTERFACE_NAME=<Interface Name>
 #
 # Direwolf default interface device configuration
 #DIREWOLF_SOUND_CARD=1

@@ -3,6 +3,17 @@
 # Audio setup script for 'USB Audio CODEC' type devices
 #
 
+# Use these environment variables in .env to setup device parameters for this backend startup script
+# Direwolf default interface name
+#DIREWOLF_INTERFACE_NAME=<Interface Name>
+#
+# Direwolf default interface device configuration
+#DIREWOLF_SOUND_CARD=1
+#
+# Direwolf default amixer content values
+#DIREWOLF_PCM_PLAYBACK_SWITCH=on
+#DIREWOLF_PCM_PLAYBACK_VOLUME=80%
+
 # Set sound card default
 export DIREWOLF_SOUND_CARD="${DIREWOLF_SOUND_CARD:-1}"
 # Check if we have a dual device configuration set up
@@ -44,8 +55,8 @@ amixer -c "$DIREWOLF_SOUND_CARD" controls
 # Set mixer configuration as defined
 echo -e ""
 echo -e "${LIGHT_BLUE}Set output parameters:${NC}"
-amixer -c "$DIREWOLF_SOUND_CARD" cset name='PCM Playback Switch' "DIREWOLF_PCM_PLAYBACK_SWITCH"
-amixer -c "$DIREWOLF_SOUND_CARD" cset name='PCM Playback Volume' "DIREWOLF_PCM_PLAYBACK_VOLUME"
+amixer -c "$DIREWOLF_SOUND_CARD" cset name='PCM Playback Switch' "$DIREWOLF_PCM_PLAYBACK_SWITCH"
+amixer -c "$DIREWOLF_SOUND_CARD" cset name='PCM Playback Volume' "$DIREWOLF_PCM_PLAYBACK_VOLUME"
 
 # Log all controls for selected sound card spec
 echo -e ""
