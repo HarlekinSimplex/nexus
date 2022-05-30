@@ -34,7 +34,7 @@
     txpower = 7
     spreadingfactor = 7
     codingrate = 5
-    id_callsign = NO1CLL
+    id_callsign = NO1CLL-0
     id_interval = 600
     flow_control = False
 
@@ -49,6 +49,8 @@
     stopbits = 1
     slottime = 300
     txtail = 100
+    id_callsign = NO1CLL-0
+    id_interval = 600
     flow_control = false
 
   [[Packet Radio KISS Interface (direwolf)]]
@@ -62,11 +64,13 @@
     stopbits = 1
     slottime = 300
     txtail = 100
+    id_callsign = NO1CLL-0
+    id_interval = 600
     flow_control = false
 
   [[Packet Radio AX.25 KISS Interface (soundmodem)]]
     type = AX25KISSInterface
-    callsign = NO1CLL
+    callsign = NO1CLL-0
     ssid = 0
     interface_enabled = False
     outgoing = true
@@ -84,7 +88,7 @@
 
   [[Packet Radio AX.25 KISS Interface (direwolf)]]
     type = AX25KISSInterface
-    callsign = NO1CLL
+    callsign = NO1CLL-0
     ssid = 0
     interface_enabled = False
     outgoing = true
