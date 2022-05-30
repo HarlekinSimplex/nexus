@@ -34,8 +34,9 @@ export NOMADNET_CONFIG="${NOMADNET_CONFIG:-$HOME/.nomadnetwork}"
 export NOMADNET_AUTOSTART="${NOMADNET_AUTOSTART:-True}"
 
 # Set Direwolf default environment variables
+export DIREWOLF_INSTANCES="${DIREWOLF_INSTANCES:-1}"
 export DIREWOLF_CONFIG="${DIREWOLF_CONFIG:-$HOME/.direwolf}"
-export DIREWOLF_OPTIONS="${DIREWOLF_OPTIONS:--q d}"
+export DIREWOLF_OPTIONS="${DIREWOLF_OPTIONS:--T 0 -q dx -T %T}"
 export DIREWOLF_INTERFACE_NAME="${DIREWOLF_INTERFACE_NAME:-default}"
 export DIREWOLF_AUTOSTART="${DIREWOLF_AUTOSTART:-False}"
 
@@ -131,16 +132,6 @@ else
 fi
 chown bsb:bsb -R "$DIREWOLF_CONFIG"
 chmod -R 755 "$DIREWOLF_CONFIG"
-
-# Check if soundmodem config directory exists
-if [ -d "$SOUNDMODEM_CONFIG" ] ; then
-  echo -e "Soundmodem config directory '$SOUNDMODEM_CONFIG' ${LIGHT_GREEN}exists${NC}"
-else
-  mkdir "$SOUNDMODEM_CONFIG"
-  echo -e "Soundmodem config directory '$SOUNDMODEM_CONFIG' ${YELLOW}created${NC}"
-fi
-chown bsb:bsb -R "$SOUNDMODEM_CONFIG"
-chmod -R 755 "$SOUNDMODEM_CONFIG"
 
 # Check if nexus config directory exists
 if [ -d "$NEXUS_CONFIG" ] ; then

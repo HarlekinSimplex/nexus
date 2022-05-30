@@ -6,18 +6,30 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   echo -e "Autostart Direwolf"
   echo -e "-------------------------------------------------------------"
-  if [ -f "$DIREWOLF_CONFIG"/"$DIREWOLF_INTERFACE_NAME".sh ] ; then
-    chmod +x "$DIREWOLF_CONFIG"/"$DIREWOLF_INTERFACE_NAME".sh
-    "$DIREWOLF_CONFIG"/"$DIREWOLF_INTERFACE_NAME".sh
-  else
-    echo -e "Direwolf sound setup script file $DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME.sh is ${YELLOW}missing${NC}"
-  fi
-  echo -e ""
-  echo -e "${LIGHT_BLUE}Start direwolf:${NC}"
-  echo -e "Using configuration from ${LIGHT_GREEN}$DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME.conf${NC}"
-  su bsb -c "direwolf -t 0 -p $DIREWOLF_OPTIONS -c $DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME.conf -l $DIREWOLF_CONFIG/log &"
-  sleep 1
-  echo "direwolf PID=""$(pgrep direwolf)"
+  # Startup dw instances
+  for DW_INST in $DIREWOLF_INSTANCES
+  do
+    # Check for device script file
+    if [ -f "$DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME_$DW_INST.sh" ] ; then
+      chmod +x "$DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME_$DW_INST.sh"
+      "$DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME_$DW_INST.sh"
+    else
+      echo -e "Direwolf sound setup script file $DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME_$DW_INST.sh is ${YELLOW}missing${NC}"
+      break
+    fi
+    # Check for dw config file
+    if [ -f "$DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME_$DW_INST.conf" ] ; then
+      echo -e "${LIGHT_BLUE}Start direwolf instance $DW_INST:${NC}"
+      echo -e "Using configuration from ${LIGHT_GREEN}$DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME_1.conf${NC}"
+      su bsb -c "direwolf $DIREWOLF_OPTIONS -c $DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME_1.conf -l $DIREWOLF_CONFIG/log &"
+      sleep 1
+      echo "direwolf PID=""$(pgrep direwolf)"
+    else
+      echo -e "Direwolf sound setup script file $DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME_$DW_INST.sh is ${YELLOW}missing${NC}"
+      break
+    fi
+  # Loop through specified config ID's
+  done
 fi
 
 echo -e ""
