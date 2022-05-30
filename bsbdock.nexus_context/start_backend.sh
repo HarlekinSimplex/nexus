@@ -12,7 +12,7 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
     # Check for device script file
     if [ -f "$DIREWOLF_CONFIG/$DW_INST.sh" ] ; then
       chmod +x "$DIREWOLF_CONFIG/$DW_INST.sh"
-      "$DIREWOLF_CONFIG/$DIREWOLF_INTERFACE_NAME_$DW_INST.sh $DW_INST"
+      "$DIREWOLF_CONFIG/$DW_INST.sh" "$DW_INST"
     else
       echo -e "Direwolf sound setup script file $DIREWOLF_CONFIG/$DW_INST.sh is ${YELLOW}missing${NC}"
       break
