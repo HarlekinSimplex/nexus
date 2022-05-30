@@ -38,7 +38,28 @@
     id_interval = 600
     flow_control = False
 
-  [[Packet Radio KISS Interface (soundmodem)]]
+  [[TCP KISS Interface #1]]
+    type = TCPClientInterface
+    interface_enabled = False
+    kiss_framing = True
+    target_host = 127.0.0.1
+    target_port = 8001
+
+  [[TCP KISS Interface #2]]
+    type = TCPClientInterface
+    interface_enabled = False
+    kiss_framing = True
+    target_host = 127.0.0.1
+    target_port = 8002
+
+  [[TCP KISS Interface #3]]
+    type = TCPClientInterface
+    interface_enabled = False
+    kiss_framing = True
+    target_host = 127.0.0.1
+    target_port = 8003
+
+  [[Packet Radio KISS Interface]]
     type = KISSInterface
     interface_enabled = False
     outgoing = true
@@ -53,40 +74,7 @@
     id_interval = 600
     flow_control = false
 
-  [[Packet Radio KISS Interface (direwolf)]]
-    type = KISSInterface
-    interface_enabled = False
-    outgoing = true
-    port = /tmp/kisstnc
-    speed = 115200
-    databits = 8
-    parity = none
-    stopbits = 1
-    slottime = 300
-    txtail = 100
-    id_callsign = NO1CLL-0
-    id_interval = 600
-    flow_control = false
-
-  [[Packet Radio AX.25 KISS Interface (soundmodem)]]
-    type = AX25KISSInterface
-    callsign = NO1CLL-0
-    ssid = 0
-    interface_enabled = False
-    outgoing = true
-    port = /dev/soundmodem0
-    speed = 115200
-    databits = 8
-    parity = none
-    stopbits = 1
-    preamble = 300
-    slottime = 300
-    txdelay = 50
-    txtail = 100
-    flow_control = false
-    persistence = 200
-
-  [[Packet Radio AX.25 KISS Interface (direwolf)]]
+  [[Packet Radio AX.25 KISS Interface]]
     type = AX25KISSInterface
     callsign = NO1CLL-0
     ssid = 0

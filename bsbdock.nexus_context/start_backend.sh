@@ -20,27 +20,6 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   echo "direwolf PID=""$(pgrep direwolf)"
 fi
 
-# Check if we shall config audio for soundmodem and start it
-if [ "$SOUNDMODEM_AUTOSTART" != "False" ] ; then
-  echo -e ""
-  echo -e "-------------------------------------------------------------"
-  echo -e "Autostart Soundmodem"
-  echo -e "-------------------------------------------------------------"
-  if [ -f "$SOUNDMODEM_CONFIG"/soundmodem-sound.sh ] ; then
-    chmod +x "$SOUNDMODEM_CONFIG"/soundmodem-sound.sh
-    "$SOUNDMODEM_CONFIG"/soundmodem-sound.sh
-  else
-    echo -e "Soundmodem sound setup script file $SOUNDMODEM_CONFIG/soundmodem-sound.sh is ${YELLOW}missing${NC}"
-  fi
-  echo -e ""
-  echo -e "${LIGHT_BLUE}Start soundmodem:${NC}"
-  echo -e "Using configuration from ${LIGHT_GREEN}$SOUNDMODEM_CONFIG/soundmodem.conf${NC}"
-  su root -c "soundmodem -v 2 $SOUNDMODEM_CONFIG/soundmodem.conf &> $SOUNDMODEM_CONFIG/soundmodem.log &"
-  sleep 1
-  chmod a+rw /dev/soundmodem0
-  echo "soundmodem PID=""$(pgrep soundmodem)"
-fi
-
 echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Actual Reticulum interface configuration:"

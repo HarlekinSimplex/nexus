@@ -39,10 +39,6 @@ export DIREWOLF_OPTIONS="${DIREWOLF_OPTIONS:--q d}"
 export DIREWOLF_INTERFACE_NAME="${DIREWOLF_INTERFACE_NAME:-default}"
 export DIREWOLF_AUTOSTART="${DIREWOLF_AUTOSTART:-False}"
 
-# Set Soundmodem default environment variables
-export SOUNDMODEM_CONFIG="${SOUNDMODEM_CONFIG:-$HOME/.soundmodem}"
-export SOUNDMODEM_AUTOSTART="${SOUNDMODEM_AUTOSTART:-False}"
-
 # Set default super user credentials for django
 export DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}"
 export DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-admin}"
