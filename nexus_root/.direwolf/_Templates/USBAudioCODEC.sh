@@ -15,12 +15,15 @@
 #DIREWOLF_<dw-instance>_PCM_PLAYBACK_SWITCH=on
 #DIREWOLF_<dw-instance>_PCM_PLAYBACK_VOLUME=80%
 
-# Set sound card default
-DIREWOLF_SOUND_CARD="${DIREWOLF_$1_SOUND_CARD:-1}"
+# Uppercase $1 for env variable forming
+DW_INST=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
-# Set Output defaults for USB AUdio CODEC
-DIREWOLF_PCM_PLAYBACK_SWITCH="${DIREWOLF_$1_PCM_PLAYBACK_SWITCH:-on}"
-DIREWOLF_PCM_PLAYBACK_VOLUME="${DIREWOLF_$1_PCM_PLAYBACK_VOLUME:-80%}"
+# Set sound card default
+TMP=DIREWOLF_"$DW_INST"_SOUND_CARD ; DIREWOLF_SOUND_CARD="${!TMP:-1}"
+
+# Set Output defaults for USB Audio CODEC
+TMP=DIREWOLF_"$DW_INST"_PCM_PLAYBACK_SWITCH ; DIREWOLF_PCM_PLAYBACK_SWITCH="${!TMP:-on}"
+TMP=DIREWOLF_"$DW_INST"_PCM_PLAYBACK_VOLUME ; DIREWOLF_PCM_PLAYBACK_VOLUME="${!TMP:-80%}"
 # Set Output defaults
 # - Intentionally left blank -
 
@@ -34,10 +37,10 @@ aplay -l
 
 # Set some defaults
 echo -e ""
-echo -e "${LIGHT_BLUE}ALSA sound device selection for direwolf instance $1:${NC}"
+echo -e "${LIGHT_BLUE}ALSA sound device selection for direwolf instance $DW_INST:${NC}"
 echo -e "DIREWOLF_SOUND_CARD=$DIREWOLF_SOUND_CARD"
 echo -e ""
-echo -e "${LIGHT_BLUE}Sound output channel parameters for direwolf instance $1:${NC}"
+echo -e "${LIGHT_BLUE}Sound output channel parameters for direwolf instance $DW_INST:${NC}"
 echo -e "DIREWOLF_PCM_PLAYBACK_SWITCH=$DIREWOLF_PCM_PLAYBACK_SWITCH"
 echo -e "DIREWOLF_PCM_PLAYBACK_VOLUME=$DIREWOLF_PCM_PLAYBACK_VOLUME"
 
