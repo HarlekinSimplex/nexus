@@ -34,11 +34,10 @@ export NOMADNET_CONFIG="${NOMADNET_CONFIG:-$HOME/.nomadnetwork}"
 export NOMADNET_AUTOSTART="${NOMADNET_AUTOSTART:-True}"
 
 # Set Direwolf default environment variables
+export DIREWOLF_AUTOSTART="${DIREWOLF_AUTOSTART:-False}"
 export DIREWOLF_INSTANCES="${DIREWOLF_INSTANCES:-default_1}"
 export DIREWOLF_CONFIG="${DIREWOLF_CONFIG:-$HOME/.direwolf}"
 export DIREWOLF_OPTIONS="${DIREWOLF_OPTIONS:--T 0 -q dx -T %T}"
-export DIREWOLF_INTERFACE_NAME="${DIREWOLF_INTERFACE_NAME:-default}"
-export DIREWOLF_AUTOSTART="${DIREWOLF_AUTOSTART:-False}"
 
 # Set default super user credentials for django
 export DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME:-admin}"
@@ -71,15 +70,10 @@ echo -e "NOMADNET_AUTOSTART=$NOMADNET_AUTOSTART"
 
 echo -e ""
 echo -e "${LIGHT_BLUE}Direwolf configuration environment:${NC}"
+echo -e "DIREWOLF_AUTOSTART=$DIREWOLF_AUTOSTART"
+echo -e "DIREWOLF_INSTANCES=$DIREWOLF_INSTANCES"
 echo -e "DIREWOLF_CONFIG=$DIREWOLF_CONFIG"
 echo -e "DIREWOLF_OPTIONS=$DIREWOLF_OPTIONS"
-echo -e "DIREWOLF_INTERFACE_NAME=$DIREWOLF_INTERFACE_NAME"
-echo -e "DIREWOLF_AUTOSTART=$DIREWOLF_AUTOSTART"
-
-echo -e ""
-echo -e "${LIGHT_BLUE}Soundmodem configuration environment:${NC}"
-echo -e "SOUNDMODEM_CONFIG=$SOUNDMODEM_CONFIG"
-echo -e "SOUNDMODEM_AUTOSTART=$SOUNDMODEM_AUTOSTART"
 
 echo -e ""
 echo -e "${LIGHT_BLUE}Django configuration environment:${NC}"
@@ -103,6 +97,16 @@ echo -e "-------------------------------------------------------------"
 echo -e "Check configuration environment:"
 echo -e "-------------------------------------------------------------"
 
+# Check if direwolf config directory exists
+if [ -d "$DIREWOLF_CONFIG" ] ; then
+  echo -e "Direwolf config directory '$DIREWOLF_CONFIG' ${LIGHT_GREEN}exists${NC}"
+else
+  mkdir "$DIREWOLF_CONFIG"
+  echo -e "Direwolf config directory '$DIREWOLF_CONFIG' ${YELLOW}created${NC}"
+fi
+chown bsb:bsb -R "$DIREWOLF_CONFIG"
+chmod -R 755 "$DIREWOLF_CONFIG"
+
 # Check if reticulum config directory exists
 if [ -d "$RNS_CONFIG" ] ; then
   echo -e "Reticulum config directory '$RNS_CONFIG' ${LIGHT_GREEN}exists${NC}"
@@ -122,16 +126,6 @@ else
 fi
 chown bsb:bsb -R "$NOMADNET_CONFIG"
 chmod -R 755 "$NOMADNET_CONFIG"
-
-# Check if direwolf config directory exists
-if [ -d "$DIREWOLF_CONFIG" ] ; then
-  echo -e "Direwolf config directory '$DIREWOLF_CONFIG' ${LIGHT_GREEN}exists${NC}"
-else
-  mkdir "$DIREWOLF_CONFIG"
-  echo -e "Direwolf config directory '$DIREWOLF_CONFIG' ${YELLOW}created${NC}"
-fi
-chown bsb:bsb -R "$DIREWOLF_CONFIG"
-chmod -R 755 "$DIREWOLF_CONFIG"
 
 # Check if nexus config directory exists
 if [ -d "$NEXUS_CONFIG" ] ; then
