@@ -19,7 +19,7 @@
 
   [[TCP Client Interface - Nexus.DeltaMatrix]]
     type = TCPClientInterface
-    interface_enabled = True
+    interface_enabled = False
     outgoing = True
     target_host = nexus.deltamatrix.org
     target_port = 4251
@@ -40,21 +40,21 @@
 
   [[TCP KISS Interface #1]]
     type = TCPClientInterface
-    interface_enabled = False
+    interface_enabled = True
     kiss_framing = True
     target_host = 127.0.0.1
     target_port = 8001
 
   [[TCP KISS Interface #2]]
     type = TCPClientInterface
-    interface_enabled = False
+    interface_enabled = True
     kiss_framing = True
     target_host = 127.0.0.1
     target_port = 8101
 
   [[TCP KISS Interface #3]]
     type = TCPClientInterface
-    interface_enabled = False
+    interface_enabled = True
     kiss_framing = True
     target_host = 127.0.0.1
     target_port = 8201
