@@ -50,14 +50,14 @@
     interface_enabled = False
     kiss_framing = True
     target_host = 127.0.0.1
-    target_port = 8002
+    target_port = 8101
 
   [[TCP KISS Interface #3]]
     type = TCPClientInterface
     interface_enabled = False
     kiss_framing = True
     target_host = 127.0.0.1
-    target_port = 8003
+    target_port = 8201
 
   [[Packet Radio KISS Interface]]
     type = KISSInterface
