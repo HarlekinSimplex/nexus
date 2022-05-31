@@ -9,7 +9,11 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
   # Startup dw instances
   for DW_INST in $DIREWOLF_INSTANCES
   do
-    # Check for device script file
+    echo -e ""
+    echo -e "-------------------------------------------------------------"
+    echo -e "${LIGHT_BLUE}Configure sound devices for direwolf instance $DW_INST:${NC}"
+    echo -e "-------------------------------------------------------------"
+  # Check for device script file
     if [ -f "$DIREWOLF_CONFIG/$DW_INST.sh" ] ; then
       chmod +x "$DIREWOLF_CONFIG/$DW_INST.sh"
       "$DIREWOLF_CONFIG/$DW_INST.sh" "$DW_INST"
@@ -19,7 +23,10 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
     fi
     # Check for dw config file
     if [ -f "$DIREWOLF_CONFIG/$DW_INST.conf" ] ; then
+      echo -e ""
+      echo -e "-------------------------------------------------------------"
       echo -e "${LIGHT_BLUE}Start direwolf instance $DW_INST:${NC}"
+      echo -e "-------------------------------------------------------------"
       echo -e "Using configuration from ${LIGHT_GREEN}$DIREWOLF_CONFIG/$DW_INST.conf${NC}"
       su bsb -c "direwolf $DIREWOLF_OPTIONS -c $DIREWOLF_CONFIG/$DW_INST.conf -l $DIREWOLF_CONFIG/log &"
       sleep 1
