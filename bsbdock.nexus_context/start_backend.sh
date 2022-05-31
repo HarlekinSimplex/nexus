@@ -30,13 +30,15 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
       echo -e "Using configuration from ${LIGHT_GREEN}$DIREWOLF_CONFIG/$DW_INST.conf${NC}"
       su bsb -c "direwolf $DIREWOLF_OPTIONS -c $DIREWOLF_CONFIG/$DW_INST.conf -l $DIREWOLF_CONFIG/log &"
       sleep 1
-      echo "direwolf PID=""$(pgrep direwolf)"
     else
       echo -e "Direwolf sound setup script file $DIREWOLF_CONFIG/$DW_INST.sh is ${YELLOW}missing${NC}"
       break
     fi
   # Loop through specified config ID's
   done
+  echo -e "-------------------------------------------------------------"
+  printf "direwolf PID's in use:\n"
+  pgrep direwolf
 fi
 
 echo -e ""
