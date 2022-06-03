@@ -31,11 +31,13 @@ sudo reboot now
 ------------------------------------------------------------
 curl -fsSL https://get.docker.com | sh
 
-# User PI sudo prviviledges
+# User PI sudo privileges
 sudo usermod -aG sudo pi
 
 # User PI member of docker group
 sudo usermod -aG docker pi
+# User PI member of dialout group
+sudo usermod -aG dialout pi
 
 # Reboot to activate changes
 sudo reboot
