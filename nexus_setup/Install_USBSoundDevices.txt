@@ -1,0 +1,67 @@
+------------------------------------------------------------
+# Install USB Port based device names
+------------------------------------------------------------
+
+Create a new alsa rule file
+    sudo nano /etc/udev/rules.d/85-my-usb-audio.rules
+
+Copy/Past configuration matching your SBC type (without the dashed header lines ;-)
+If your device type ís missing, plug your USB Sound device into a USB Port
+Run:
+    docker run --rm -it --entrypoint cm108 bsbdock/nexus bsbdock/nexus
+
+Collect DEVPATH entries for each USB Port like with the SBC configs given below.
+
+SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
+ACTION!="add", GOTO="my_usb_audio_end"
+DEVPATH== ...
+DEVPATH== ...
+DEVPATH== ...
+DEVPATH== ...
+LABEL="my_usb_audio_end"
+
+Reboot to make changes active
+    sudo reboot
+
+--------------------------------------------------------
+RPi 2 Model B v1.1
+--------------------------------------------------------
+SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
+ACTION!="add", GOTO="my_usb_audio_end"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.2/1-1.2:1.0/sound/card?", ATTR{id}="Alpha"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/sound/card?", ATTR{id}="Bravo"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.4/1-1.4:1.0/sound/card?", ATTR{id}="Charlie"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.5/1-1.5:1.0/sound/card?", ATTR{id}="Delta"
+LABEL="my_usb_audio_end"
+
+--------------------------------------------------------
+RPi 1 Model B+ v1.2
+--------------------------------------------------------
+SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
+ACTION!="add", GOTO="my_usb_audio_end"
+DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.2/1-1.2:1.0/sound/card?", ATTR{id}="Alpha"
+DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/sound/card?", ATTR{id}="Bravo"
+DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.4/1-1.4:1.0/sound/card?", ATTR{id}="Charlie"
+DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.5/1-1.5:1.0/sound/card?", ATTR{id}="Delta"
+LABEL="my_usb_audio_end"
+
+--------------------------------------------------------
+OrangePI4 LTS
+--------------------------------------------------------
+SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
+ACTION!="add", GOTO="my_usb_audio_end"
+DEVPATH=="/devices/platform/usb@fe900000/fe900000.usb/xhci-hcd.1.auto/usb1/1-1/1-1:1.0/sound/card?", ATTR{id}="Alpha"
+DEVPATH=="/devices/platform/fe3e0000.usb/usb4/4-1/4-1:1.0/sound/card?", ATTR{id}="Bravo"
+DEVPATH=="/devices/platform/fe3a0000.usb/usb8/8-1/8-1:1.0/sound/card?", ATTR{id}="Charlie"
+LABEL="my_usb_audio_end"
+
+--------------------------------------------------------
+RPi 4 Model B 8GB
+--------------------------------------------------------
+SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
+ACTION!="add", GOTO="my_usb_audio_end"
+DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.3/1-1.3:1.0/sound/card?", ATTR{id}="Alpha"
+DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.4/1-1.4:1.0/sound/card?", ATTR{id}="Bravo"
+DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.1/1-1.1:1.0/sound/card?", ATTR{id}="Charlie"
+DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2:1.0/sound/card?", ATTR{id}="Delta"
+LABEL="my_usb_audio_end"
