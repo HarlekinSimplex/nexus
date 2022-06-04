@@ -1,0 +1,27 @@
+#
+# Installing/Updateing RNode firmware on RNode device
+# Assuming the device resides at /dev/ttyACM0
+#
+# Using a 32Bit ARM Architecture
+docker run --rm -it \
+  --device /dev/ttyACM0:/dev/ttyACM0 \
+  --entrypoint /usr/local/bin/rnodeconf \
+  bsbdock/nexus:dev_linux-arm64 \
+  -a
+
+# Using a 32Bit ARM Architecture
+docker run --rm -it \
+  --device /dev/ttyACM0:/dev/ttyACM0 \
+  --entrypoint /usr/local/bin/rnodeconf \
+  bsbdock/nexus:dev_linux-arm \
+  -a
+
+# Using a 64Bit AMD64 Architecture
+docker run --rm -it \
+  --device /dev/ttyACM0:/dev/ttyACM0 \
+  --entrypoint /usr/local/bin/rnodeconf \
+  bsbdock/nexus:dev_linux-amd64 \
+  -a
+
+# Using an non dockerized environment
+rnodeconf -a
