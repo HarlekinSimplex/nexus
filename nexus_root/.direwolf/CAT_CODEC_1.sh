@@ -19,7 +19,7 @@
 DW_INST=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
 # Set sound card default
-TMP=DIREWOLF_"$DW_INST"_SOUND_CARD ; DIREWOLF_SOUND_CARD="${!TMP:-1}"
+TMP=DIREWOLF_"$DW_INST"_SOUND_CARD ; DIREWOLF_SOUND_CARD="${!TMP:-CODEC}"
 
 # Set Output defaults for USB Audio CODEC
 TMP=DIREWOLF_"$DW_INST"_PCM_PLAYBACK_SWITCH ; DIREWOLF_PCM_PLAYBACK_SWITCH="${!TMP:-on}"
