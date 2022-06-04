@@ -35,7 +35,7 @@ export NOMADNET_AUTOSTART="${NOMADNET_AUTOSTART:-True}"
 
 # Set Direwolf default environment variables
 export DIREWOLF_AUTOSTART="${DIREWOLF_AUTOSTART:-False}"
-export DIREWOLF_INSTANCES="${DIREWOLF_INSTANCES:-default_1}"
+export DIREWOLF_INSTANCES="${DIREWOLF_INSTANCES:-internal_1}"
 export DIREWOLF_CONFIG="${DIREWOLF_CONFIG:-$HOME/.direwolf}"
 export DIREWOLF_OPTIONS="${DIREWOLF_OPTIONS:--T 0 -q dx -T %T}"
 
@@ -174,4 +174,3 @@ echo "-------------------------------------------------------------"
 
 echo 'gosu bsb "$@"'
 exec gosu bsb "$@"
-

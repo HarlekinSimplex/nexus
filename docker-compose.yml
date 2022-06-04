@@ -83,9 +83,6 @@ services:
       - type: bind
         source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.direwolf}
         target: ${NEXUS_ROOT:-/home/bsb/.direwolf}
-      - type: bind
-        source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.soundmodem}
-        target: ${NEXUS_ROOT:-/home/bsb/.soundmodem}
     logging:
       driver: "json-file"
       options:

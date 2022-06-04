@@ -8,7 +8,7 @@ Create a new alsa rule file
 Copy/Past configuration matching your SBC type (without the dashed header lines ;-)
 If your device type ís missing, plug your USB Sound device into a USB Port
 Run:
-    docker run --rm -it --entrypoint cm108 bsbdock/nexus bsbdock/nexus
+    docker run --rm -it --entrypoint cm108 bsbdock/nexus:dev
 
 Collect DEVPATH entries for each USB Port like with the SBC configs given below.
 

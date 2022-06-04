@@ -45,9 +45,12 @@ sudo reboot
 # Check if docker works without sudo
 docker ps
 
-# Install docker-compose
-pip install docker-compose
-
+# Install docker-compose [deprecated]
+# With the new docker release docker-compose is included as docker command
+# So 'docker compose ...' can be used instead of 'docker-compose ...'
+#
+# pip install docker-compose
+#
 # If pip is not installed
 # sudo apt install python3-pip
 
@@ -55,7 +58,7 @@ pip install docker-compose
 sudo reboot
 
 # Check if docker-compose works
-docker-compose
+docker compose
 
 ------------------------------------------------------------
 # Install some helper tools
@@ -65,55 +68,37 @@ sudo apt install -y mc screen
 ------------------------------------------------------------
 # Install Nexus Container
 ------------------------------------------------------------
+# Clone main trunk
 git clone https://github.com/HarlekinSimplex/nexus.git
+
+or
+
+# Clone actual development trunk
 git clone -b development https://github.com/HarlekinSimplex/nexus.git
 
-git config --global pull.rebase false
-
+# Change into nexus folder
 cd nexus
-docker-compose up -d
+# Launch container temporarily or as deamon
 
+# Temporarily ('ctrl-c' to stop)
+docker compose up
 
-sudo nano /etc/udev/rules.d/85-my-usb-audio.rules
+# As deamon ('docker compose down' to stop )
+docker compose up -d
 
-RPi 2 Model B v1.1 [Radiobox2]
---------------------------------------------------------
-SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
-ACTION!="add", GOTO="my_usb_audio_end"
-DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.2/1-1.2:1.0/sound/card?", ATTR{id}="Alpha"
-DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/sound/card?", ATTR{id}="Bravoe"
-DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.4/1-1.4:1.0/sound/card?", ATTR{id}="Charlie"
-DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.5/1-1.5:1.0/sound/card?", ATTR{id}="Delta"
-LABEL="my_usb_audio_end"
+# Pulling Nexus repositories updates later
+cd ~\nexus
+git pull
 
-RPi 1 Model B+ v1.2 [Radiobox2]
---------------------------------------------------------
-SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
-ACTION!="add", GOTO="my_usb_audio_end"
-DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.2/1-1.2:1.0/sound/card?", ATTR{id}="Alpha"
-DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/sound/card?", ATTR{id}="Bravo"
-DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.4/1-1.4:1.0/sound/card?", ATTR{id}="Charlie"
-DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.5/1-1.5:1.0/sound/card?", ATTR{id}="Delta"
-LABEL="my_usb_audio_end"
+# Pulling the latest nexus container from docker hub
+docker pull bsbdock/nexus
 
-OrangePI4 LTS [Orange]
---------------------------------------------------------
-SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
-ACTION!="add", GOTO="my_usb_audio_end"
-DEVPATH=="/devices/platform/usb@fe900000/fe900000.usb/xhci-hcd.1.auto/usb1/1-1/1-1:1.0/sound/card?", ATTR{id}="Alpha"
-DEVPATH=="/devices/platform/fe3e0000.usb/usb4/4-1/4-1:1.0/sound/card?", ATTR{id}="Bravo"
-DEVPATH=="/devices/platform/fe3a0000.usb/usb8/8-1/8-1:1.0/sound/card?", ATTR{id}="Charlie"
-LABEL="my_usb_audio_end"
+# DANGER ZONE - Expect bugs and instabilities
+# Pulling the latest nexus development container from docker hup
+docker pull bsbdock/nexus:dev
 
-RPi 4 Model B 8GB [Radiobox]
---------------------------------------------------------
-SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
-ACTION!="add", GOTO="my_usb_audio_end"
-DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.3/1-1.3:1.0/sound/card?", ATTR{id}="Alpha"
-DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.4/1-1.4:1.0/sound/card?", ATTR{id}="Bravo"
-DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.1/1-1.1:1.0/sound/card?", ATTR{id}="Charlie"
-DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2:1.0/sound/card?", ATTR{id}="Delta"
-LABEL="my_usb_audio_end"
+# DANGER ZONE - Expect bugs and instabilities
+# Pulling the latest architecture specific development container from docker hup
 
-# Reboot to make chages active
-sudo reboot
+docker pull bsbdock/nexus:dev_linux-arm64
+docker pull bsbdock/nexus:dev_linux-amd
