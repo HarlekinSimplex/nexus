@@ -17,6 +17,29 @@
     listen_ip = 0.0.0.0
     listen_port = 4242
 
+  [[TCP Client Interface - Nexus.DeltaMatrix]]
+    type = TCPClientInterface
+    interface_enabled = True
+    outgoing = True
+    target_host = nexus.deltamatrix.org
+    target_port = 4253
+
+  [[RNode LoRa Interface]]
+    type = RNodeInterface
+    interface_enabled = True
+    outgoing = True
+    port = /dev/ttyRNODE
+    frequency = 867200000
+    bandwidth = 125000
+    txpower = 7
+    spreadingfactor = 8
+    codingrate = 5
+    id_callsign = DD8SB-0
+    id_interval = 600
+    network_name = myLoRaCluster
+    passphrase = myLoraCluster
+    flow_control = False
+
   [[TCP KISS Interface #1]]
     type = TCPClientInterface
     interface_enabled = True
