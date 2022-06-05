@@ -42,7 +42,7 @@
 
   [[TCP KISS Interface #1]]
     type = TCPClientInterface
-    interface_enabled = True
+    interface_enabled = False
     kiss_framing = True
     target_host = 127.0.0.1
     target_port = 8001
