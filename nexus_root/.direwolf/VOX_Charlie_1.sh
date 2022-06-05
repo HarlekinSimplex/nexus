@@ -32,7 +32,7 @@
 DW_INST=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
 # Set sound card default
-TMP=DIREWOLF_"$DW_INST"_SOUND_CARD ; DIREWOLF_SOUND_CARD="${!TMP:-Alpha}"
+TMP=DIREWOLF_"$DW_INST"_SOUND_CARD ; DIREWOLF_SOUND_CARD="${!TMP:-Charlie}"
 # Check if we have a dual device configuration set up
 # Default is 'No'
 TMP=DIREWOLF_"$DW_INST"_DUAL_SOUND_CARD ; DIREWOLF_DUAL_SOUND_CARD="${!TMP:-No}"
