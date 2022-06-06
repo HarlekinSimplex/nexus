@@ -69,7 +69,7 @@ RUN groupadd -r bsb --gid=9001 && useradd -r -g bsb -m --uid=9001 bsb
 # Grant him sudo privileges and dialout accedd
 RUN echo "bsb ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/bsb &&\
     chmod 0440 /etc/sudoers.d/bsb &&\
-    adduser bsb tty &&\
+    adduser bsb gpio &&\
     adduser bsb dialout &&\
     adduser bsb audio
 
