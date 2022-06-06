@@ -15,6 +15,7 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
     echo -e "-------------------------------------------------------------"
   # Check for device script file
     if [ -f "$DIREWOLF_CONFIG/$DW_INST.sh" ] ; then
+      # Make sound set up script executable for this container user (root)
       chmod +x "$DIREWOLF_CONFIG/$DW_INST.sh"
       "$DIREWOLF_CONFIG/$DW_INST.sh" "$DW_INST"
     else
@@ -28,6 +29,10 @@ if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
       echo -e "${LIGHT_BLUE}Start direwolf instance $DW_INST:${NC}"
       echo -e "-------------------------------------------------------------"
       echo -e "Using configuration from ${LIGHT_GREEN}$DIREWOLF_CONFIG/$DW_INST.conf${NC}"
+      # Make GPIO pins accessible for any user and any group
+      # Group gpio does not exists on OrangePI!
+      chmod ug+w /sys/class/gpio/export
+      # Launch direwolf
       su bsb -c "direwolf $DIREWOLF_OPTIONS -c $DIREWOLF_CONFIG/$DW_INST.conf -l $DIREWOLF_CONFIG/log &"
       sleep 1
     else
