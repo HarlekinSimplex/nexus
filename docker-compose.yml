@@ -84,8 +84,8 @@ services:
         source: ${NEXUS_COMPOSE_HOME:-~/nexus}/${NEXUS_ROOT_BIND:-nexus_root/.direwolf}
         target: ${NEXUS_ROOT:-/home/bsb/.direwolf}
       - type: bind
-        source: ${NEXUS_GPIO:-/sys/class/gpio/export}
-        target: /sys/class/gpio/export
+        source: ${NEXUS_GPIO:-/sys/class/gpio}
+        target: /sys/class/gpio
     logging:
       driver: "json-file"
       options:
