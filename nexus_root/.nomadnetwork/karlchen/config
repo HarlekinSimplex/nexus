@@ -21,6 +21,6 @@
 
 [node]
   enable_node = yes
-  node_name = BSB:Nexus
+  node_name = NX:Karlchen
   announce_interval = 360
   announce_at_start = Yes
