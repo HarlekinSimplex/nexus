@@ -56,12 +56,13 @@
     # opening squelch and long TX/RX
     # turnaround
     # preamble = 150
-    preamble = 500
+    preamble = 150
 
     # Set the modem TX tail. In most
     # cases this should be kept as low
     # as possible to not waste airtime.
-    txtail = 10
+    # txtail = 10
+    txtail = 150
 
     # Configure CDMA parameters. These
     # settings are reasonable defaults.
