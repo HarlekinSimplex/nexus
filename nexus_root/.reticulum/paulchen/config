@@ -42,11 +42,11 @@
 
   [[TCP KISS Interface #1]]
     type = TCPClientInterface
-    interface_enabled = False
+    interface_enabled = True
     kiss_framing = True
     target_host = 127.0.0.1
     target_port = 8001
-    network_name = myTwinCluster
-    passphrase = myTwinCluster
+#    network_name = myTwinCluster
+#    passphrase = myTwinCluster
     id_callsign = DD8SB-2
     id_interval = 600
