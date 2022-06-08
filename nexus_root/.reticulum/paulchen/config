@@ -62,7 +62,7 @@
     # cases this should be kept as low
     # as possible to not waste airtime.
     # txtail = 10
-    preamble = 150
+    txtail = 150
 
     # Configure CDMA parameters. These
     # settings are reasonable defaults.
