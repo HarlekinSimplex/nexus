@@ -48,3 +48,35 @@
     target_port = 8001
     network_name = myTwinCluster
     passphrase = myTwinCluster
+
+    # Set the modem preamble. A 150ms
+    # preamble should be a reasonable
+    # default, but may need to be
+    # increased for radios with slow-
+    # opening squelch and long TX/RX
+    # turnaround
+    # preamble = 150
+    preamble = 500
+
+    # Set the modem TX tail. In most
+    # cases this should be kept as low
+    # as possible to not waste airtime.
+    txtail = 10
+
+    # Configure CDMA parameters. These
+    # settings are reasonable defaults.
+    persistence = 200
+    slottime = 20
+
+    # You can configure the interface to send
+    # out identification on the channel with
+    # a set interval by configuring the
+    # following two parameters. The KISS
+    # interface will only ID if the set
+    # interval has elapsed since it's last
+    # actual transmission. The interval is
+    # configured in seconds.
+    # This option is commented out and not
+    # used by default.
+    id_callsign = DD8SB-2
+    id_interval = 10
