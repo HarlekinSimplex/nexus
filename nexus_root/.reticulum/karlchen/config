@@ -56,7 +56,7 @@
     # opening squelch and long TX/RX
     # turnaround
     # preamble = 150
-    preamble = 150
+    preamble = 300
 
     # Set the modem TX tail. In most
     # cases this should be kept as low
@@ -80,4 +80,4 @@
     # This option is commented out and not
     # used by default.
     id_callsign = DD8SB-2
-    id_interval = 10
+    id_interval = 600
