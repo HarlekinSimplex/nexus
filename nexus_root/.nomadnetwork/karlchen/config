@@ -1,6 +1,6 @@
 [logging]
 # Valid log levels are 0 through 7:
-  loglevel = 4
+  loglevel = 7
   destination = file
 
 [client]
