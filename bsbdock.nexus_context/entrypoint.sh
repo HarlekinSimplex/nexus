@@ -27,11 +27,11 @@ export HOME=/home/bsb
 
 # Set Reticulum default environment variables
 export RNS_CONFIG="${RNS_CONFIG:-$HOME/.reticulum}"
-export RNS_AUTOSTART="${RNS_AUTOSTART:-True}"
+export RNS_AUTOSTART="${RNS_AUTOSTART:-False}"
 
 # Set Nomadnet default environment variables
 export NOMADNET_CONFIG="${NOMADNET_CONFIG:-$HOME/.nomadnetwork}"
-export NOMADNET_AUTOSTART="${NOMADNET_AUTOSTART:-True}"
+export NOMADNET_AUTOSTART="${NOMADNET_AUTOSTART:-False}"
 
 # Set Direwolf default environment variables
 export DIREWOLF_AUTOSTART="${DIREWOLF_AUTOSTART:-False}"
