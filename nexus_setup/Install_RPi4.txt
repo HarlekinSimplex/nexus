@@ -29,7 +29,7 @@ sudo raspi-config
 #	Advanced Options
 #		Expand Filesystem
 
-sudo apt -y update && sudo apt -y upgrade && sudo apt full-upgrade && sudo apt autoremove
+sudo apt -y update && sudo apt -y upgrade && sudo apt -y full-upgrade && sudo -y apt autoremove
 sudo reboot now
 
 ------------------------------------------------------------
