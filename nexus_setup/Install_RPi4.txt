@@ -137,7 +137,7 @@ docker compose up
 # Shutdown container with just pressing ctrl-c or terminating the ssh shell
 
 ------------------------------------------------------------
-# Update local repo copy from remote git repo
+# Update local repo from remote git repo
 ------------------------------------------------------------
 # Reset local copy and pull from remote git repo
 # Choose one
