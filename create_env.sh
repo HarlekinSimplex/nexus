@@ -15,6 +15,6 @@ export NC='\033[0m' # No Color
 
 TEMPLATE=${1-default}
 
-echo -e "${BLUE}Create .env from .env_master using template name '#$TEMPLATE$:'${NC}"
-grep "#TEMPLATE" .env_master | sed "s/#TEMPLATE://g" >.env
+echo -e "${BLUE}Create .env from .env_master using template name '#$TEMPLATE:'${NC}"
+grep "#$TEMPLATE:" .env_master | sed "s/#$TEMPLATE://g" >.env
 
