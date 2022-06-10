@@ -116,7 +116,7 @@ bash create_env.sh
 bash create_env.sh [<config template name>]
 
 # Start Server
-python3 ./bsbdock.nexus_context/nexus_server/nexus_server.py --config=~/nexus/nexus_root/.reticulum --aspect=delta --role={\"cluster\":\"lora\"}
+python3 ./bsbdock.nexus_context/nexus_server/nexus_server.py --config=/home/pi/nexus/nexus_root/.reticulum/radiobox2 --aspect=delta --role={\"cluster\":\"lora\"}
 # Shutdown server by just pressing ctrl-c or terminating the ssh shell
 
 ------------------------------------------------------------

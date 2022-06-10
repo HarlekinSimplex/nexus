@@ -21,7 +21,7 @@
     type = RNodeInterface
     interface_enabled = True
     outgoing = True
-    port = /dev/ttyRNODE
+    port = /dev/ttyACM0
     frequency = 867200000
     bandwidth = 125000
     txpower = 7
