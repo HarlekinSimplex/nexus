@@ -141,17 +141,17 @@ docker compose up
 ------------------------------------------------------------
 # Reset local copy and pull from remote git repo
 # Choose one
-# 1-Pull and overwrite .env file with the actual default template
+# 1-Pull repo and overwrite .env file with the actual default template
 bash nexus_pull.sh
-# 2-Pull and overwrite .env file with the given template from .env_master (like above)
+# 2-Pull repo and overwrite .env file with the given template from .env_master (like above)
 bash nexus_pull.sh [<config template name>]
-# 3-Pull and do not touch actual (possibly modifed) .env file
+# 3-Pull repo and do not touch actual (possibly modifed) .env file
 bash nexus_pull.sh NO_ENV
 
 ------------------------------------------------------------
 # Recreate/Restore .env from .env_master
 ------------------------------------------------------------
-# If you want to recreate the .env file from .env_master without resetting the whole nexus_root* tree ...
+# If you want to recreate the .env file from .env_master without pulling the repo and resetting the whole nexus_root* tree ...
 # Choose one
 # 1-Overwrite .env file with the default template from .env_master
 bash create_env.sh
