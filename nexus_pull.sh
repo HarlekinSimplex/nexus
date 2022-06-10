@@ -21,13 +21,12 @@ export NC='\033[0m' # No Color
 echo -e "${BLUE}Changing owner of nexus_root* to '$(whoami)'${NC}"
 sudo chown -R "$(whoami)" nexus_root*
 # Reset local repository
-echo -e "${BLUE}Reset local nexus repository{NC}"
+echo -e "${BLUE}Reset local nexus repository${NC}"
 git reset --hard
 # Update local repository
-echo -e "${BLUE}Pull actual state from git{NC}"
+echo -e "${BLUE}Pull actual state from git${NC}"
 git pull
 
 # Replace .env with template pulled from .env_master
-echo -e "${BLUE}Create .env from .env_master using template name $TEMPLATE{NC}"
 bash ./create_env.sh "$1"
 
