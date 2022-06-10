@@ -7,21 +7,27 @@ Raspberry PI Imager herunterladen und starten
 	User und Passwort einstellen
 Raspberry PI OS 64 Bit direkt per USB auf SSD schreiben
 SSD Brücke einstecken
-System Starten
+System starten
 Boot Vorgang abwarten
-Mit SSH anmelden
+Mit SSH über WLAN oder LAN anmelden
 
+------------------------------------------------------------
+# Raspberry base configuration using raspi config tool
+------------------------------------------------------------
 sudo raspi-config
-	Update (Raspi-Conf)
-	Display Optionen
-		VNC Auflösung 1920x1080 auswählen
-	Interface Options
-		VNC Enable
-	Performance Options
-		GPU Memory
-			256
-	Advanced Options
-		Expand Filesystem
+
+# Change the following raspi config options:
+#
+#	Update (Raspi-Conf)
+#	Display Optionen
+#		VNC Auflösung 1920x1080 auswählen
+#	Interface Options
+#		VNC Enable
+#	Performance Options
+#		GPU Memory
+#			256
+#	Advanced Options
+#		Expand Filesystem
 
 sudo apt -y update && sudo apt -y upgrade && sudo apt full-upgrade && sudo apt autoremove
 sudo reboot now
@@ -110,18 +116,47 @@ git clone -b development https://github.com/HarlekinSimplex/nexus.git
 # Move into nexus directory
 cd nexus
 
+# Create .env configuration file from .env_master
+# Choose one
+# 1-Default template (Contains all environment variables with defaults that are used if no env is given)
 bash create_env.sh
-# If you like to use a preconfigured template from .env_master
+# 2-No default template - If you like to use one of the preconfigured templates from .env_master use that one as parameter
 bash create_env.sh [<config template name>]
 
-# Start container with server
+# Start container
+# Choose one
+# 1-Start container with server and detach it from console
 docker compose up -d
 # Trail log from container
 docker compose logs -f
+# Shutown container
+docker compose down
+
+# 2-Start container with console still attached (log will be shown at the console)
+docker compose up
+# Shutdown container with just pressing ctrl-c or terminating the ssh shell
 
 ------------------------------------------------------------
-# Update from git repo
+# Update local repo copy from remote git repo
 ------------------------------------------------------------
+# Reset local copy and pull from remote git repo
+# Choose one
+# 1-Pull and overwrite .env file with the actual default template
 bash nexus_pull.sh
-# or like above
+# 2-Pull and overwrite .env file with the given template from .env_master (like above)
 bash nexus_pull.sh [<config template name>]
+# 3-Pull and do not touch actual (possibly modifed) .env file
+bash nexus_pull.sh NO_ENV
+
+------------------------------------------------------------
+# Recreate/Restore .env from .env_master
+------------------------------------------------------------
+# If you want to recreate the .env file from .env_master without resetting the whole nexus_root* tree ...
+# Choose one
+# 1-Overwrite .env file with the default template from .env_master
+bash create_env.sh
+# 2-Overwrite .env file with the given template from .env_master (like above)
+bash create_env.sh [<config template name>]
+
+# For more information regarding configuration templates for .env just study the content of .env_master
+# The mechanism is more or less straight forward and easy to grasp but quite powerful though ;-)
