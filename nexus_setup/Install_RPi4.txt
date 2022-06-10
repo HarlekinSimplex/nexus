@@ -143,9 +143,9 @@ docker compose up
 # Choose one
 # 1-Pull repo and overwrite .env file with the actual default template
 bash nexus_pull.sh
-# 2-Pull repo and overwrite .env file with the given template from .env_master (like above)
+# 2-Pull repo and overwrite .env file with a predefined template from .env_master (like above)
 bash nexus_pull.sh [<config template name>]
-# 3-Pull repo and do not touch actual (possibly modifed) .env file
+# 3-Pull repo but do not touch current (possibly modified) .env file
 bash nexus_pull.sh NO_ENV
 
 ------------------------------------------------------------
