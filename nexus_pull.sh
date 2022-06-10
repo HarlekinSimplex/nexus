@@ -27,6 +27,10 @@ git reset --hard
 echo -e "${BLUE}Pull actual state from git${NC}"
 git pull
 
-# Replace .env with template pulled from .env_master
-bash ./create_env.sh "$TEMPLATE"
+if [ "$TEMPLATE" != "NO_ENV" ] ; then
+  # Replace .env with template pulled from .env_master
+  bash ./create_env.sh "$TEMPLATE"
+else
+  echo -e "${BLUE}Environment configuration file .env has not been changed${NC}"
+fi
 
