@@ -28,5 +28,5 @@ echo -e "${BLUE}Pull actual state from git${NC}"
 git pull
 
 # Replace .env with template pulled from .env_master
-bash ./create_env.sh "$1"
+bash ./create_env.sh "$TEMPLATE"
 
