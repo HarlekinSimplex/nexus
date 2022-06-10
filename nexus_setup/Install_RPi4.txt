@@ -6,24 +6,24 @@ Raspberry PI Imager herunterladen und starten
 	WLAN konfigurieren
 	User und Passwort einstellen
 Raspberry PI OS 64 Bit direkt per USB auf SSD schreiben
-SSD Brück einstecken
+SSD Brücke einstecken
 System Starten
 Boot Vorgang abwarten
 Mit SSH anmelden
 
 sudo raspi-config
-	Performance Options
-		GPU Memory
-			256
 	Update (Raspi-Conf)
 	Display Optionen
 		VNC Auflösung 1920x1080 auswählen
 	Interface Options
 		VNC Enable
+	Performance Options
+		GPU Memory
+			256
 	Advanced Options
 		Expand Filesystem
 
-sudo apt -y update && sudo apt -y upgrade
+sudo apt -y update && sudo apt -y upgrade && sudo apt full-upgrade && sudo apt autoremove
 sudo reboot now
 
 ------------------------------------------------------------
@@ -31,33 +31,15 @@ sudo reboot now
 ------------------------------------------------------------
 curl -fsSL https://get.docker.com | sh
 
-# User PI sudo privileges
-sudo usermod -aG sudo pi
-
+# User PI sudo prviviledges
 # User PI member of docker group
-sudo usermod -aG docker pi
-# User PI member of dialout group
-sudo usermod -aG dialout pi
-
 # Reboot to activate changes
-sudo reboot
+sudo usermod -aG sudo pi && sudo usermod -aG docker pi && sudo reboot
 
 # Check if docker works without sudo
 docker ps
 
-# Install docker-compose [deprecated]
-# With the new docker release docker-compose is included as docker command
-# So 'docker compose ...' can be used instead of 'docker-compose ...'
-#
-# pip install docker-compose
-#
-# If pip is not installed
-# sudo apt install python3-pip
-
-# Reboot again to make changes work
-sudo reboot
-
-# Check if docker-compose works
+# Check if docker compose works
 docker compose
 
 ------------------------------------------------------------
@@ -66,39 +48,80 @@ docker compose
 sudo apt install -y mc screen
 
 ------------------------------------------------------------
+# Assign alsa names to USB Ports
+------------------------------------------------------------
+
+sudo nano /etc/udev/rules.d/85-my-usb-audio.rules
+
+RPi 2 Model B v1.1 [Radiobox2]
+--------------------------------------------------------
+SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
+ACTION!="add", GOTO="my_usb_audio_end"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.2/1-1.2:1.0/sound/card?", ATTR{id}="Alpha"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/sound/card?", ATTR{id}="Bravoe"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.4/1-1.4:1.0/sound/card?", ATTR{id}="Charlie"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.5/1-1.5:1.0/sound/card?", ATTR{id}="Delta"
+LABEL="my_usb_audio_end"
+
+RPi 1 Model B+ v1.2 [Radiobox2]
+--------------------------------------------------------
+SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
+ACTION!="add", GOTO="my_usb_audio_end"
+DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.2/1-1.2:1.0/sound/card?", ATTR{id}="Alpha"
+DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.3/1-1.3:1.0/sound/card?", ATTR{id}="Bravo"
+DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.4/1-1.4:1.0/sound/card?", ATTR{id}="Charlie"
+DEVPATH=="/devices/platform/soc/20980000.usb/usb1/1-1/1-1.5/1-1.5:1.0/sound/card?", ATTR{id}="Delta"
+LABEL="my_usb_audio_end"
+
+OrangePI4 LTS [Orange]
+--------------------------------------------------------
+SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
+ACTION!="add", GOTO="my_usb_audio_end"
+DEVPATH=="/devices/platform/usb@fe900000/fe900000.usb/xhci-hcd.1.auto/usb1/1-1/1-1:1.0/sound/card?", ATTR{id}="Alpha"
+DEVPATH=="/devices/platform/fe3e0000.usb/usb4/4-1/4-1:1.0/sound/card?", ATTR{id}="Bravo"
+DEVPATH=="/devices/platform/fe3a0000.usb/usb8/8-1/8-1:1.0/sound/card?", ATTR{id}="Charlie"
+LABEL="my_usb_audio_end"
+
+RPi 4 Model B 8GB [Radiobox]
+--------------------------------------------------------
+SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
+ACTION!="add", GOTO="my_usb_audio_end"
+DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.3/1-1.3:1.0/sound/card?", ATTR{id}="Alpha"
+DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.4/1-1.4:1.0/sound/card?", ATTR{id}="Bravo"
+DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.1/1-1.1:1.0/sound/card?", ATTR{id}="Charlie"
+DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2:1.0/sound/card?", ATTR{id}="Delta"
+LABEL="my_usb_audio_end"
+
+# Reboot to make chages active
+sudo reboot
+
+
+------------------------------------------------------------
 # Install Nexus Container
 ------------------------------------------------------------
-# Clone main trunk
+git config --global pull.rebase false
+
+# Choose one
+# 1-Latest Release
 git clone https://github.com/HarlekinSimplex/nexus.git
-
-or
-
-# Clone actual development trunk
+# 2-Latest Development
 git clone -b development https://github.com/HarlekinSimplex/nexus.git
 
-# Change into nexus folder
+# Move into nexus directory
 cd nexus
-# Launch container temporarily or as deamon
 
-# Temporarily ('ctrl-c' to stop)
-docker compose up
+bash create_env.sh
+# If you like to use a preconfigured template from .env_master
+bash create_env.sh [<config template name>]
 
-# As deamon ('docker compose down' to stop )
+# Start container with server
 docker compose up -d
+# Trail log from container
+docker compose logs -f
 
-# Pulling Nexus repositories updates later
-cd ~\nexus
-git pull
-
-# Pulling the latest nexus container from docker hub
-docker pull bsbdock/nexus
-
-# DANGER ZONE - Expect bugs and instabilities
-# Pulling the latest nexus development container from docker hup
-docker pull bsbdock/nexus:dev
-
-# DANGER ZONE - Expect bugs and instabilities
-# Pulling the latest architecture specific development container from docker hup
-
-docker pull bsbdock/nexus:dev_linux-arm64
-docker pull bsbdock/nexus:dev_linux-amd
+------------------------------------------------------------
+# Update from git repo
+------------------------------------------------------------
+bash nexus_pull.sh
+# or like above
+bash nexus_pull.sh [<config template name>]
