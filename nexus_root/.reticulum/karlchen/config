@@ -34,8 +34,8 @@
     txpower = 7
     spreadingfactor = 8
     codingrate = 5
-    id_callsign = DD8SB-4
-    id_interval = 600
+#    id_callsign = DD8SB-4
+#    id_interval = 600
     network_name = myTwinCluster
     passphrase = myTwinCluster
     flow_control = False
