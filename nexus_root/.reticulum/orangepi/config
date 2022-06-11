@@ -17,6 +17,13 @@
     listen_ip = 0.0.0.0
     listen_port = 4242
 
+  [[TCP Client Interface - Nexus.DeltaMatrix]]
+    type = TCPClientInterface
+    interface_enabled = True
+    outgoing = True
+    target_host = nexus.deltamatrix.org
+    target_port = 4251
+
   [[TCP KISS Interface #1]]
     type = TCPClientInterface
     interface_enabled = False
