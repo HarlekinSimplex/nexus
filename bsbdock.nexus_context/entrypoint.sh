@@ -167,10 +167,16 @@ if [ "$MAP_NODE_UID" != "no" ]; then
     }
 fi
 
+# Check for calling rns specific tools that need root privileges
+if [ "$1" == "rnsd" ] ; then
+  echo "-------------------------------------------------------------"
+  echo "Run given start command '$1' using root"
+  echo "-------------------------------------------------------------"
+  exec "$@"
+fi
+
 echo ""
 echo "-------------------------------------------------------------"
-echo "Run given start command using GOSU with user bsb"
+echo "Run given start command '$1' using GOSU with user bsb"
 echo "-------------------------------------------------------------"
-
-echo 'gosu bsb "$@"'
 exec gosu bsb "$@"
