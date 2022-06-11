@@ -153,6 +153,7 @@ fi
 # Check if rns should be started as command
 # If so run it as root
 if [ "$1" == "rnsd" ] ; then
+  echo ""
   echo "-------------------------------------------------------------"
   echo "Run RNS as root"
   echo "-------------------------------------------------------------"
@@ -162,6 +163,7 @@ fi
 # Check if nomadnet should be started as command
 # if so run it headless demon
 if [ "$1" == "nomadnet" ] ; then
+  echo ""
   echo "-------------------------------------------------------------"
   echo "Run NomadNetwork Client as headless demon"
   echo "-------------------------------------------------------------"
