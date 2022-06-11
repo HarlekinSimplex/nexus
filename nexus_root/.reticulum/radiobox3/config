@@ -21,13 +21,13 @@
     type = RNodeInterface
     interface_enabled = True
     outgoing = True
-    port = /dev/ttyRNODE
+    port = /dev/ttyACM0
     frequency = 867200000
     bandwidth = 125000
     txpower = 7
     spreadingfactor = 8
     codingrate = 5
-    id_callsign = DD8SB-0
+    id_callsign = DD8SB-3
     id_interval = 600
     network_name = myLoRaCluster
     passphrase = myLoraCluster

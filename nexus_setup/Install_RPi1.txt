@@ -1,14 +1,16 @@
 ------------------------------------------------------------
 # Base Install
 ------------------------------------------------------------
-Raspberry PI Imager herunterladen und starten
-	Server Name vergeben
-	WLAN konfigurieren
-	User und Passwort einstellen
-Karte in RPi einsetzen
-System starten
-Boot Vorgang abwarten
-Mit SSH über WLAN oder LAN anmelden
+Download and run Raspberry PI Imager
+	Set Server name
+	Configure WLAN client settings
+	Set username ad passwort
+Place media inside PI or plug SSD device into a (HighSpeed) USB port
+Power RPi on
+Wait until RPi connects to your WLAN
+Lookup assigned DHCP IP address that has been assigned to the RPi using your router Web GUI or like tool
+Make sure this IP will always be used for the MAC address if the PRis WLAN device
+Open a ssh shell to the RPi
 
 ------------------------------------------------------------
 # Raspberry base configuration using raspi config tool
@@ -21,35 +23,28 @@ sudo raspi-config
 #	Display Optionen
 #		VNC Auflösung 1920x1080 auswählen
 #	Interface Options
-#		VNC Enable
+#		Enable VNC (Yes)
 #	Performance Options
 #		GPU Memory
 #			256
 #	Advanced Options
 #		Expand Filesystem
 
-sudo apt -y update && sudo apt -y upgrade && sudo apt -y full-upgrade && sudo -y apt autoremove
-sudo reboot now
+# On Leaving raspi-config you will be asked to reboot, do so
 
 ------------------------------------------------------------
-# Install rns and nomadnet
+# Full system update,some helper packages, clean up and sudo
 ------------------------------------------------------------
-pip3 install nomadnet
-
-------------------------------------------------------------
-# Install some helper tools
-------------------------------------------------------------
-sudo apt install -y mc screen
-
-------------------------------------------------------------
-# Sudo
-------------------------------------------------------------
-sudo usermod -aG sudo pi && sudo reboot now
+sudo apt -y update &&\
+  sudo apt -y upgrade &&\
+  sudo apt -y full-upgrade &&\
+  sudo apt install -y mc screen &&\
+  sudo apt -y autoremove &&\
+  sudo usermod -aG sudo pi
 
 ------------------------------------------------------------
 # Assign alsa names to USB Ports
 ------------------------------------------------------------
-
 sudo nano /etc/udev/rules.d/85-my-usb-audio.rules
 
 RPi 2 Model B v1.1 [Radiobox2]
@@ -91,8 +86,17 @@ DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00
 DEVPATH=="/devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2:1.0/sound/card?", ATTR{id}="Delta"
 LABEL="my_usb_audio_end"
 
-# Reboot to make chages active
-sudo reboot
+# Reboot to make changes active
+sudo reboot -f
+
+################################################################################################
+# Install Nexus Repository and run Nexus Server native (none dockerized)
+################################################################################################
+
+------------------------------------------------------------
+# Install rns and nomadnet
+------------------------------------------------------------
+pip3 install nomadnet rnodeconf && sudo reboot -f
 
 ------------------------------------------------------------
 # Install Nexus Container
