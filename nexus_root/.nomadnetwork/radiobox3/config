@@ -21,6 +21,6 @@
 
 [node]
   enable_node = yes
-  node_name = NX:OrangePi
+  node_name = NX:Radiobox3
   announce_interval = 360
   announce_at_start = Yes
