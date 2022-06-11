@@ -150,28 +150,6 @@ if [ "$NEXUS_BACKEND_AUTOSTART" == True ] ; then
   source start_backend.sh
 fi
 
-echo ""
-echo "-------------------------------------------------------------"
-echo "Switch from user root to user bsb"
-echo "-------------------------------------------------------------"
-# Change uid and gid of node user so it matches ownership of current dir
-if [ "$MAP_NODE_UID" != "no" ]; then
-    if [ ! -d "$MAP_NODE_UID" ]; then
-        MAP_NODE_UID=$PWD
-    fi
-
-    uid=$(stat -c '%u' "$MAP_NODE_UID")
-    gid=$(stat -c '%g' "$MAP_NODE_UID")
-
-    echo "bsb ---> UID = $uid / GID = $gid"
-
-    export USER=bsb
-
-    usermod -u "$uid" bsb 2> /dev/null && {
-      groupmod -g "$gid" bsb 2> /dev/null || usermod -a -G "$gid" bsb
-    }
-fi
-
 # Check if rns should be started as command
 # If so run it as root
 if [ "$1" == "rnsd" ] ; then
@@ -189,6 +167,28 @@ if [ "$1" == "nomadnet" ] ; then
   echo "-------------------------------------------------------------"
   gosu bsb nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 fi
+
+#echo ""
+#echo "-------------------------------------------------------------"
+#echo "Switch from user root to user bsb"
+#echo "-------------------------------------------------------------"
+## Change uid and gid of node user so it matches ownership of current dir
+#if [ "$MAP_NODE_UID" != "no" ]; then
+#    if [ ! -d "$MAP_NODE_UID" ]; then
+#        MAP_NODE_UID=$PWD
+#    fi
+#
+#    uid=$(stat -c '%u' "$MAP_NODE_UID")
+#    gid=$(stat -c '%g' "$MAP_NODE_UID")
+#
+#    echo "bsb ---> UID = $uid / GID = $gid"
+#
+#    export USER=bsb
+#
+#    usermod -u "$uid" bsb 2> /dev/null && {
+#      groupmod -g "$gid" bsb 2> /dev/null || usermod -a -G "$gid" bsb
+#    }
+#fi
 
 echo ""
 echo "-------------------------------------------------------------"
