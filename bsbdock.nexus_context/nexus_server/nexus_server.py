@@ -48,7 +48,6 @@ import LXMF
 import RNS
 import RNS.vendor.umsgpack as umsgpack
 
-
 ##########################################################################################
 # Global variables
 #
@@ -183,6 +182,7 @@ NEXUS_LXM_SOCKET = None  # type: NexusLXMSocket
 CMD_ADD_MESSAGE = 0
 CMD_REQUEST_MESSAGES_SINCE = 1
 
+
 ##########################################################################################
 # Helper functions
 #
@@ -287,11 +287,11 @@ def sync_from_bridges():
                         headers={'Content-type': 'application/json'}
                     )
                     # Log GET Request
-                    RNS.log(
-                        "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
-                        "' with GET request " + bridge_target[BRIDGE_JSON_URL],
-                        RNS.LOG_VERBOSE
-                    )
+                    RNS.log("NX:" +
+                            "Pulled from bridge to '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                            "' with GET request " + bridge_target[BRIDGE_JSON_URL],
+                            RNS.LOG_VERBOSE
+                            )
                     # Check if GET was successful
                     # If so, parse response body into message buffer and digest it
                     if response.ok:
@@ -300,10 +300,10 @@ def sync_from_bridges():
                         # Parse json bytes into message array of json maps
                         remote_buffer = json.loads(response.content)
                         # Log GET result
-                        RNS.log(
-                            "GET request was successful with " + str(len(remote_buffer)) + " Messages received",
-                            RNS.LOG_VERBOSE
-                        )
+                        RNS.log("NX:" +
+                                "GET request was successful with " + str(len(remote_buffer)) + " Messages received",
+                                RNS.LOG_VERBOSE
+                                )
 
                         # Digest received messages
                         digest_messages(remote_buffer, bridge_target[BRIDGE_JSON_CLUSTER])
@@ -399,21 +399,21 @@ def add_cluster_to_message_path(message_id):
                 # Set this server cluster as root to the message path tag
                 message[MESSAGE_JSON_PATH] = MESSAGE_PATH_SEP + NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER]
                 # Log set root path event
-                RNS.log(
-                    "New message " + str(message[MESSAGE_JSON_ID]) + " has root path " + message[MESSAGE_JSON_PATH],
-                    RNS.LOG_DEBUG
-                )
+                RNS.log("NX:" +
+                        "New message " + str(message[MESSAGE_JSON_ID]) + " has root path " + message[MESSAGE_JSON_PATH],
+                        RNS.LOG_DEBUG
+                        )
             else:
                 # Add this server cluster to message path
                 message[MESSAGE_JSON_PATH] = \
                     extend_path(message[MESSAGE_JSON_PATH], NEXUS_SERVER_ROLE[ROLE_JSON_CLUSTER])
 
                 # Log path extension event
-                RNS.log(
-                    "Path of message " + str(message[MESSAGE_JSON_ID]) +
-                    " was extended to " + message[MESSAGE_JSON_PATH],
-                    RNS.LOG_DEBUG
-                )
+                RNS.log("NX:" +
+                        "Path of message " + str(message[MESSAGE_JSON_ID]) +
+                        " was extended to " + message[MESSAGE_JSON_PATH],
+                        RNS.LOG_DEBUG
+                        )
 
 
 ##########################################################################################
@@ -430,20 +430,20 @@ def validate_command(command):
     # Invalid command if command version does not match actual command version
     elif command[COMMAND_JSON_VERSION] > __command_version__:
         # Command has higher version that this can handle
-        RNS.log(
-            "Command is invalidated because command version " + str(command[COMMAND_JSON_VERSION]) +
-            " is ahead of server command version " + __command_version__,
-            RNS.LOG_WARNING
-        )
+        RNS.log("NX:" +
+                "Command is invalidated because command version " + str(command[COMMAND_JSON_VERSION]) +
+                " is ahead of server command version " + __command_version__,
+                RNS.LOG_WARNING
+                )
         # Set actual command to invalid command
         command = invalid_command
     elif command[COMMAND_JSON_VERSION] < __command_version__:
         # Command version is lower and possibly needs migration
-        RNS.log(
-            "Command version " + str(command[COMMAND_JSON_VERSION]) +
-            " is below server command version " + __command_version__,
-            RNS.LOG_DEBUG
-        )
+        RNS.log("NX:" +
+                "Command version " + str(command[COMMAND_JSON_VERSION]) +
+                " is below server command version " + __command_version__,
+                RNS.LOG_DEBUG
+                )
 
         # Actual no migration applied, message will just be invalidated
         RNS.log("NX:Command is invalidated because no migration possible", RNS.LOG_INFO)
@@ -502,20 +502,20 @@ def validate_message(message):
     # Invalid message if message version does not match actual message version
     elif message[MESSAGE_JSON_VERSION] > __message_version__:
         # Message has higher version that this can handle
-        RNS.log(
-            "Message is invalidated because message version " + str(message[MESSAGE_JSON_VERSION]) +
-            " is ahead of server message version " + __message_version__,
-            RNS.LOG_WARNING
-        )
+        RNS.log("NX:" +
+                "Message is invalidated because message version " + str(message[MESSAGE_JSON_VERSION]) +
+                " is ahead of server message version " + __message_version__,
+                RNS.LOG_WARNING
+                )
         # Set actual message to invalid message
         message = invalid_message
     elif message[MESSAGE_JSON_VERSION] < __message_version__:
         # Message version is lower and possibly needs migration
-        RNS.log(
-            "Message version " + str(message[MESSAGE_JSON_VERSION]) +
-            " is below server message version " + __message_version__,
-            RNS.LOG_DEBUG
-        )
+        RNS.log("NX:" +
+                "Message version " + str(message[MESSAGE_JSON_VERSION]) +
+                " is below server message version " + __message_version__,
+                RNS.LOG_DEBUG
+                )
 
         # Check for message version 3
         if message[MESSAGE_JSON_VERSION] == "3":
@@ -572,11 +572,11 @@ def validate_role(server_role):
     # Warn if role version does not match actual server version
     if role_version != __role_version__:
         # Server version does not match
-        RNS.log(
-            "Announced role version " + role_version +
-            " does not match server role version " + __role_version__,
-            RNS.LOG_WARNING
-        )
+        RNS.log("NX:" +
+                "Announced role version " + role_version +
+                " does not match server role version " + __role_version__,
+                RNS.LOG_WARNING
+                )
 
         # Replace this section with migration if one is possible
         # Actual no migration implemented, announced role is considered valid
@@ -613,10 +613,10 @@ def is_valid_role(server_role):
     # Announcements of future releases may cause issues
     else:
         # Log Warning
-        RNS.log(
-            "Role server version " + server_role[VERSION_JSON_VERSION][ROLE_JSON_VERSION] +
-            " is newer than actual server version and considered invalid.", RNS.LOG_WARNING
-        )
+        RNS.log("NX:" +
+                "Role server version " + server_role[VERSION_JSON_VERSION][ROLE_JSON_VERSION] +
+                " is newer than actual server version and considered invalid.", RNS.LOG_WARNING
+                )
         return False
 
 
@@ -737,9 +737,9 @@ class NexusLXMSocket:
         RNS.log("NX:LXM Link established callback registered", RNS.LOG_DEBUG)
 
         # Create a handler to process all incoming announcements with the aspect of this nexus server
-        announce_handler = NexusLXMAnnounceHandler(aspect_filter= self.app_name + '.' +  self.server_aspect)
+        announce_handler = NexusLXMAnnounceHandler(aspect_filter=self.app_name + '.' + self.server_aspect)
         # Log announce filter
-        RNS.log("NX:LXM AnnounceHandler listens to " +  self.app_name + '.' +  self.server_aspect, RNS.LOG_DEBUG)
+        RNS.log("NX:LXM AnnounceHandler listens to " + self.app_name + '.' + self.server_aspect, RNS.LOG_DEBUG)
         # Register the handler with the reticulum transport layer
         RNS.Transport.register_announce_handler(announce_handler)
 
@@ -805,11 +805,11 @@ class NexusLXMSocket:
         lxm_message.register_failed_callback(NexusLXMSocket.lxmf_delivery_failed_callback)
 
         # Transfer handling of the message to LXMF
-        RNS.log(
-            "LXM handle outbound for message sent to " + RNS.prettyhexrep(destination_hash) +
-            " from " + RNS.prettyhexrep(self.socket_destination.hash),
-            RNS.LOG_VERBOSE
-        )
+        RNS.log("NX:" +
+                "LXM handle outbound for message sent to " + RNS.prettyhexrep(destination_hash) +
+                " from " + RNS.prettyhexrep(self.socket_destination.hash),
+                RNS.LOG_VERBOSE
+                )
         # Handle outbound
         try:
             self.lxm_router.handle_outbound(lxm_message)
@@ -862,12 +862,12 @@ class NexusLXMSocket:
             app_data=pickle.dumps(announce_data)
         )
         # Log announcement / long poll announcement
-        RNS.log(
-            # Log entry does not use bytes but a string representation
-            "LXM Nexus Server " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash()) +
-            " announced with app_data: " + str(announce_data),
-            RNS.LOG_INFO
-        )
+        RNS.log("NX:" +
+                # Log entry does not use bytes but a string representation
+                "LXM Nexus Server " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.destination_hash()) +
+                " announced with app_data: " + str(announce_data),
+                RNS.LOG_INFO
+                )
 
         # Sync message buffer from configured bridges
         sync_from_bridges()
@@ -966,8 +966,9 @@ class NexusLXMSocket:
         RNS.log("NX:-       Title: " + title, debug_level)
         RNS.log("NX:-     Content: " + content, debug_level)
         RNS.log("NX:-      Fields: " + str(fields), debug_level)
-        RNS.log("NX:-        Size: " + str(len(title) + len(content) + len(title) + len(pickle.dumps(fields))) + " bytes",
-                debug_level)
+        RNS.log("NX:" +
+                "NX:-        Size: " + str(len(title) + len(content) + len(title) + len(pickle.dumps(fields))) +
+                " bytes", debug_level)
         RNS.log("NX:-      Source: " + RNS.prettyhexrep(message.source_hash), debug_level)
         RNS.log("NX:- Destination: " + RNS.prettyhexrep(message.destination_hash), debug_level)
         RNS.log("NX:-   Signature: " + signature_string, debug_level)
@@ -1007,10 +1008,10 @@ def message_received_callback(lxmessage):
     if command_result:
         RNS.log("NX:Received LXM Message was successfully processed as Nexus command", RNS.LOG_VERBOSE)
     else:
-        RNS.log(
-            "LXM Message nexus command processing of " + str(lxmessage.fields) +
-            " failed", RNS.LOG_ERROR
-        )
+        RNS.log("NX:" +
+                "LXM Message nexus command processing of " + str(lxmessage.fields) +
+                " failed", RNS.LOG_ERROR
+                )
 
     # Flush pending log
     sys.stdout.flush()
@@ -1041,13 +1042,13 @@ def message_received_callback(lxmessage):
 # cluster name in a way that an automatic subscription ist triggered if the received announcement contained a nexus
 # server role with has a cluster name that matches the cluster name of the actual server OR the gateway name matches
 # the gateway name of the actual server. This establishes a second layer to create automatic connections. These can be
-# used to daisy chain nexus servers without any redundancy or to connect one cluster to another cluster.
+# used to daisy-chain nexus servers without any redundancy or to connect one cluster to another cluster.
 #
 # To have this automatic subscription mechanism available effectively provides for having a deterministic client server
 # network with automatic replication on top of the Reticulum mesh network.
 #
 # During announcement processing all expired distribution targets (cluster and gateway links) are dropped.
-# All linked nexus servers that have updated their availability by an re-announcement prior the expiration period will
+# All linked nexus servers that have updated their availability by a re-announcement prior the expiration period will
 # be kept as valid distribution targets.
 #
 class NexusLXMAnnounceHandler:
@@ -1159,11 +1160,11 @@ class NexusLXMAnnounceHandler:
                         COMMAND_JSON_P3: MAXIMUM_UPDATE_MESSAGES
                     }
                     # Log that we are sending a bulk update request to this destination
-                    RNS.log(
-                        "Send CMD_REQUEST_MESSAGES_SINCE " + str(actual_latest) +
-                        " to announced destination " + RNS.prettyhexrep(destination_hash),
-                        RNS.LOG_INFO
-                    )
+                    RNS.log("NX:" +
+                            "Send CMD_REQUEST_MESSAGES_SINCE " + str(actual_latest) +
+                            " to announced destination " + RNS.prettyhexrep(destination_hash),
+                            RNS.LOG_INFO
+                            )
                     # Send nexus message packed as lxm message to destination
                     NEXUS_LXM_SOCKET.send_message(
                         destination_hash,
@@ -1182,27 +1183,27 @@ class NexusLXMAnnounceHandler:
                 # (This check and cleanup is done at the distribution function as well)
                 if last_heard >= NEXUS_SERVER_TIMEOUT:
                     # Log that we removed the destination
-                    RNS.log(
-                        "Distribution destination " + RNS.prettyhexrep(registered_destination_hash) +
-                        " removed because of timeout",
-                        RNS.LOG_DEBUG
-                    )
+                    RNS.log("NX:" +
+                            "Distribution destination " + RNS.prettyhexrep(registered_destination_hash) +
+                            " removed because of timeout",
+                            RNS.LOG_DEBUG
+                            )
                     # Actually remove destination from dict
                     DISTRIBUTION_TARGETS.pop(registered_destination_hash)
 
                 # If actual is still valid log it
-                RNS.log(
-                    "Registered Server " + RNS.prettyhexrep(registered_destination_hash) +
-                    " last heard " + str(last_heard) + "sec ago",
-                    RNS.LOG_VERBOSE
-                )
+                RNS.log("NX:" +
+                        "Registered Server " + RNS.prettyhexrep(registered_destination_hash) +
+                        " last heard " + str(last_heard) + "sec ago",
+                        RNS.LOG_VERBOSE
+                        )
         else:
             # Announce should be ignored since it belongs to a different cluster, and we are not eligible to
             # link with that cluster as gateway too
-            RNS.log(
-                "Announced nexus role was ignored because role did not match role " + str(NEXUS_SERVER_ROLE),
-                RNS.LOG_VERBOSE
-            )
+            RNS.log("NX:" +
+                    "Announced nexus role was ignored because role did not match role " + str(NEXUS_SERVER_ROLE),
+                    RNS.LOG_VERBOSE
+                    )
 
         # Sync message buffer from configured bridges
         sync_from_bridges()
@@ -1255,7 +1256,8 @@ def initialize_server(
     RNS.log("NX: ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
     RNS.log("NX:|  _ \\ / ____|  _ \\ | \\ | |                    / ____|", RNS.LOG_INFO)
     RNS.log("NX:| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __", RNS.LOG_INFO)
-    RNS.log("NX:|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|", RNS.LOG_INFO)
+    RNS.log("NX:|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|",
+            RNS.LOG_INFO)
     RNS.log("NX:| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
     RNS.log("NX:|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
     RNS.log("NX:", RNS.LOG_INFO)
@@ -1505,12 +1507,12 @@ def process_command(nexus_command):
         destination_hash = command[COMMAND_JSON_P2]
         message_count = command[COMMAND_JSON_P3]
         # Log parsed command
-        RNS.log(
-            "Process REQUEST_MESSAGES_SINCE " + str(since) +
-            " from " + RNS.prettyhexrep(destination_hash) +
-            " max=" + str(message_count),
-            RNS.LOG_VERBOSE
-        )
+        RNS.log("NX:" +
+                "Process REQUEST_MESSAGES_SINCE " + str(since) +
+                " from " + RNS.prettyhexrep(destination_hash) +
+                " max=" + str(message_count),
+                RNS.LOG_VERBOSE
+                )
         # Forward messages received to the requested destination
         success = cmd_request_message_since(since, destination_hash, message_count)
 
@@ -1562,17 +1564,17 @@ def cmd_request_message_since(since, destination_hash, message_count):
 
         # Done sending update
         # Log that we updated the destination
-        RNS.log(
-            "Destination " + RNS.prettyhexrep(destination_hash) + " has been updated with " + str(i) + " messages",
-            RNS.LOG_INFO
-        )
+        RNS.log("NX:" +
+                "Destination " + RNS.prettyhexrep(destination_hash) + " has been updated with " + str(i) + " messages",
+                RNS.LOG_INFO
+                )
         return True
     else:
         # Log that we don't know the destination for this update
-        RNS.log(
-            "Destination " + RNS.prettyhexrep(destination_hash) + " for message bulk update unknown",
-            RNS.LOG_ERROR
-        )
+        RNS.log("NX:" +
+                "Destination " + RNS.prettyhexrep(destination_hash) + " for message bulk update unknown",
+                RNS.LOG_ERROR
+                )
         return False
 
 
@@ -1590,7 +1592,8 @@ def cmd_add_message(message):
         RNS.log("NX:Message version set to " + __message_version__, RNS.LOG_DEBUG)
     else:
         # Log new client message received event
-        RNS.log("NX:Message to add was send from a remote server with path " + message[MESSAGE_JSON_PATH], RNS.LOG_VERBOSE)
+        RNS.log("NX:Message to add was send from a remote server with path " + message[MESSAGE_JSON_PATH],
+                RNS.LOG_VERBOSE)
 
     # Validate/Migrate message
     message = validate_message(message)
@@ -1689,11 +1692,11 @@ def digest_messages(merge_buffer, cluster):
                 # Tag message with given cluster tag
                 tag_message(message_id, BRIDGE_JSON_CLUSTER, cluster)
         else:
-            RNS.log(
-                "Message " + str(message_id) + " pulled from bridge to cluster '" + cluster +
-                "' has invalid version and is dropped",
-                RNS.LOG_DEBUG
-            )
+            RNS.log("NX:" +
+                    "Message " + str(message_id) + " pulled from bridge to cluster '" + cluster +
+                    "' has invalid version and is dropped",
+                    RNS.LOG_DEBUG
+                    )
 
 
 ##########################################################################################
@@ -1724,11 +1727,11 @@ def process_incoming_message(message):
                 # Timestamp did match now check if message does too
                 if message[MESSAGE_JSON_MSG] == MESSAGE_STORE[i][MESSAGE_JSON_MSG]:
                     # Log that we have that one already
-                    RNS.log(
-                        "Message " + str(message_id) +
-                        " storing and distribution not necessary because message is already in the buffer",
-                        RNS.LOG_DEBUG
-                    )
+                    RNS.log("NX:" +
+                            "Message " + str(message_id) +
+                            " storing and distribution not necessary because message is already in the buffer",
+                            RNS.LOG_DEBUG
+                            )
                     # Since we consider a message at the buffer has been distributed already we can exit this function
                     # Flush pending log
                     sys.stdout.flush()
@@ -1738,11 +1741,11 @@ def process_incoming_message(message):
                 # Message has same time stamp but differs
                 else:
                     # Log message insertion with same timestamp
-                    RNS.log(
-                        "Message " + str(message_id) +
-                        " has a duplicate timestamp but differs (Message will be inserted in timeline)",
-                        RNS.LOG_VERBOSE
-                    )
+                    RNS.log("NX:" +
+                            "Message " + str(message_id) +
+                            " has a duplicate timestamp but differs (Message will be inserted in timeline)",
+                            RNS.LOG_VERBOSE
+                            )
                     # Insert it at the actual position
                     MESSAGE_STORE.insert(i, message)
                     # Message processing completed
@@ -1766,10 +1769,10 @@ def process_incoming_message(message):
             # The loop will never be terminated automatically
             if i == message_store_size - 1:
                 # Log message append
-                RNS.log(
-                    "Message " + str(message_id) + " is most recent and will be appended to timeline",
-                    RNS.LOG_VERBOSE
-                )
+                RNS.log("NX:" +
+                        "Message " + str(message_id) + " is most recent and will be appended to timeline",
+                        RNS.LOG_VERBOSE
+                        )
                 # Append the JSON message map to the message store at last position
                 MESSAGE_STORE.append(message)
                 # Message processing completed
@@ -1787,11 +1790,11 @@ def process_incoming_message(message):
         length = len(MESSAGE_STORE)
         if length > MESSAGE_BUFFER_SIZE:
             # Log message pop
-            RNS.log(
-                "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
-                " exceeded. Oldest message is dropped now",
-                RNS.LOG_DEBUG
-            )
+            RNS.log("NX:" +
+                    "Maximum message count of " + str(MESSAGE_BUFFER_SIZE) +
+                    " exceeded. Oldest message is dropped now",
+                    RNS.LOG_DEBUG
+                    )
             # If limit is exceeded just drop first (oldest) element of list
             MESSAGE_STORE.pop(0)
         else:
@@ -1821,11 +1824,11 @@ def distribute_message(nexus_message):
             # Check if it is the same as the bridge target
             if nexus_message[BRIDGE_JSON_CLUSTER] == bridge_target[BRIDGE_JSON_CLUSTER]:
                 # Log that this message was actually received from that bridge
-                RNS.log(
-                    "Message distribution to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
-                    "' was suppressed because message was received from that bridge",
-                    RNS.LOG_VERBOSE
-                )
+                RNS.log("NX:" +
+                        "Message distribution to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                        "' was suppressed because message was received from that bridge",
+                        RNS.LOG_VERBOSE
+                        )
                 # Continue with next bridge target
                 continue
 
@@ -1833,12 +1836,12 @@ def distribute_message(nexus_message):
         # If it is there the message has traveled through that cluster already and does not need to go there again
         if nexus_message[MESSAGE_JSON_PATH].find(bridge_target[BRIDGE_JSON_CLUSTER]) != -1:
             # Log that this message was actually received from that bridge
-            RNS.log(
-                "Message distribution to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
-                "' was suppressed because its path '" + nexus_message[MESSAGE_JSON_PATH] +
-                "' contains that cluster already",
-                RNS.LOG_VERBOSE
-            )
+            RNS.log("NX:" +
+                    "Message distribution to bridge '" + bridge_target[BRIDGE_JSON_CLUSTER] +
+                    "' was suppressed because its path '" + nexus_message[MESSAGE_JSON_PATH] +
+                    "' contains that cluster already",
+                    RNS.LOG_VERBOSE
+                    )
             # Continue with next bridge target
             continue
 
@@ -1882,22 +1885,22 @@ def distribute_message(nexus_message):
         # If origin of message to distribute equals target suppress distributing it
         if nexus_message[MESSAGE_JSON_ORIGIN] == RNS.prettyhexrep(registered_destination_hash):
             # Log message received by distribution event
-            RNS.log(
-                "Distribution to " + RNS.prettyhexrep(registered_destination_hash) +
-                " was suppressed because message originated from that server",
-                RNS.LOG_VERBOSE
-            )
+            RNS.log("NX:" +
+                    "Distribution to " + RNS.prettyhexrep(registered_destination_hash) +
+                    " was suppressed because message originated from that server",
+                    RNS.LOG_VERBOSE
+                    )
             # Continue with next distribution target
             continue
         # Back propagation to forwarder suppression
         # If forwarder of message to distribute equals target suppress distributing it
         elif nexus_message[MESSAGE_JSON_VIA] == RNS.prettyhexrep(registered_destination_hash):
             # Log message received by distribution event
-            RNS.log(
-                "Distribution to " + RNS.prettyhexrep(registered_destination_hash) +
-                " was suppressed because message was forwarded from that server",
-                RNS.LOG_VERBOSE
-            )
+            RNS.log("NX:" +
+                    "Distribution to " + RNS.prettyhexrep(registered_destination_hash) +
+                    " was suppressed because message was forwarded from that server",
+                    RNS.LOG_VERBOSE
+                    )
             # Continue with next distribution target
             continue
         else:
@@ -1924,16 +1927,16 @@ def distribute_message(nexus_message):
                     fields=cmd
                 )
                 # Log that we send something to this destination
-                RNS.log(
-                    "Message sent to destination " + RNS.prettyhexrep(registered_destination_hash),
-                    RNS.LOG_VERBOSE
-                )
+                RNS.log("NX:" +
+                        "Message sent to destination " + RNS.prettyhexrep(registered_destination_hash),
+                        RNS.LOG_VERBOSE
+                        )
             else:
                 # Log that we removed the destination
-                RNS.log(
-                    "Distribution destination " + RNS.prettyhexrep(registered_destination_hash) + " removed",
-                    RNS.LOG_VERBOSE
-                )
+                RNS.log("NX:" +
+                        "Distribution destination " + RNS.prettyhexrep(registered_destination_hash) + " removed",
+                        RNS.LOG_VERBOSE
+                        )
                 # Remove expired target identity from distribution list
                 DISTRIBUTION_TARGETS.pop(registered_destination_hash)
 
