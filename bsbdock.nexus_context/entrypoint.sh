@@ -167,12 +167,22 @@ if [ "$MAP_NODE_UID" != "no" ]; then
     }
 fi
 
-# Check for calling rns specific tools that need root privileges
+# Check if rns should be started as command
+# If so run it as root
 if [ "$1" == "rnsd" ] ; then
   echo "-------------------------------------------------------------"
-  echo "Run given start command '$1' using root"
+  echo "Run RNS as root"
   echo "-------------------------------------------------------------"
   exec "$@"
+fi
+
+# Check if nomadnet should be started as command
+# if so run it headless demon
+if [ "$1" == "nomadnet" ] ; then
+  echo "-------------------------------------------------------------"
+  echo "Run NomadNetwork Client as headless demon"
+  echo "-------------------------------------------------------------"
+  exec gosu bsb "nomadnet --daemon --console --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG"
 fi
 
 echo ""
