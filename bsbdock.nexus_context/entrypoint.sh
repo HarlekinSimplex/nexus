@@ -157,7 +157,8 @@ if [ "$1" == "rnsd" ] ; then
   echo "-------------------------------------------------------------"
   echo "Run RNS as root"
   echo "-------------------------------------------------------------"
-  gosu root rnsd --config "$RNS_CONFIG"
+#  gosu root rnsd --config "$RNS_CONFIG"
+  exec rnsd --config "$RNS_CONFIG"
 fi
 
 # Check if nomadnet should be started as command
@@ -165,9 +166,11 @@ fi
 if [ "$1" == "nomadnet" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
-  echo "Run NomadNetwork Client as headless demon"
+  echo "Run NomadNetwork client as headless demon"
   echo "-------------------------------------------------------------"
-  gosu bsb nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+#  gosu bsb nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+  su bsb
+  exec nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 fi
 
 #echo ""
