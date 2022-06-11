@@ -170,7 +170,7 @@ if [ "$1" == "nomadnet" ] ; then
   echo "-------------------------------------------------------------"
 #  gosu bsb nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
   su bsb
-  exec nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+  exec nomadnet --daemon --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 fi
 
 #echo ""
