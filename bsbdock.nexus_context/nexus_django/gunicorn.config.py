@@ -250,8 +250,8 @@ def on_starting(server):
     # Pull up Reticulum stack as configured
     RNS.Reticulum(configpath)
     if configpath is not None:
-        server.log.info("Used RNS Config   " + configpath, RNS.LOG_INFO)
+        server.log.info("Used RNS Config   " + configpath)
     else:
-        server.log.info("Used RNS Config   " + "RNS Default Location", RNS.LOG_INFO)
+        server.log.info("Used RNS Config   " + "RNS Default Location")
     server.log.info("Reticulum stack initialized")
     server.log.info("...............................................................................")
