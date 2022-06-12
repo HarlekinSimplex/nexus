@@ -229,26 +229,27 @@ def worker_abort(worker):
 env_dict = dict(os.environ)
 
 
-def on_starting(server):
-    # Pull up Reticulum stack as configured
-    configpath = env_dict["RNS_CONFIG"]
-    RNS.Reticulum(configpath)
+# def on_starting(server):
 
-    # Startup log with used parameter
-    RNS.log("NX: ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
-    RNS.log("NX:|  _ \\ / ____|  _ \\ | \\ | |                    / ____|", RNS.LOG_INFO)
-    RNS.log("NX:| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __", RNS.LOG_INFO)
-    RNS.log("NX:|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|",
-            RNS.LOG_INFO)
-    RNS.log("NX:| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
-    RNS.log("NX:|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
-    RNS.log("NX:", RNS.LOG_INFO)
-    RNS.log("NX:Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
-    RNS.log("NX:...............................................................................", RNS.LOG_INFO)
+# Pull up Reticulum stack as configured
+configpath = env_dict["RNS_CONFIG"]
+RNS.Reticulum(configpath)
 
-    if configpath is not None:
-        RNS.log("NX: Used RNS Config   " + configpath, RNS.LOG_INFO)
-    else:
-        RNS.log("NX: Used RNS Config   " + "RNS Default Location", RNS.LOG_INFO)
+# Startup log with used parameter
+RNS.log("NX: ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
+RNS.log("NX:|  _ \\ / ____|  _ \\ | \\ | |                    / ____|", RNS.LOG_INFO)
+RNS.log("NX:| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __", RNS.LOG_INFO)
+RNS.log("NX:|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|",
+        RNS.LOG_INFO)
+RNS.log("NX:| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
+RNS.log("NX:|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
+RNS.log("NX:", RNS.LOG_INFO)
+RNS.log("NX:Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
+RNS.log("NX:...............................................................................", RNS.LOG_INFO)
 
-    RNS.log("NX:...............................................................................", RNS.LOG_INFO)
+if configpath is not None:
+    RNS.log("NX: Used RNS Config   " + configpath, RNS.LOG_INFO)
+else:
+    RNS.log("NX: Used RNS Config   " + "RNS Default Location", RNS.LOG_INFO)
+
+RNS.log("NX:...............................................................................", RNS.LOG_INFO)
