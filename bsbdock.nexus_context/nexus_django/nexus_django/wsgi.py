@@ -16,7 +16,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'nexus_django.settings')
 application = get_wsgi_application()
 
 env_dict = dict(os.environ)
-print(env_dict["USER"], env_dict["NAME"])
 
 
 def on_starting(server):
