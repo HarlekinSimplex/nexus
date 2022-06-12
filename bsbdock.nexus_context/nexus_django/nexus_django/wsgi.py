@@ -41,3 +41,4 @@ def on_starting(server):
         RNS.log("NX: Used RNS Config   " + "RNS Default Location", RNS.LOG_INFO)
 
     RNS.log("NX:...............................................................................", RNS.LOG_INFO)
+
