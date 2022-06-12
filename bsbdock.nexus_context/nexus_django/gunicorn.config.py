@@ -58,7 +58,7 @@ import RNS
 #
 #       Generally set to thirty seconds. Only set this noticeably
 #       higher if you're sure of the repercussions for sync workers.
-#       For the non sync workers it just means that the worker
+#       For the non-sync workers it just means that the worker
 #       process is still communicating and is not tied to the length
 #       of time required to handle a single request.
 #
@@ -233,23 +233,25 @@ env_dict = dict(os.environ)
 
 # Pull up Reticulum stack as configured
 configpath = env_dict["RNS_CONFIG"]
-RNS.Reticulum(configpath)
 
-# Startup log with used parameter
-RNS.log("NX: ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
-RNS.log("NX:|  _ \\ / ____|  _ \\ | \\ | |                    / ____|", RNS.LOG_INFO)
-RNS.log("NX:| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __", RNS.LOG_INFO)
-RNS.log("NX:|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|",
-        RNS.LOG_INFO)
-RNS.log("NX:| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
-RNS.log("NX:|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
-RNS.log("NX:", RNS.LOG_INFO)
-RNS.log("NX:Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License", RNS.LOG_INFO)
-RNS.log("NX:...............................................................................", RNS.LOG_INFO)
 
-if configpath is not None:
-    RNS.log("NX: Used RNS Config   " + configpath, RNS.LOG_INFO)
-else:
-    RNS.log("NX: Used RNS Config   " + "RNS Default Location", RNS.LOG_INFO)
+def on_starting(server):
+    server.log.info("...............................................................................")
+    server.log.info(" ____   _____ ____   _   _                      _____")
+    server.log.info("|  _ \\ / ____|  _ \\ | \\ | |                    / ____|")
+    server.log.info("| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __")
+    server.log.info("|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|")
+    server.log.info("| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |")
+    server.log.info("|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|")
+    server.log.info("")
+    server.log.info("Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License")
+    server.log.info("...............................................................................")
 
-RNS.log("NX:...............................................................................", RNS.LOG_INFO)
+    # Pull up Reticulum stack as configured
+    RNS.Reticulum(configpath)
+    if configpath is not None:
+        server.log.info("Used RNS Config   " + configpath, RNS.LOG_INFO)
+    else:
+        server.log.info("Used RNS Config   " + "RNS Default Location", RNS.LOG_INFO)
+    server.log.info("Reticulum stack initialized")
+    server.log.info("...............................................................................")
