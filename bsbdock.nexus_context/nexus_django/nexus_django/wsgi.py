@@ -28,7 +28,8 @@ def on_starting(server):
     RNS.log("NX: ____   _____ ____   _   _                      _____", RNS.LOG_INFO)
     RNS.log("NX:|  _ \\ / ____|  _ \\ | \\ | |                    / ____|", RNS.LOG_INFO)
     RNS.log("NX:| |_) | (___ | |_) ||  \\| | _____  ___   _ ___| (___   ___ _ ____   _____ _ __", RNS.LOG_INFO)
-    RNS.log("NX:|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|", RNS.LOG_INFO)
+    RNS.log("NX:|  _ < \\___ \\|  _ < | . ` |/ _ \\ \\/ / | | / __|\\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|",
+            RNS.LOG_INFO)
     RNS.log("NX:| |_) |____) | |_) || |\\  |  __/>  <| |_| \\__ \\____) |  __/ |   \\ V /  __/ |", RNS.LOG_INFO)
     RNS.log("NX:|____/|_____/|____(_)_| \\_|\\___/_/\\_\\\\__,_|___/_____/ \\___|_|    \\_/ \\___|_|", RNS.LOG_INFO)
     RNS.log("NX:", RNS.LOG_INFO)
@@ -41,4 +42,3 @@ def on_starting(server):
         RNS.log("NX: Used RNS Config   " + "RNS Default Location", RNS.LOG_INFO)
 
     RNS.log("NX:...............................................................................", RNS.LOG_INFO)
-
