@@ -9,18 +9,18 @@ source colors_set.sh
 TEMPLATE=${1-default}
 
 # Change owner of nexus_root* directories back to actual user
-echo -e "${BLUE}Changing owner of nexus_root* to '$(whoami)'${NC}"
+echo -e "${LIGH_CYAN}Changing owner of nexus_root* to '$(whoami)'${NC}"
 sudo chown -R "$(whoami)" nexus_root*
 # Reset local repository
-echo -e "${BLUE}Reset local nexus repository${NC}"
+echo -e "${LIGH_CYAN}Reset local nexus repository${NC}"
 git reset --hard
 # Update local repository
-echo -e "${BLUE}Pull actual state from git${NC}"
+echo -e "${LIGH_CYAN}Pull actual state from git${NC}"
 git pull
 
 if [ "$TEMPLATE" != "NO_ENV" ] ; then
   # Replace .env with template pulled from .env_master
   bash ./create_env.sh "$TEMPLATE"
 else
-  echo -e "${BLUE}Environment configuration file .env has not been changed${NC}"
+  echo -e "${LIGH_CYAN}Environment configuration file .env has not been changed${NC}"
 fi

@@ -8,14 +8,14 @@ source colors_set.sh
 TEMPLATE=${1-default}
 
 # Pull repo from git
-echo -e "${CYAN}Pull repo update from git{NC}"
+echo -e "${PURPLE}Pull repo update from git{NC}"
 bash nexus_pull.sh "$TEMPLATE"
 
 # Pull image update from docker hub
-echo -e "${CYAN}Pull image update from docker hub{NC}"
+echo -e "${PURPLE}Pull image update from docker hub{NC}"
 docker compose pull
 
 # Pull image update from docker hub
-echo -e "${CYAN}Bounce container compose{NC}"
+echo -e "${PURPLE}Bounce container compose{NC}"
 docker compose down
 docker compose up -d
