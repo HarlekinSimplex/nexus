@@ -662,7 +662,7 @@ def log_nexus_message(message):
     RNS.log("NX:- ID      " + str(message[MESSAGE_JSON_ID]), RNS.LOG_VERBOSE)
     RNS.log("NX:- Time    '" + message[MESSAGE_JSON_TIME] + "'", RNS.LOG_VERBOSE)
     RNS.log("NX:- Origin  " + message[MESSAGE_JSON_ORIGIN], RNS.LOG_VERBOSE)
-    RNS.log("NX:- Via     " + message[MESSAGE_JSON_ORIGIN], RNS.LOG_VERBOSE)
+    RNS.log("NX:- Via     " + message[MESSAGE_JSON_VIA], RNS.LOG_VERBOSE)
     if MESSAGE_JSON_PATH in message.keys():
         RNS.log("NX:- Path    " + message[MESSAGE_JSON_PATH], RNS.LOG_VERBOSE)
 
