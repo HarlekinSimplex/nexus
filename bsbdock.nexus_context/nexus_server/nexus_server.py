@@ -966,8 +966,7 @@ class NexusLXMSocket:
         RNS.log("NX:-       Title: " + title, debug_level)
         RNS.log("NX:-     Content: " + content, debug_level)
         RNS.log("NX:-      Fields: " + str(fields), debug_level)
-        RNS.log("NX:" +
-                "NX:-        Size: " + str(len(title) + len(content) + len(title) + len(pickle.dumps(fields))) +
+        RNS.log("NX:-        Size: " + str(len(title) + len(content) + len(title) + len(pickle.dumps(fields))) +
                 " bytes", debug_level)
         RNS.log("NX:-      Source: " + RNS.prettyhexrep(message.source_hash), debug_level)
         RNS.log("NX:- Destination: " + RNS.prettyhexrep(message.destination_hash), debug_level)
