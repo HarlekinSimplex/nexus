@@ -18,7 +18,7 @@ export NC='\033[0m' # No Color
 
 # Pull repo from git
 echo -e "${LIGHT_BLUE}Pull repo update from git{NC}"
-bash nexus_pull.sh "$TEMPLATE"
+source nexus_pull.sh "$TEMPLATE"
 
 # Pull image update from docker hub
 echo -e "${LIGHT_BLUE}Pull image update from docker hub{NC}"
