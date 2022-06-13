@@ -17,14 +17,14 @@ export CYAN='\033[0;36m'
 export NC='\033[0m' # No Color
 
 # Pull repo from git
-echo -e "${LIGHT_GREEN}Pull repo update from git{NC}"
+echo -e "${CYAN}Pull repo update from git{NC}"
 bash nexus_pull.sh "$TEMPLATE"
 
 # Pull image update from docker hub
-echo -e "${LIGHT_GREEN}Pull image update from docker hub{NC}"
+echo -e "${CYAN}Pull image update from docker hub{NC}"
 docker compose pull
 
 # Pull image update from docker hub
-echo -e "${LIGHT_GREEN}Bounce container compose{NC}"
+echo -e "${CYAN}Bounce container compose{NC}"
 docker compose down
 docker compose up -d
