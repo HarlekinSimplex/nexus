@@ -1,4 +1,10 @@
 #!/bin/bash
+# USE the trap if you need to also do manual cleanup after the service is stopped,
+#   or need to start multiple services in the one container
+# trap "echo TRAPed signal" HUP INT QUIT TERM
+
+# Exit on error
+set -e
 
 # Check if we shall config audio for direwolf and start it
 if [ "$DIREWOLF_AUTOSTART" != "False" ] ; then
