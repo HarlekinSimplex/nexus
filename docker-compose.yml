@@ -31,7 +31,7 @@ version: '3.5'
 # BSB.NexusServer Docker service configuration
 services:
   nexus-server_node01:
-    container_name: ${NEXUS_CONTAINER:-nexus-server_node01}
+    container_name: ${NEXUS_CONTAINER:-nexus-server}
 
 # If image can not be pulled from docker hub run one of the following commands
 # bash ./build-arm.sh for building an arm architecture image
@@ -68,7 +68,7 @@ services:
       nexus-server_net:
         aliases:
 # Hostname alias of container within the network spanned by docker
-          - ${NEXUS_CONTAINER_ALIAS:-nexus-server_node01}
+          - ${NEXUS_CONTAINER_ALIAS:-nexus-server}
     volumes:
       # Mapping used to externalize config files of reticulum, nomadnet and nexus
       - type: bind
