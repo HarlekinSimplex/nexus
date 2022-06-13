@@ -19,7 +19,7 @@ export NC='\033[0m' # No Color
 
 echo -e "${LIGHT_CYAN}Update nexus instance ${LIGHT_PURPLE}nexus-reticulum${NC}"
 cd ~/*reticulum
-bash nexus_update.sh cb_retiuculum
+bash nexus_update.sh cb_reticulum
 
 echo -e "${LIGHT_CYAN}Update nexus instance ${LIGHT_PURPLE}nexus-home${NC}"
 cd ~/*home
