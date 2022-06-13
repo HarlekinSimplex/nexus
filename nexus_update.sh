@@ -2,7 +2,7 @@
 #################################################
 # Pull image, pull repo and restart container as demon
 #
-bash colors_set.sh
+source colors_set.sh
 
 # If no template name to be used to create .env use 'default'
 TEMPLATE=${1-default}

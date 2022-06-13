@@ -4,7 +4,8 @@
 #
 # bash buildx.sh arm dev && bash buildx.sh arm64 dev && bash buildx.sh amd64 dev && bash bsbdock.nexus_context/hooks/post_push
 #
-bash colors_set.sh
+source colors_set.sh
+
 
 USE_CACHE=
 DOCKER_PUSH=

@@ -3,7 +3,7 @@
 # Reset repo state and pull actual version from Git
 # afterwards create .env from .env_master default template or use given template name
 #
-bash colors_set.sh
+source colors_set.sh
 
 # If no template name to be used to create .env use 'default'
 TEMPLATE=${1-default}

@@ -2,7 +2,7 @@
 #################################################
 # Check terminal colors
 #
-bash colors_set.sh
+source colors_set.sh
 
 echo -e "${RED}The quick brown fox jumps over the lazy dog${NC}"
 echo -e "${LIGHT_RED}The quick brown fox jumps over the lazy dog${NC}"
