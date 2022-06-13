@@ -33,4 +33,3 @@ if [ "$TEMPLATE" != "NO_ENV" ] ; then
 else
   echo -e "${BLUE}Environment configuration file .env has not been changed${NC}"
 fi
-
