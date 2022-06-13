@@ -30,7 +30,7 @@ version: '3.5'
 
 # BSB.NexusServer Docker service configuration
 services:
-  nexus-server_node01:
+  nexus-server:
     container_name: ${NEXUS_CONTAINER:-nexus-server}
 
 # If image can not be pulled from docker hub run one of the following commands
