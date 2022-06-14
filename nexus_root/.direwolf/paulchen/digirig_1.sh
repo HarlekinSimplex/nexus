@@ -14,10 +14,10 @@
 #DIREWOLF_INTERFACE_NAME=<Interface Name>
 #
 # Direwolf default interface device configuration
-#DIREWOLF_DIGIRIG_1_SOUND_CARD=Alpha
+#DIREWOLF_DIGIRIG_1_SOUND_CARD=Device
 #DIREWOLF_DIGIRIG_1_DUAL_SOUND_CARD=No
-#DIREWOLF_DIGIRIG_1_INPUT_SOUND_CARD=Alpha
-#DIREWOLF_DIGIRIG_1_OUTPUT_SOUND_CARD=Alpha
+#DIREWOLF_DIGIRIG_1_INPUT_SOUND_CARD=Device
+#DIREWOLF_DIGIRIG_1_OUTPUT_SOUND_CARD=Device
 #
 # Direwolf default amixer content values
 #DIREWOLF_DIGIRIG_1_MIC_CAPTURE_SWITCH=on
@@ -32,7 +32,7 @@
 DW_INST=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
 # Set sound card default
-TMP=DIREWOLF_"$DW_INST"_SOUND_CARD ; DIREWOLF_SOUND_CARD="${!TMP:-Alpha}"
+TMP=DIREWOLF_"$DW_INST"_SOUND_CARD ; DIREWOLF_SOUND_CARD="${!TMP:-Device}"
 # Check if we have a dual device configuration set up
 # Default is 'No'
 TMP=DIREWOLF_"$DW_INST"_DUAL_SOUND_CARD ; DIREWOLF_DUAL_SOUND_CARD="${!TMP:-No}"
