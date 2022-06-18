@@ -673,6 +673,8 @@ def log_nexus_message(message):
 class NexusLXMSocket:
     # Call back to handle received messages
     message_received_callback = None
+    # Postmaster message queue
+    message_queue = []
 
     # Class constructor
     def __init__(self, socket_identity=None, storage_path=None, app_name=None, server_aspect=None):
