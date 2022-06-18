@@ -165,6 +165,8 @@ NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER}
 # Some Server default values used to announce server to reticulum
 NEXUS_SERVER_ADDRESS = ('', 4281)
 
+# Resolution of timer
+NEXUS_TIMESTAMP_SECOND = 100000
 # Timeout constants for automatic subscription handling
 # 43200sec <> 12h ; After 12h expired distribution targets are removed
 NEXUS_SERVER_TIMEOUT = 43200
@@ -182,10 +184,19 @@ NEXUS_LXM_SOCKET = None  # type: NexusLXMSocket
 CMD_ADD_MESSAGE = 0
 CMD_REQUEST_MESSAGES_SINCE = 1
 
+# Interval in seconds to wait for lxmf notification until postmaster takes initiative again
+POSTMASTER_INACTIVE_POLL = 60
+
 
 ##########################################################################################
 # Helper functions
 #
+
+##########################################################################################
+# Create new timestamp
+#
+def nexus_timestamp():
+    return int(time.time() * NEXUS_TIMESTAMP_SECOND)
 
 
 ##########################################################################################
@@ -497,7 +508,7 @@ def validate_message(message):
     # If message has no ID yet create one
     if MESSAGE_JSON_ID not in message.keys():
         # Create a timestamp and add that as ID to the message map
-        message[MESSAGE_JSON_ID] = int(time.time() * 100000)
+        message[MESSAGE_JSON_ID] = nexus_timestamp()
 
     # Invalid message if message version does not match actual message version
     elif message[MESSAGE_JSON_VERSION] > __message_version__:
@@ -675,6 +686,7 @@ class NexusLXMSocket:
     message_received_callback = None
     # Postmaster message queue
     message_queue = []
+    queue_ticks = [0, 1, 2, 3, 5, 8, 13]
 
     # Class constructor
     def __init__(self, socket_identity=None, storage_path=None, app_name=None, server_aspect=None):
@@ -781,22 +793,101 @@ class NexusLXMSocket:
     '''
 
     def send_message(self, destination_hash, identity, title="", content="", fields=None):
+
+        # Append message to message queue with sent tick 0 and required timestamps
+        queue_message = {
+            "destination_hash": destination_hash,
+            "identity": identity,
+            "title": title,
+            "content": content,
+            "fields": fields
+        }
+        queue_entry_time = nexus_timestamp()
+        queue_next_activity_time = nexus_timestamp()
+        queue_tick = self.queue_ticks[0]
+        queue_entry = {
+            "entry_time": queue_entry_time,
+            "next_activity_time": queue_next_activity_time,
+            "queue_tick": queue_tick,
+            "message": queue_message
+        }
+
+        # Add entry to queue
+        self.message_queue.append(queue_entry)
+
+        # Call postmaster to process message queue
+        NEXUS_LXM_SOCKET.postmaster()
+
+    ##########################################################################################
+    # Postmaster to handle messages in the message queue
+    #
+    @staticmethod
+    def postmaster(poll_flag=False):
+        # Get actual time
+        actual_time = nexus_timestamp()
+        # Walk through message queue and find entries to work on
+        for queue_entry in NEXUS_LXM_SOCKET.message_queue:
+            # Check for a due activity timestamp
+            if queue_entry["next_activity_time"] < actual_time:
+                # Process queue item
+                # if last tick has not yet passed
+                if queue_entry["queue_tick"] < len(NEXUS_LXM_SOCKET.queue_ticks):
+                    # increase tick
+                    tick = queue_entry["queue_tick"] + 1
+                    queue_entry["queue_tick"] = tick
+                    # calculate next activity time
+                    queue_entry["next_activity_time"] = queue_entry["entry_time"] + tick * NEXUS_TIMESTAMP_SECOND
+                    # Send/Resend message
+                    NEXUS_LXM_SOCKET.send_lxmf_message(queue_entry["message"])
+                else:
+                    # log message failure
+                    # Create destination
+                    to_destination = RNS.Destination(
+                        queue_entry["identity"],
+                        RNS.Destination.OUT,
+                        RNS.Destination.SINGLE,
+                        NEXUS_LXM_SOCKET.app_name,
+                        NEXUS_LXM_SOCKET.server_aspect
+                    )
+                    # Create lxmessage and handle outbound to the target Nexus server with the lxm router
+                    lxm_message = LXMF.LXMessage(
+                        to_destination,
+                        destination_hash=queue_entry["destination_hash"],
+                        source=NEXUS_LXM_SOCKET.socket_destination,
+                        content=queue_entry["content"],
+                        title=queue_entry["title"],
+                        fields=queue_entry["fields"],
+                        desired_method=LXMF.LXMessage.DIRECT
+                    )
+                    NEXUS_LXM_SOCKET.log_lxm_message(lxm_message, message_tag="NEXUS Message is undeliverable")
+                    # remove message
+                    # remove destination subscription (if it still exists)
+
+        # Start timer to trigger postmaster again if no lxmf notifications occur to trigger it again
+        if poll_flag:
+            NEXUS_LXM_SOCKET.postmaster_tick(postmaster_flag=False)
+
+    #########################################################################################
+    # Send message using LXMF
+    #
+    @staticmethod
+    def send_lxmf_message(queue_entry):
         # Create destination
         to_destination = RNS.Destination(
-            identity,
+            queue_entry["identity"],
             RNS.Destination.OUT,
             RNS.Destination.SINGLE,
-            self.app_name,
-            self.server_aspect
+            NEXUS_LXM_SOCKET.app_name,
+            NEXUS_LXM_SOCKET.server_aspect
         )
         # Create lxmessage and handle outbound to the target Nexus server with the lxm router
         lxm_message = LXMF.LXMessage(
             to_destination,
-            destination_hash=destination_hash,
-            source=self.socket_destination,
-            content=content,
-            title=title,
-            fields=fields,
+            destination_hash=queue_entry["destination_hash"],
+            source=NEXUS_LXM_SOCKET.socket_destination,
+            content=queue_entry["content"],
+            title=queue_entry["title"],
+            fields=queue_entry["fields"],
             desired_method=LXMF.LXMessage.DIRECT
         )
 
@@ -808,13 +899,13 @@ class NexusLXMSocket:
 
         # Transfer handling of the message to LXMF
         RNS.log("NX:" +
-                "LXM handle outbound for message sent to " + RNS.prettyhexrep(destination_hash) +
-                " from " + RNS.prettyhexrep(self.socket_destination.hash),
+                "LXM handle outbound for message sent to " + RNS.prettyhexrep(queue_entry["destination_hash"]) +
+                " from " + RNS.prettyhexrep(NEXUS_LXM_SOCKET.socket_destination.hash),
                 RNS.LOG_VERBOSE
                 )
         # Handle outbound
         try:
-            self.lxm_router.handle_outbound(lxm_message)
+            NEXUS_LXM_SOCKET.lxm_router.handle_outbound(lxm_message)
             # Give system a moment to process network stuff
             time.sleep(DIGESTION_DELAY)
         except Exception as e:
@@ -988,6 +1079,22 @@ class NexusLXMSocket:
         # Start as daemon so it terminates with main thread
         t.daemon = True
         t.start()
+
+    @staticmethod
+    def postmaster_tick(postmaster_flag=True):
+        # Trigger postmaster to process message queue with poll flag set to True in case the tick was triggered by
+        # the poll timer. If triggerd by the postmaster itself (new message added to queue) don't run postmaster
+        # again because it has already by run
+        if postmaster_flag:
+            NEXUS_LXM_SOCKET.postmaster(True)
+
+        # Restart postmaster timer in case messages are still in the queue
+        if len(NEXUS_LXM_SOCKET.message_queue) > 0:
+            # Start timer to re trigger postmaster
+            t = threading.Timer(POSTMASTER_INACTIVE_POLL, NEXUS_LXM_SOCKET.postmaster_tick)
+            # Start as daemon so it terminates with main thread
+            t.daemon = True
+            t.start()
 
 
 ##########################################################################################
@@ -1613,7 +1720,7 @@ def cmd_add_message(message):
         # If message has no ID yet create one
         if MESSAGE_JSON_ID not in message.keys():
             # Create a timestamp and add that as ID to the message map
-            message[MESSAGE_JSON_ID] = int(time.time() * 100000)
+            message[MESSAGE_JSON_ID] = nexus_timestamp()
 
         # Log updated message data
         log_nexus_message(message)
