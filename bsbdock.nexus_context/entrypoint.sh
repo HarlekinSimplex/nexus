@@ -165,16 +165,26 @@ if [ "$1" == "rnsd" ] ; then
   exec rnsd --config "$RNS_CONFIG"
 fi
 
-# Check if nomadnet should be started as command
+# Check if nomadnet should be started as demon
 # if so run it headless demon
-if [ "$1" == "nomadnet" ] ; then
+if [ "$1" == "nomadnet_demon" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
   echo "Run NomadNetwork client as headless demon"
   echo "-------------------------------------------------------------"
-#  gosu bsb nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
   su bsb
   exec nomadnet --daemon --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+fi
+
+# Check if nomadnet should be started with gui
+# if so run it normal
+if [ "$1" == "nomadnet" ] ; then
+  echo ""
+  echo "-------------------------------------------------------------"
+  echo "Run NomadNetwork client with gui"
+  echo "-------------------------------------------------------------"
+  su bsb
+  exec nomadnet --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 fi
 
 #echo ""
