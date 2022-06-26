@@ -150,6 +150,10 @@ else
   mkdir "$RNS_CONFIG"
   echo -e "Reticulum config directory '$RNS_CONFIG' ${YELLOW}created${NC}"
 fi
+if [ -f "$RNS_CONFIG/logfile" ] ; then
+  rm "$RNS_CONFIG/logfile"
+  echo "RNS restart on $(date)" >"$RNS_CONFIG/logfile"
+fi
 chown bsb:bsb -R "$RNS_CONFIG"
 chmod -R 755 "$RNS_CONFIG"
 
@@ -159,6 +163,10 @@ if [ -d "$NOMADNET_CONFIG" ] ; then
 else
   mkdir "$NOMADNET_CONFIG"
   echo -e "Nomadnetwork config directory '$NOMADNET_CONFIG' ${YELLOW}created${NC}"
+fi
+if [ -f "$NOMADNET_CONFIG/logfile" ] ; then
+  rm "$NOMADNET_CONFIG/logfile"
+  echo "Nomadnet restart on $(date)" >"$NOMADNET_CONFIG/logfile"
 fi
 chown bsb:bsb -R "$NOMADNET_CONFIG"
 chmod -R 755 "$NOMADNET_CONFIG"
@@ -192,6 +200,7 @@ if [ "$1" == "rnsd" ] ; then
   echo "Set command to Nomadnetwork client with gui"
   rnsd --version
   set -- rnsd --verbose --config "$RNS_CONFIG"
+  # shellcheck disable=SC2145
   echo "Run start command: '$@'"
   echo "... using GOSU with user root"
   echo "-------------------------------------------------------------"
@@ -206,7 +215,7 @@ if [ "$1" == "nomadnet_daemon" ] ; then
   echo "Set command to Nomadnetwork client as headless demon"
   nomadnet --version
 #  set -- nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
-  set -- nomadnet -d -c --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+  set -- nomadnet -d --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 
 # otherwise run it as normal with gui
 elif [ "$1" == "nomadnet" ] ; then
@@ -217,6 +226,7 @@ elif [ "$1" == "nomadnet" ] ; then
   set -- nomadnet --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 fi
 
+# shellcheck disable=SC2145
 echo "Run start command: '$@'"
 echo "... using GOSU with user bsb"
 echo "-------------------------------------------------------------"
