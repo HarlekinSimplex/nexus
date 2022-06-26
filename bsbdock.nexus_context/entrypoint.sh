@@ -59,6 +59,24 @@ export NEXUS_LONGPOLL="${NEXUS_LONGPOLL:-17280}"
 export NEXUS_TIMEOUT="${NEXUS_TIMEOUT:-43200}"
 export NEXUS_BRIDGE="${NEXUS_BRIDGE:-[]}"
 
+echo ""
+echo "-------------------------------------------------------------"
+echo "Change uid and gid of node user so it matches ownership of current dir"
+echo "-------------------------------------------------------------"
+cd "$HOME"
+if [ "$MAP_NODE_UID" != "no" ]; then
+    if [ ! -d "$MAP_NODE_UID" ]; then
+        MAP_NODE_UID=$PWD
+    fi
+    uid=$(stat -c '%u' "$MAP_NODE_UID")
+    gid=$(stat -c '%g' "$MAP_NODE_UID")
+    echo "bsb ---> UID = $uid / GID = $gid"
+    export USER=bsb
+    usermod -u "$uid" bsb 2> /dev/null && {
+      groupmod -g "$gid" bsb 2> /dev/null || usermod -a -G "$gid" bsb
+    }
+fi
+
 echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Environment variables set:"
@@ -179,28 +197,7 @@ elif [ "$1" == "nomadnet" ] ; then
   set -- nomadnet --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 fi
 
-#echo ""
-#echo "-------------------------------------------------------------"
-#echo "Switch from user root to user bsb"
-#echo "-------------------------------------------------------------"
-## Change uid and gid of node user so it matches ownership of current dir
-#if [ "$MAP_NODE_UID" != "no" ]; then
-#    if [ ! -d "$MAP_NODE_UID" ]; then
-#        MAP_NODE_UID=$PWD
-#    fi
-#
-#    uid=$(stat -c '%u' "$MAP_NODE_UID")
-#    gid=$(stat -c '%g' "$MAP_NODE_UID")
-#
-#    echo "bsb ---> UID = $uid / GID = $gid"
-#
-#    export USER=bsb
-#
-#    usermod -u "$uid" bsb 2> /dev/null && {
-#      groupmod -g "$gid" bsb 2> /dev/null || usermod -a -G "$gid" bsb
-#    }
-#fi
-
-echo "Run given start command '$@' using GOSU with user bsb"
+echo "Run start command: '$@'"
+echo "... using GOSU with user bsb"
 echo "-------------------------------------------------------------"
 exec gosu bsb "$@"
