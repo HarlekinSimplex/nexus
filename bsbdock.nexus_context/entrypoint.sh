@@ -204,9 +204,8 @@ fi
 if [ "$1" == "nomadnet_daemon" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
-  nomadnet --version
-  echo "-------------------------------------------------------------"
   echo "Set command to Nomadnetwork client as headless demon"
+  nomadnet --version
 #  set -- nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
   set -- nomadnet -d -c --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
 fi
@@ -215,9 +214,8 @@ fi
 if [ "$1" == "nomadnet" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
-  nomadnet --version
-  echo "-------------------------------------------------------------"
   echo "Set command to Nomadnetwork client with gui"
+  nomadnet --version
   set -- nomadnet --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 fi
 
