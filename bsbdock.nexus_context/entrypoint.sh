@@ -207,10 +207,9 @@ if [ "$1" == "nomadnet_daemon" ] ; then
   nomadnet --version
 #  set -- nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
   set -- nomadnet -d -c --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
-fi
 
 # otherwise run it as normal with gui
-if [ "$1" == "nomadnet" ] ; then
+elif [ "$1" == "nomadnet" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
   echo "Set command to Nomadnetwork client with gui"
