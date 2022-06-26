@@ -96,6 +96,8 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+        mode: "non-blocking"
+        max-buffer-size: "4m"
     labels:
       - "com.centurylinklabs.watchtower.enable=1"
 
