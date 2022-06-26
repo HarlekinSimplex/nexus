@@ -1,7 +1,7 @@
 [logging]
 # Valid log levels are 0 through 7:
   loglevel = 7
-  destination = file
+#  destination = file
 
 [client]
   enable_client = yes
