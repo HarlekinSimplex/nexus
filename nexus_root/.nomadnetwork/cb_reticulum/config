@@ -22,5 +22,5 @@
 [node]
   enable_node = yes
   node_name = DeltaMatrix
-  announce_interval = 360
+  announce_interval = 10
   announce_at_start = Yes
