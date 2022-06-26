@@ -49,6 +49,9 @@ export DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD:-admin}"
 export DJANGO_SUPERUSER_EMAIL="${DJANGO_SUPERUSER_EMAIL:-admin@example.com}"
 export DJANGO_LOG_LEVEL="${DJANGO_LOG_LEVEL:-info}"
 
+# Set Nginx default environment variables
+export NGINX_AUTOSTART="${NGINX_AUTOSTART:-False}"
+
 # Set Nexus default environment variables
 export NEXUS_CONFIG="${NEXUS_CONFIG:-$HOME/.nexus}"
 export NEXUS_BACKEND_AUTOSTART="${NEXUS_BACKEND_AUTOSTART:-True}"
@@ -104,6 +107,10 @@ echo -e "DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME"
 echo -e "DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD"
 echo -e "DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL"
 echo -e "DJANGO_LOG_LEVEL=$DJANGO_LOG_LEVEL"
+
+echo -e ""
+echo -e "${LIGHT_BLUE}Nginx configuration environment:${NC}"
+echo -e "NGINX_AUTOSTART=$NGINX_AUTOSTART"
 
 echo -e ""
 echo -e "${LIGHT_BLUE}Nexus configuration environment:${NC}"

@@ -92,11 +92,14 @@ if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo "nomadnet PID=$(pgrep nomadnet)"
 fi
 
-echo -e ""
-echo -e "-------------------------------------------------------------"
-echo -e "Nexus Messenger Web App NGINX configuration check and startup"
-echo -e "-------------------------------------------------------------"
-# Log nginx status
-nginx -t
-systemctl start nginx
-systemctl status nginx
+# Check if we shall start nginx to serve static files
+if [ "$NGINX_AUTOSTART" != "False" ] ; then
+  echo -e ""
+  echo -e "-------------------------------------------------------------"
+  echo -e "Nexus Messenger Web App NGINX configuration check and startup"
+  echo -e "-------------------------------------------------------------"
+  # Log nginx status
+  nginx -t
+  systemctl start nginx
+  systemctl status nginx
+fi
