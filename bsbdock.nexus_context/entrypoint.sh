@@ -189,9 +189,8 @@ fi
 if [ "$1" == "rnsd" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
-  rnsd --version
-  echo "-------------------------------------------------------------"
   echo "Set command to Nomadnetwork client with gui"
+  rnsd --version
   set -- rnsd --verbose --config "$RNS_CONFIG" 2>&1
   echo "Run start command: '$@'"
   echo "... using GOSU with user root"
