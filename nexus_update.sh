@@ -22,3 +22,6 @@ docker compose pull
 # Launch container composition
 echo -e "${PURPLE}Launch container composition${NC}"
 docker compose up -d
+
+# Clean ujp images
+docker image prune -f
