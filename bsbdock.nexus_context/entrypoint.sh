@@ -172,8 +172,7 @@ if [ "$1" == "nomadnet_demon" ] ; then
   echo "-------------------------------------------------------------"
   echo "Run NomadNetwork client as headless demon"
   echo "-------------------------------------------------------------"
-  su bsb
-  exec nomadnet --daemon --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+  set -- nomadnet --daemon --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 fi
 
 # Check if nomadnet should be started with gui
