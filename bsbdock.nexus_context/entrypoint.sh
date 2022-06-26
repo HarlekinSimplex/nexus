@@ -185,7 +185,7 @@ fi
 
 # Check if nomadnet should be started as deamon
 # if so run it headless demon
-if [ "$1" == "nomadnet_deamon" ] ; then
+if [ "$1" == "nomadnet_daemon" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
   echo "Set command to Nomadnetwork client as headless demon"
