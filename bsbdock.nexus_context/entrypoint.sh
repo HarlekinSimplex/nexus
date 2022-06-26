@@ -183,8 +183,8 @@ if [ "$1" == "rnsd" ] ; then
   exec rnsd --config "$RNS_CONFIG"
 fi
 
-# Check if nomadnet should be started as deamon
-# if so run it headless demon
+# Check if nomadnet should be started as daemon
+# if so run it headless daemon
 if [ "$1" == "nomadnet_daemon" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
