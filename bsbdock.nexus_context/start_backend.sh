@@ -77,7 +77,7 @@ echo -e ""
 echo -e "-------------------------------------------------------------"
 echo -e "Actual RNS interface status"
 echo -e "-------------------------------------------------------------"
-sleep 3
+sleep 1
 su bsb -c "rnstatus --config $RNS_CONFIG"
 
 # Check if we shall start nomadnet as headless daemon (for serving pages or as LXMF propagation node)

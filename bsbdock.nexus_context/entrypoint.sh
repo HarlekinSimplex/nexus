@@ -52,9 +52,11 @@ export DJANGO_LOG_LEVEL="${DJANGO_LOG_LEVEL:-info}"
 # Set Nginx default environment variables
 export NGINX_AUTOSTART="${NGINX_AUTOSTART:-False}"
 
+# Set Nexus Backend autostart (Switch to backend autostart script)
+export NEXUS_BACKEND_AUTOSTART="${NEXUS_BACKEND_AUTOSTART:-True}"
+
 # Set Nexus default environment variables
 export NEXUS_CONFIG="${NEXUS_CONFIG:-$HOME/.nexus}"
-export NEXUS_BACKEND_AUTOSTART="${NEXUS_BACKEND_AUTOSTART:-True}"
 export NEXUS_PORT="${NEXUS_PORT:-$NEXUS_CONTAINER_API_PORT}"
 export NEXUS_ASPECT="${NEXUS_ASPECT:-home}"
 export NEXUS_ROLE="${NEXUS_ROLE:-{\"cluster\":\"home\"\}}"
@@ -113,9 +115,12 @@ echo -e "${LIGHT_BLUE}Nginx configuration environment:${NC}"
 echo -e "NGINX_AUTOSTART=$NGINX_AUTOSTART"
 
 echo -e ""
+echo -e "${LIGHT_BLUE}Nexus backend autostart:${NC}"
+echo -e "NEXUS_BACKEND_AUTOSTART=$NEXUS_BACKEND_AUTOSTART"
+
+echo -e ""
 echo -e "${LIGHT_BLUE}Nexus configuration environment:${NC}"
 echo -e "NEXUS_CONFIG=$NEXUS_CONFIG"
-echo -e "NEXUS_BACKEND_AUTOSTART=$NEXUS_BACKEND_AUTOSTART"
 echo -e "NEXUS_PORT=$NEXUS_PORT"
 echo -e "NEXUS_ASPECT=$NEXUS_ASPECT"
 echo -e "NEXUS_ROLE=$NEXUS_ROLE"
@@ -169,7 +174,7 @@ chown bsb:bsb -R "$NEXUS_CONFIG"
 chmod -R 755 "$NEXUS_CONFIG"
 
 # Check if nexus config directory exists
-if [ "$NEXUS_BACKEND_AUTOSTART" == True ] ; then
+if [ "$NEXUS_BACKEND_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
   echo -e "${LIGHT_BLUE}Startup server backend${NC}"
