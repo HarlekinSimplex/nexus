@@ -182,7 +182,7 @@ NOMADNET_HOME=$HOME/.nomadnetwork
 NOMADNET_LOGFILE=$NOMADNET_HOME/logfile
 if [ -f "$NOMADNET_LOGFILE" ] ; then
   rm "$NOMADNET_LOGFILE"
-  echo "RNS restart on $(date)" >"$NOMADNET_LOGFILE"
+  echo "Nomadnet restart on $(date)" >"$NOMADNET_LOGFILE"
 fi
 # Set access privileges
 chown bsb:bsb -R "$NOMADNET_HOME"
