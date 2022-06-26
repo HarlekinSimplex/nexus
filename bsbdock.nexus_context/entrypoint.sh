@@ -192,7 +192,7 @@ if [ "$1" == "rnsd" ] ; then
   rnsd --version
   echo "-------------------------------------------------------------"
   echo "Set command to Nomadnetwork client with gui"
-  set -- rnsd --config "$RNS_CONFIG" 2>&1
+  set -- rnsd --verbose --config "$RNS_CONFIG" 2>&1
   echo "Run start command: '$@'"
   echo "... using GOSU with user root"
   echo "-------------------------------------------------------------"
