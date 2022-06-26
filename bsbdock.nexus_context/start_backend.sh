@@ -81,6 +81,18 @@ echo -e "-------------------------------------------------------------"
 sleep 1
 su bsb -c "rnstatus --config $RNS_CONFIG"
 
+echo -e ""
+echo -e "-------------------------------------------------------------"
+echo -e "Actual Nomadnetwork configuration:"
+echo -e "-------------------------------------------------------------"
+# Log nomadnet configuration
+if [ -f "$NOMADNET_CONFIG"/config ] ; then
+  cat "$NOMADNET_CONFIG"/config
+else
+  echo -e "Nomadnetwork config file $NOMADNET_CONFIG/config is ${YELLOW}missing${NC}"
+  echo -e "First Nomadnetwork startup will create and use a default config file"
+fi
+
 # Check if we shall start nomadnet as headless daemon (for serving pages or as LXMF propagation node)
 if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo -e ""

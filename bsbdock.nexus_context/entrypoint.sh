@@ -191,7 +191,7 @@ if [ "$1" == "rnsd" ] ; then
   echo "-------------------------------------------------------------"
   echo "Set command to Nomadnetwork client with gui"
   rnsd --version
-  set -- rnsd --verbose --config "$RNS_CONFIG" 2>&1
+  set -- rnsd --verbose --config "$RNS_CONFIG"
   echo "Run start command: '$@'"
   echo "... using GOSU with user root"
   echo "-------------------------------------------------------------"
@@ -206,7 +206,7 @@ if [ "$1" == "nomadnet_daemon" ] ; then
   echo "Set command to Nomadnetwork client as headless demon"
   nomadnet --version
 #  set -- nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
-  set -- nomadnet -d -c --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
+  set -- nomadnet -d -c --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 
 # otherwise run it as normal with gui
 elif [ "$1" == "nomadnet" ] ; then
