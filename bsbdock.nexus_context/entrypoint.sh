@@ -150,10 +150,18 @@ else
   mkdir "$RNS_CONFIG"
   echo -e "Reticulum config directory '$RNS_CONFIG' ${YELLOW}created${NC}"
 fi
-if [ -f "$RNS_CONFIG/logfile" ] ; then
-  rm "$RNS_CONFIG/logfile"
-  echo "RNS restart on $(date)" >"$RNS_CONFIG/logfile"
+# set RNS_HOME and RNS_LOG location and file
+# Actually required since RNS forces logfile into .reticulum
+RNS_HOME=$HOME/.reticulum
+RNS_LOGFILE=$RNS_HOME/logfile
+if [ -f "$RNS_LOGFILE" ] ; then
+  rm "$RNS_LOGFILE"
+  echo "RNS restart on $(date)" >"$RNS_LOGFILE"
 fi
+# Set access privileges
+chown bsb:bsb -R "$RNS_HOME"
+chmod -R 755 "$RNS_HOME"
+# May be set elsewhere than within ~/.reticulum
 chown bsb:bsb -R "$RNS_CONFIG"
 chmod -R 755 "$RNS_CONFIG"
 
@@ -168,6 +176,18 @@ if [ -f "$NOMADNET_CONFIG/logfile" ] ; then
   rm "$NOMADNET_CONFIG/logfile"
   echo "Nomadnet restart on $(date)" >"$NOMADNET_CONFIG/logfile"
 fi
+# set RNS_HOME and RNS_LOG location and file
+# Actually required since RNS forces logfile into .reticulum
+NOMADNET_HOME=$HOME/.nomadnetwork
+NOMADNET_LOGFILE=$NOMADNET_HOME/logfile
+if [ -f "$NOMADNET_LOGFILE" ] ; then
+  rm "$NOMADNET_LOGFILE"
+  echo "RNS restart on $(date)" >"$NOMADNET_LOGFILE"
+fi
+# Set access privileges
+chown bsb:bsb -R "$NOMADNET_HOME"
+chmod -R 755 "$NOMADNET_HOME"
+# May be set elsewhere than within ~/.reticulum
 chown bsb:bsb -R "$NOMADNET_CONFIG"
 chmod -R 755 "$NOMADNET_CONFIG"
 
