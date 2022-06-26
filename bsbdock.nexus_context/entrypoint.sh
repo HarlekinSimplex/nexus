@@ -183,8 +183,7 @@ if [ "$1" == "nomadnet" ] ; then
   echo "-------------------------------------------------------------"
   echo "Run NomadNetwork client with gui"
   echo "-------------------------------------------------------------"
-  su bsb
-  exec nomadnet --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+  set -- nomadnet --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 fi
 
 #echo ""
