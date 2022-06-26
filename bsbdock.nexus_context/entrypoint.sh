@@ -172,7 +172,7 @@ if [ "$1" == "nomadnet_deamon" ] ; then
   echo "-------------------------------------------------------------"
   echo "Run NomadNetwork client as headless demon"
   echo "-------------------------------------------------------------"
-  set -- nomadnet --daemon --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+  set -- nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 elif [ "$1" == "nomadnet" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
