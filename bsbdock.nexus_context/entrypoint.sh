@@ -170,13 +170,13 @@ fi
 if [ "$1" == "nomadnet_deamon" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
-  echo "Run NomadNetwork client as headless demon"
+  echo "Set command to Nomadnetwork client as headless demon"
   echo "-------------------------------------------------------------"
   set -- nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 elif [ "$1" == "nomadnet" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
-  echo "Run NomadNetwork client with gui"
+  echo "Set command to Nomadnetwork client with gui"
   echo "-------------------------------------------------------------"
   set -- nomadnet --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
 fi
@@ -205,6 +205,6 @@ fi
 
 echo ""
 echo "-------------------------------------------------------------"
-echo "Run given start command '$1' using GOSU with user bsb"
+echo "Run given start command '$@' using GOSU with user bsb"
 echo "-------------------------------------------------------------"
 exec gosu bsb "$@"
