@@ -1,6 +1,6 @@
 [logging]
 # Valid log levels are 0 through 7:
-  loglevel = 7
+  loglevel = 5
 #  destination = file
 
 [client]
@@ -22,5 +22,5 @@
 [node]
   enable_node = yes
   node_name = NX:Paulchen
-  announce_interval = 10
+  announce_interval = 60
   announce_at_start = Yes

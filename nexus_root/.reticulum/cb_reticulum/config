@@ -6,7 +6,7 @@
 
 [logging]
   # Valid log levels are 0 through 7:
-  loglevel = 7
+  loglevel = 5
 
 [interfaces]
 
@@ -21,5 +21,5 @@
     type = TCPClientInterface
     interface_enabled = True
     outgoing = True
-    target_host = nexus.deltamatrix.org
-    target_port = 4251
+    target_host = frankfurt.rns.unsigned.io
+    target_port = 4965
