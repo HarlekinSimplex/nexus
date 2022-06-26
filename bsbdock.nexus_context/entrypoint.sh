@@ -181,8 +181,8 @@ if [ "$1" == "rnsd" ] ; then
   set -- rnsd --config "$RNS_CONFIG" 2>&1
   echo "Run start command: '$@'"
   echo "... using GOSU with user root"
-  exec gosu root "$@"
   echo "-------------------------------------------------------------"
+  exec gosu root "$@"
 fi
 
 # Check if nomadnet should be started as daemon
