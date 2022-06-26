@@ -66,6 +66,7 @@ if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "-------------------------------------------------------------"
   echo -e "Autostart RNS as service"
+  rnsd --version
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
   su bsb -c "rnsd -s --config $RNS_CONFIG &"
@@ -85,9 +86,11 @@ if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "-------------------------------------------------------------"
   echo -e "Autostart Nomadnetwork as service"
+  nomadnet --version
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
-  su bsb -c "nomadnet --daemon --console --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG &"
+#  su bsb -c "nomadnet --daemon --console --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG &"
+  su bsb -c "nomadnet -d -c --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG &"
   sleep 1
   echo "nomadnet PID=$(pgrep nomadnet)"
 fi
