@@ -11,10 +11,6 @@ echo -e "${LIGHT_BLUE}----------------------------------------------------------
 echo -e "${LIGHT_BLUE}Startup of Nexus Server [Legacy]${NC}"
 echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
 
-echo -e ""
-echo -e "-------------------------------------------------------------"
-echo -e "Nexus Server startup"
-echo -e "-------------------------------------------------------------"
 # Launch nexus_server2 Server with unbuffered logs (docker takes those logs)
 exec python3 -u ./nexus_server/nexus_server.py \
   ${NEXUS_CONFIG:+--config=$RNS_CONFIG} \
