@@ -141,7 +141,7 @@ else
   echo -e "Direwolf config directory '$DIREWOLF_CONFIG' ${YELLOW}created${NC}"
 fi
 chown bsb:bsb -R "$DIREWOLF_CONFIG"
-chmod -R ug+rw "$DIREWOLF_CONFIG"
+#chmod -R ug+rw "$DIREWOLF_CONFIG"
 
 # Check if reticulum config directory exists
 if [ -d "$RNS_CONFIG" ] ; then
@@ -160,10 +160,10 @@ if [ -f "$RNS_LOGFILE" ] ; then
 fi
 # Set access privileges
 chown bsb:bsb -R "$RNS_HOME"
-chmod -R ug+rw "$RNS_HOME"
+#chmod -R ug+rw "$RNS_HOME"
 # May be set elsewhere than within ~/.reticulum
 chown bsb:bsb -R "$RNS_CONFIG"
-chmod -R ug+rw "$RNS_CONFIG"
+#chmod -R ug+rw "$RNS_CONFIG"
 
 # Check if nomadnetwork config directory exists
 if [ -d "$NOMADNET_CONFIG" ] ; then
@@ -186,10 +186,10 @@ if [ -f "$NOMADNET_LOGFILE" ] ; then
 fi
 # Set access privileges
 chown bsb:bsb -R "$NOMADNET_HOME"
-chmod -R ug+rw "$NOMADNET_HOME"
+#chmod -R ug+rw "$NOMADNET_HOME"
 # May be set elsewhere than within ~/.reticulum
 chown bsb:bsb -R "$NOMADNET_CONFIG"
-chmod -R ug+rw "$NOMADNET_CONFIG"
+#chmod -R ug+rw "$NOMADNET_CONFIG"
 
 # Check if nexus config directory exists
 if [ -d "$NEXUS_CONFIG" ] ; then
@@ -199,9 +199,9 @@ else
   echo -e "Nexus config directory '$NEXUS_CONFIG' ${YELLOW}created${NC}"
 fi
 chown bsb:bsb -R "$NEXUS_CONFIG"
-chmod -R ug+rw "$NEXUS_CONFIG"
+#chmod -R ug+rw "$NEXUS_CONFIG"
 
-# Check if nexus config directory exists
+# Check if we should run backend script
 if [ "$NEXUS_BACKEND_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
