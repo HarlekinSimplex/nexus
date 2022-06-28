@@ -31,7 +31,7 @@
     port = /dev/ttyRNODE
     frequency = 867200000
     bandwidth = 125000
-    txpower = 15
+    txpower = 7
     spreadingfactor = 8
     codingrate = 5
     id_callsign = DD8SB-1
@@ -47,7 +47,7 @@
     port = /dev/ttyRNODE2
     frequency = 169200000
     bandwidth = 41700
-    txpower = 15
+    txpower = 7
     spreadingfactor = 8
     codingrate = 5
     id_callsign = DD8SB-2
