@@ -76,13 +76,6 @@ fi
 
 echo -e ""
 echo -e "-------------------------------------------------------------"
-echo -e "Actual RNS interface status"
-echo -e "-------------------------------------------------------------"
-sleep 1
-su bsb -c "rnstatus --config $RNS_CONFIG"
-
-echo -e ""
-echo -e "-------------------------------------------------------------"
 echo -e "Actual Nomadnetwork configuration:"
 echo -e "-------------------------------------------------------------"
 # Log nomadnet configuration
@@ -102,10 +95,17 @@ if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
 #  su bsb -c "nomadnet --daemon --console --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG &"
-  su bsb -c "nomadnet -d -c --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG &"
+  su bsb -c "nomadnet -d --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG &"
   sleep 1
   echo "nomadnet PID=$(pgrep nomadnet)"
 fi
+
+echo -e ""
+echo -e "-------------------------------------------------------------"
+echo -e "Actual RNS interface status"
+echo -e "-------------------------------------------------------------"
+sleep 1
+su bsb -c "rnstatus --config $RNS_CONFIG"
 
 # Check if we shall start nginx to serve static files
 if [ "$NGINX_AUTOSTART" != "False" ] ; then

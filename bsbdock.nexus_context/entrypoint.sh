@@ -141,7 +141,6 @@ else
   echo -e "Direwolf config directory '$DIREWOLF_CONFIG' ${YELLOW}created${NC}"
 fi
 chown bsb:bsb -R "$DIREWOLF_CONFIG"
-#chmod -R ug+rw "$DIREWOLF_CONFIG"
 
 # Check if reticulum config directory exists
 if [ -d "$RNS_CONFIG" ] ; then
@@ -160,10 +159,8 @@ if [ -f "$RNS_LOGFILE" ] ; then
 fi
 # Set access privileges
 chown bsb:bsb -R "$RNS_HOME"
-#chmod -R ug+rw "$RNS_HOME"
 # May be set elsewhere than within ~/.reticulum
 chown bsb:bsb -R "$RNS_CONFIG"
-#chmod -R ug+rw "$RNS_CONFIG"
 
 # Check if nomadnetwork config directory exists
 if [ -d "$NOMADNET_CONFIG" ] ; then
@@ -186,10 +183,8 @@ if [ -f "$NOMADNET_LOGFILE" ] ; then
 fi
 # Set access privileges
 chown bsb:bsb -R "$NOMADNET_HOME"
-#chmod -R ug+rw "$NOMADNET_HOME"
 # May be set elsewhere than within ~/.reticulum
 chown bsb:bsb -R "$NOMADNET_CONFIG"
-#chmod -R ug+rw "$NOMADNET_CONFIG"
 
 # Check if nexus config directory exists
 if [ -d "$NEXUS_CONFIG" ] ; then
@@ -199,18 +194,6 @@ else
   echo -e "Nexus config directory '$NEXUS_CONFIG' ${YELLOW}created${NC}"
 fi
 chown bsb:bsb -R "$NEXUS_CONFIG"
-#chmod -R ug+rw "$NEXUS_CONFIG"
-
-# Check if we should run backend script
-if [ "$NEXUS_BACKEND_AUTOSTART" != "False" ] ; then
-  echo -e ""
-  echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
-  echo -e "${LIGHT_BLUE}Startup server backend${NC}"
-  echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
-
-  # Initialize server backend
-  source start_backend.sh
-fi
 
 # Check if rns should be started as command
 # If so run it as root
@@ -227,23 +210,45 @@ if [ "$1" == "rnsd" ] ; then
   exec gosu root "$@"
 fi
 
-# Check if nomadnet should be started as daemon
-# if so run it headless daemon
-if [ "$1" == "nomadnet_daemon" ] ; then
-  echo ""
-  echo "-------------------------------------------------------------"
-  echo "Set command to Nomadnetwork client as headless demon"
-  nomadnet --version
-#  set -- nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
-  set -- nomadnet -d --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+## Check if nomadnet should be started as daemon
+## if so run it headless daemon
+#if [ "$1" == "nomadnet_daemon" ] ; then
+#  echo ""
+#  echo "-------------------------------------------------------------"
+#  echo "Set command to Nomadnetwork client as headless demon"
+#  nomadnet --version
+##  set -- nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
+#  set -- nomadnet -d --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+#  # shellcheck disable=SC2145
+#  echo "Run start command: '$@'"
+#  echo "... using GOSU with user bsb"
+#  echo "-------------------------------------------------------------"
+#  exec gosu bsb "$@"
+#fi
 
-# otherwise run it as normal with gui
-elif [ "$1" == "nomadnet" ] ; then
+# Check if nomadnet should be started in gui mode
+if [ "$1" == "nomadnet" ] ; then
   echo ""
   echo "-------------------------------------------------------------"
   echo "Set command to Nomadnetwork client with gui"
   nomadnet --version
   set -- nomadnet --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+  # shellcheck disable=SC2145
+  echo "Run start command: '$@'"
+  echo "... using GOSU with user bsb"
+  echo "-------------------------------------------------------------"
+  exec gosu bsb "$@"
+fi
+
+# Check if we should run backend script
+if [ "$NEXUS_BACKEND_AUTOSTART" != "False" ] ; then
+  echo -e ""
+  echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
+  echo -e "${LIGHT_BLUE}Startup server backend${NC}"
+  echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
+
+  # Initialize server backend
+  source start_backend.sh
 fi
 
 # shellcheck disable=SC2145
