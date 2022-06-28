@@ -1,6 +1,6 @@
 [reticulum]
   enable_transport = Yes
-  share_instance = Yes
+  share_instance = No
   shared_instance_port = 37428
   instance_control_port = 37429
 
