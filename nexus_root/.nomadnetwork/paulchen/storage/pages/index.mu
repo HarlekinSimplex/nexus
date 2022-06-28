@@ -1,1 +1,5 @@
-P A U L C H E N
+l`!_Diese Zeile von Paulchen sollte fett und linksbündig sein_!
+
+`c`*Dieser sollte kursiv und zentriert sein`*
+
+`r`_Und das hier sollte unterstrichen und rechtsbündig sein`_
