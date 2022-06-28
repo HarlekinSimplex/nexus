@@ -252,6 +252,8 @@ if [ "$NEXUS_BACKEND_AUTOSTART" != "False" ] ; then
 fi
 
 # shellcheck disable=SC2145
+echo -e ""
+echo "-------------------------------------------------------------"
 echo "Run start command: '$@'"
 echo "... using GOSU with user bsb"
 echo "-------------------------------------------------------------"
