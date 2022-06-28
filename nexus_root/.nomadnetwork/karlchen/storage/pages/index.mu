@@ -1,5 +1,6 @@
-l`!_Diese Zeile von Karlchen sollte fett und linksbündig sein_!
-
-`c`*Dieser sollte kursiv und zentriert sein`*
-
-`r`_Und das hier sollte unterstrichen und rechtsbündig sein`_
+  _  __          _      _
+ | |/ /         | |    | |               
+ | ' / __ _ _ __| | ___| |__   ___ _ __  
+ |  < / _` | '__| |/ __| '_ \ / _ \ '_ \ 
+ | . \ (_| | |  | | (__| | | |  __/ | | |
+ |_|\_\__,_|_|  |_|\___|_| |_|\___|_| |_|
