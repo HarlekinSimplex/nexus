@@ -52,8 +52,8 @@
     codingrate = 5
     id_callsign = DD8SB-4
     id_interval = 60
-    network_name = myTwinCluster
-    passphrase = myTwinCluster
+#    network_name = myTwinCluster
+#    passphrase = myTwinCluster
     flow_control = False
 
   [[TCP KISS Interface #1]]
@@ -64,5 +64,9 @@
     target_port = 8001
 #    network_name = myTwinCluster
 #    passphrase = myTwinCluster
-    id_callsign = DD8SB-2
-    id_interval = 600
+#    id_callsign = DD8SB-2
+#    id_interval = 600
+    preamble = 300
+    txtail = 10
+    slottime = 20
+    persistence = 200
