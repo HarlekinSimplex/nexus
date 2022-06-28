@@ -240,6 +240,20 @@ if [ "$1" == "nomadnet" ] ; then
   exec gosu bsb "$@"
 fi
 
+# Check if we shall just report interface status
+if [ "$1" == "rnstatus" ] ; then
+  echo ""
+  echo "-------------------------------------------------------------"
+  echo "Set command to rnstatus"
+  nomadnet --version
+  set -- rnstatus --config "$RNS_CONFIG"
+  # shellcheck disable=SC2145
+  echo "Run start command: '$@'"
+  echo "... using GOSU with user bsb"
+  echo "-------------------------------------------------------------"
+  exec gosu bsb "$@"
+fi
+
 # Check if we should run backend script
 if [ "$NEXUS_BACKEND_AUTOSTART" != "False" ] ; then
   echo -e ""
