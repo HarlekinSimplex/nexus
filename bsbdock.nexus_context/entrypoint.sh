@@ -210,21 +210,21 @@ if [ "$1" == "rnsd" ] ; then
   exec gosu root "$@"
 fi
 
-## Check if nomadnet should be started as daemon
-## if so run it headless daemon
-#if [ "$1" == "nomadnet_daemon" ] ; then
-#  echo ""
-#  echo "-------------------------------------------------------------"
-#  echo "Set command to Nomadnetwork client as headless demon"
-#  nomadnet --version
-##  set -- nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
-#  set -- nomadnet -d --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
-#  # shellcheck disable=SC2145
-#  echo "Run start command: '$@'"
-#  echo "... using GOSU with user bsb"
-#  echo "-------------------------------------------------------------"
-#  exec gosu bsb "$@"
-#fi
+# Check if nomadnet should be started as daemon
+# if so run it headless daemon
+if [ "$1" == "nomadnet_daemon" ] ; then
+  echo ""
+  echo "-------------------------------------------------------------"
+  echo "Set command to Nomadnetwork client as headless demon"
+  nomadnet --version
+#  set -- nomadnet --daemon --console --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG" 2>&1
+  set -- nomadnet -d --rnsconfig "$RNS_CONFIG" --config "$NOMADNET_CONFIG"
+  # shellcheck disable=SC2145
+  echo "Run start command: '$@'"
+  echo "... using GOSU with user bsb"
+  echo "-------------------------------------------------------------"
+  exec gosu bsb "$@"
+fi
 
 # Check if nomadnet should be started in gui mode
 if [ "$1" == "nomadnet" ] ; then
