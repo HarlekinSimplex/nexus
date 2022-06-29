@@ -26,7 +26,7 @@
 
   [[RNode LoRa Interface 868]]
     type = RNodeInterface
-    interface_enabled = True
+    interface_enabled = False
     outgoing = True
     port = /dev/ttyRNODE
     frequency = 867200000
