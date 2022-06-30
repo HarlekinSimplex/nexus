@@ -4,4 +4,4 @@
 #
 cat $NOMADNET_CONFIG/storage/pages/banner.txt
 echo
-rnstatus 2>&1
+sudo rnstatus 2>&1
