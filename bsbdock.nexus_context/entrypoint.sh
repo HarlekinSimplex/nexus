@@ -29,6 +29,11 @@ echo "Copyright (c) 2022 Stephan Becker / Becker-Systemberatung, MIT License"
 # Define home directory
 export HOME=/home/bsb
 
+# Set Ports (Doku only for use with nomadnets index.mu)
+export NEXUS_PORT_RNSAPI="${NEXUS_PORT_RNSAPI:-4242}"
+export NEXUS_PORT_WEB="${NEXUS_PORT_WEB:-4280}"
+export NEXUS_PORT_JSONAPI="${NEXUS_PORT_JSONAPI:-4281}"
+
 # Set Reticulum default environment variables
 export RNS_CONFIG="${RNS_CONFIG:-$HOME/.reticulum}"
 export RNS_AUTOSTART="${RNS_AUTOSTART:-False}"
