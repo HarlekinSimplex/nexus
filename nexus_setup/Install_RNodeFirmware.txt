@@ -2,7 +2,7 @@
 # Installing/Updateing RNode firmware on RNode device
 # Assuming the device resides at /dev/ttyACM0
 #
-# Using a 32Bit ARM Architecture
+# Using a 64Bit ARM Architecture
 docker run --rm -it \
   --device /dev/ttyACM0:/dev/ttyACM0 \
   --entrypoint /usr/local/bin/rnodeconf \
@@ -25,3 +25,40 @@ docker run --rm -it \
 
 # Using an non dockerized environment
 rnodeconf -a
+
+
+Examples:
+--------------------------------------------------------
+docker run --rm -it \
+  --device /dev/ttyUSB0:/dev/ttyUSB0 \
+  --entrypoint /usr/local/bin/rnodeconf \
+  bsbdock/nexus:dev_linux-arm64 \
+  --eepromwipe /dev/ttyUSB0
+
+docker run --rm -it \
+  --device /dev/ttyUSB0:/dev/ttyUSB0 \
+  --entrypoint /usr/local/bin/rnodeconf \
+  bsbdock/nexus:dev_linux-arm64 \
+  -a /dev/ttyUSB0
+
+
+Update rnodeconf within the container and run RNode update with the new version
+/dev/ttyUSB0 need to be changed for your actual device
+--------------------------------------------------------
+# Run the nexus container
+docker run --rm -it --device /dev/ttyUSB0:/dev/ttyUSB0 bsbdock/nexus:dev_linux-arm64 bash
+# Check actual version
+rnodeconf --version
+# if version is below 1.2.2 upgrade rnodeconf
+pip install rnodeconf --upgrade
+
+# Whipe EEProm and flash actual firmware
+rnodeconf --eepromwipe /dev/ttyUSB0
+rnodeconf -a /dev/ttyUSB0
+
+For FDN type rnodes Choose:
+-------------------------------
+[2] Homebrew RNode
+[3] Espressif Systems ESP32
+[1] SX1276/SX1278 with antenna port on PA_BOOST pin
+[2] Generic ESP32 board
