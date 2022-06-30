@@ -1,3 +1,3 @@
 #!/bin/bash
-set
-#cat banner.txt
+cat $NOMADNET_CONFIG/storage/pages/banner.txt
+
