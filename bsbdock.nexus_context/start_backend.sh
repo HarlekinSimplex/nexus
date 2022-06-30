@@ -105,7 +105,7 @@ echo -e "-------------------------------------------------------------"
 echo -e "Actual RNS interface status"
 echo -e "-------------------------------------------------------------"
 sleep 1
-su bsb -c "rnstatus --config $RNS_CONFIG"
+su root -c "rnstatus --config $RNS_CONFIG"
 
 # Check if we shall start nginx to serve static files
 if [ "$NGINX_AUTOSTART" != "False" ] ; then
