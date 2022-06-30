@@ -1,2 +1,3 @@
 #!/bin/bash
-echo Hello World
+set
+#cat banner.txt
