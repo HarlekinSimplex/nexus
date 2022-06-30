@@ -36,11 +36,12 @@ export RNS_AUTOSTART="${RNS_AUTOSTART:-False}"
 # Set Nomadnet default environment variables
 export NOMADNET_CONFIG="${NOMADNET_CONFIG:-$HOME/.nomadnetwork}"
 export NOMADNET_AUTOSTART="${NOMADNET_AUTOSTART:-False}"
+export NOMADNET_INDEX_SCRIPT="${NOMADNET_INDEX_SCRIPT:-False}"
 
 # Set Direwolf default environment variables
+export DIREWOLF_CONFIG="${DIREWOLF_CONFIG:-$HOME/.direwolf}"
 export DIREWOLF_AUTOSTART="${DIREWOLF_AUTOSTART:-False}"
 export DIREWOLF_INSTANCES="${DIREWOLF_INSTANCES:-internal_1}"
-export DIREWOLF_CONFIG="${DIREWOLF_CONFIG:-$HOME/.direwolf}"
 export DIREWOLF_OPTIONS="${DIREWOLF_OPTIONS:--t 0 -q dx -T %T}"
 
 # Set default super user credentials for django
@@ -95,6 +96,7 @@ echo -e ""
 echo -e "${LIGHT_BLUE}Nomadnetwork configuration environment:${NC}"
 echo -e "NOMADNET_CONFIG=$NOMADNET_CONFIG"
 echo -e "NOMADNET_AUTOSTART=$NOMADNET_AUTOSTART"
+echo -e "NOMADNET_INDEX_SCRIPT=$NOMADNET_INDEX_SCRIPT"
 
 echo -e ""
 echo -e "${LIGHT_BLUE}Direwolf configuration environment:${NC}"
@@ -169,10 +171,17 @@ else
   mkdir "$NOMADNET_CONFIG"
   echo -e "Nomadnetwork config directory '$NOMADNET_CONFIG' ${YELLOW}created${NC}"
 fi
+# Flush nomadnet logfile ans create it anew with timestap
 if [ -f "$NOMADNET_CONFIG/logfile" ] ; then
   rm "$NOMADNET_CONFIG/logfile"
   echo "Nomadnet restart on $(date)" >"$NOMADNET_CONFIG/logfile"
 fi
+# Set index.mu as executable if provided and defined as script
+if [ -f "$NOMADNET_CONFIG/storage/pages/index.mu" ] && [ "$NOMADNET_INDEX_SCRIPT" != "False" ] ; then
+  chmod ugo+x "$NOMADNET_CONFIG/storage/pages/index.mu"
+  echo "Nomadnet restart on $(date)" >"$NOMADNET_CONFIG/logfile"
+fi
+
 # set RNS_HOME and RNS_LOG location and file
 # Actually required since RNS forces logfile into .reticulum
 NOMADNET_HOME=$HOME/.nomadnetwork

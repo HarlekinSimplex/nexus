@@ -1,9 +1,2 @@
-`=
-  _  __          _      _
- | |/ /         | |    | |               
- | ' / __ _ _ __| | ___| |__   ___ _ __  
- |  < / _` | '__| |/ __| '_ \ / _ \ '_ \ 
- | . \ (_| | |  | | (__| | | |  __/ | | |
- |_|\_\__,_|_|  |_|\___|_| |_|\___|_| |_|
-
- Another fine Nexus Messenger Broadcast Node powered by bsbdock/nexus
+#!/bin/bash
+echo Hello World
