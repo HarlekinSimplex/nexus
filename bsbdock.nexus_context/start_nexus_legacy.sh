@@ -18,5 +18,6 @@ exec python3 -u ./nexus_server/nexus_server.py \
   ${NEXUS_ASPECT:+--aspect=$NEXUS_ASPECT} \
   ${NEXUS_ROLE:+--role=$NEXUS_ROLE} \
   ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
+  ${NEXUS_SHORTPOLL:+--shortpoll=$NEXUS_SHORTPOLL} \
   ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
   ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}

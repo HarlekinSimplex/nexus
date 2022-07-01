@@ -20,6 +20,7 @@ echo " -------------------------------------------------------------"
 echo " NEXUS_ASPECT=$NEXUS_ASPECT"
 echo " NEXUS_ROLE=$NEXUS_ROLE"
 echo " NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
+echo " NEXUS_SHORTPOLL=$NEXUS_SHORTPOLL"
 echo " NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
 echo " NEXUS_BRIDGE=$NEXUS_BRIDGE"
 echo
