@@ -53,7 +53,7 @@ import RNS.vendor.umsgpack as umsgpack
 #
 
 # Versions used
-__server_version__ = "1.4.1"
+__server_version__ = "1.4.0.4"
 __role_version__ = "2"
 __command_version__ = "1"
 __message_version__ = "4.2"
@@ -1056,6 +1056,9 @@ class NexusLXMSocket:
         link.set_packet_callback(NexusLXMSocket.packet_received)
         RNS.log("NX:LXM Packet callback set", RNS.LOG_EXTREME)
 
+        # Flush pending log
+        sys.stdout.flush()
+
     @staticmethod
     def client_disconnect(link):
         RNS.log("NX:LXM Client disconnected " + str(link), RNS.LOG_EXTREME)
@@ -1066,11 +1069,17 @@ class NexusLXMSocket:
         else:
             RNS.log("NX:Link closed", RNS.LOG_EXTREME)
 
+        # Flush pending log
+        sys.stdout.flush()
+
     @staticmethod
     def packet_received(lxmf_bytes, packet):
         RNS.log("NX:LXM single packet delivered " + str(packet), RNS.LOG_EXTREME)
         # Process received lxmf bytes into a lxmessage
         NexusLXMSocket.process_lxmf_message_bytes(lxmf_bytes)
+
+        # Flush pending log
+        sys.stdout.flush()
 
     @staticmethod
     def resource_concluded(resource):
@@ -1084,6 +1093,9 @@ class NexusLXMSocket:
             NexusLXMSocket.process_lxmf_message_bytes(lxmf_bytes)
         else:
             RNS.log("NX:Received LXMF resource message is not complete", RNS.LOG_EXTREME)
+
+        # Flush pending log
+        sys.stdout.flush()
 
     @staticmethod
     def process_lxmf_message_bytes(lxmf_bytes):
@@ -1105,6 +1117,9 @@ class NexusLXMSocket:
         else:
             RNS.log("NX:No message received callback registered", RNS.LOG_DEBUG)
 
+        # Flush pending log
+        sys.stdout.flush()
+
     @staticmethod
     def lxmf_delivery_callback(message):
         # Log message as delivery receipt
@@ -1124,6 +1139,12 @@ class NexusLXMSocket:
                 NEXUS_LXM_SOCKET.message_queue[entry_time]["status"] = QUEUE_ENTRY_STATUS_DELIVERED
                 RNS.log("NX:Queue entry marked as delivered " + str(queue_entry["entry_time"]), RNS.LOG_DEBUG)
 
+        # Run Postmaster
+        NEXUS_LXM_SOCKET.postmaster()
+
+        # Flush pending log
+        sys.stdout.flush()
+
     @staticmethod
     def lxmf_delivery_failed_callback(message):
         # Log message as delivery receipt
@@ -1142,6 +1163,12 @@ class NexusLXMSocket:
                 # Log and mark queue entry as delivered
                 NEXUS_LXM_SOCKET.message_queue[entry_time]["status"] = QUEUE_ENTRY_STATUS_FAILED
                 RNS.log("NX:Queue entry marked as failed " + str(queue_entry["entry_time"]), RNS.LOG_DEBUG)
+
+        # Run Postmaster
+        NEXUS_LXM_SOCKET.postmaster()
+
+        # Flush pending log
+        sys.stdout.flush()
 
     @staticmethod
     def log_lxm_message(message, message_tag="LXMF Message log", debug_level=RNS.LOG_DEBUG):
@@ -1171,6 +1198,9 @@ class NexusLXMSocket:
         RNS.log("NX:-      Source: " + RNS.prettyhexrep(message.source_hash), debug_level)
         RNS.log("NX:- Destination: " + RNS.prettyhexrep(message.destination_hash), debug_level)
         RNS.log("NX:-   Signature: " + signature_string, debug_level)
+
+        # Flush pending log
+        sys.stdout.flush()
 
     @staticmethod
     def poll(initial=False):
