@@ -66,6 +66,7 @@ if [ "$RNS_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "-------------------------------------------------------------"
   echo -e "Autostart RNS as service"
+  rnsd --version
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
   su bsb -c "rnsd -s --config $RNS_CONFIG &"
@@ -75,28 +76,45 @@ fi
 
 echo -e ""
 echo -e "-------------------------------------------------------------"
-echo -e "Actual RNS interface status"
+echo -e "Actual Nomadnetwork configuration:"
 echo -e "-------------------------------------------------------------"
-sleep 3
-su bsb -c "rnstatus --config $RNS_CONFIG"
+# Log nomadnet configuration
+if [ -f "$NOMADNET_CONFIG"/config ] ; then
+  cat "$NOMADNET_CONFIG"/config
+else
+  echo -e "Nomadnetwork config file $NOMADNET_CONFIG/config is ${YELLOW}missing${NC}"
+  echo -e "First Nomadnetwork startup will create and use a default config file"
+fi
 
 # Check if we shall start nomadnet as headless daemon (for serving pages or as LXMF propagation node)
 if [ "$NOMADNET_AUTOSTART" != "False" ] ; then
   echo -e ""
   echo -e "-------------------------------------------------------------"
   echo -e "Autostart Nomadnetwork as service"
+  nomadnet --version
   echo -e "-------------------------------------------------------------"
   # Log reticulum interface status
-  su bsb -c "nomadnet --daemon --console --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG &"
+#  su bsb -c "nomadnet --daemon --console --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG &"
+  su bsb -c "nomadnet -d --rnsconfig $RNS_CONFIG --config $NOMADNET_CONFIG &"
   sleep 1
   echo "nomadnet PID=$(pgrep nomadnet)"
 fi
 
 echo -e ""
 echo -e "-------------------------------------------------------------"
-echo -e "Nexus Messenger Web App NGINX configuration check and startup"
+echo -e "Actual RNS interface status"
 echo -e "-------------------------------------------------------------"
-# Log nginx status
-nginx -t
-systemctl start nginx
-systemctl status nginx
+sleep 1
+su root -c "rnstatus --config $RNS_CONFIG"
+
+# Check if we shall start nginx to serve static files
+if [ "$NGINX_AUTOSTART" != "False" ] ; then
+  echo -e ""
+  echo -e "-------------------------------------------------------------"
+  echo -e "Nexus Messenger Web App NGINX configuration check and startup"
+  echo -e "-------------------------------------------------------------"
+  # Log nginx status
+  nginx -t
+  systemctl start nginx
+  systemctl status nginx
+fi

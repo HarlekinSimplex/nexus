@@ -60,8 +60,10 @@ services:
       - ${NEXUS_SND_DEVICE:-/dev/snd}:/dev/snd
 # USB Port mapped to container to be used by RNode LoRa interface
       - ${NEXUS_RNODE_DEVICE:-/dev/tty0}:/dev/ttyRNODE
+      - ${NEXUS_RNODE_DEVICE2:-/dev/tty1}:/dev/ttyRNODE2
 # USB Port mapped to container to be used for CAT (PPT)
       - ${NEXUS_CAT_DEVICE:-/dev/tty0}:/dev/ttyCAT
+      - ${NEXUS_CAT_DEVICE2:-/dev/tty1}:/dev/ttyCAT2
     env_file:
       - .env
     networks:
@@ -94,6 +96,8 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+        mode: "non-blocking"
+        max-buffer-size: "4m"
     labels:
       - "com.centurylinklabs.watchtower.enable=1"
 

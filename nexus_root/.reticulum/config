@@ -10,59 +10,9 @@
 
 [interfaces]
 
-  [[TCP Server Interface]]
-    type = TCPServerInterface
-    interface_enabled = True
-    outgoing = True
-    listen_ip = 0.0.0.0
-    listen_port = 4242
-
   [[TCP Client Interface - Nexus.DeltaMatrix]]
     type = TCPClientInterface
     interface_enabled = True
     outgoing = True
     target_host = nexus.deltamatrix.org
     target_port = 4251
-
-  [[RNode LoRa Interface]]
-    type = RNodeInterface
-    interface_enabled = False
-    outgoing = True
-    port = /dev/ttyRNODE
-    frequency = 867200000
-    bandwidth = 125000
-    txpower = 7
-    spreadingfactor = 8
-    codingrate = 5
-#    id_callsign = NO1CLL-0
-#    id_interval = 600
-    network_name = myNetName
-    passphrase = myNetPassword
-    flow_control = False
-
-  [[TCP KISS Interface #1]]
-    type = TCPClientInterface
-    interface_enabled = False
-    kiss_framing = True
-    target_host = 127.0.0.1
-    target_port = 8001
-    network_name = myNetName
-    passphrase = myNetPassword
-
-  [[TCP KISS Interface #2]]
-    type = TCPClientInterface
-    interface_enabled = False
-    kiss_framing = True
-    target_host = 127.0.0.1
-    target_port = 8101
-    network_name = myNetName
-    passphrase = myNetPassword
-
-  [[TCP KISS Interface #3]]
-    type = TCPClientInterface
-    interface_enabled = False
-    kiss_framing = True
-    target_host = 127.0.0.1
-    target_port = 8201
-    network_name = myNetName
-    passphrase = myNetPassword

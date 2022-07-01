@@ -83,6 +83,9 @@ echo -e "${BLUE}Using ${CYAN}$IMAGE_TAG${BLUE} as image tag.${NC}"
 # Move into image context
 cd ./bsbdock.nexus_context || exit
 
+# Clean up system dangling images
+docker image prune -f
+
 # Check if Dockerfile exists
 FILE=Dockerfile_nexus_"$BUILD_FILE"
 if test -f "$FILE"; then

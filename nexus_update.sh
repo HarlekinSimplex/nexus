@@ -22,3 +22,7 @@ docker compose pull
 # Launch container composition
 echo -e "${PURPLE}Launch container composition${NC}"
 docker compose up -d
+
+# Cleaning up images
+echo -e "${PURPLE}Cleaning up images${NC}"
+docker image prune -f

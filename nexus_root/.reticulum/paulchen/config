@@ -19,30 +19,46 @@
 
   [[TCP Client Interface - Nexus.DeltaMatrix]]
     type = TCPClientInterface
-    interface_enabled = False
+    interface_enabled = True
     outgoing = True
     target_host = nexus.deltamatrix.org
     target_port = 4251
 
-  [[RNode LoRa Interface]]
+  [[RNode LoRa Interface 868]]
     type = RNodeInterface
-    interface_enabled = False
+    interface_enabled = True
     outgoing = True
     port = /dev/ttyRNODE
     frequency = 867200000
     bandwidth = 125000
-    txpower = 7
+    txpower = 15
     spreadingfactor = 8
     codingrate = 5
-#    id_callsign = DD8SB-5
-#    id_interval = 600
+    id_callsign = DD8SB-1
+    id_interval = 60
     network_name = myTwinCluster
     passphrase = myTwinCluster
     flow_control = False
 
+  [[RNode LoRa Interface 169]]
+    type = RNodeInterface
+    interface_enabled = True
+    outgoing = True
+    port = /dev/ttyRNODE2
+    frequency = 169200000
+    bandwidth = 41700
+    txpower = 15
+    spreadingfactor = 8
+    codingrate = 5
+    id_callsign = DD8SB-2
+    id_interval = 60
+#    network_name = myTwinCluster
+#    passphrase = myTwinCluster
+    flow_control = False
+
   [[TCP KISS Interface #1]]
     type = TCPClientInterface
-    interface_enabled = True
+    interface_enabled = False
     kiss_framing = True
     target_host = 127.0.0.1
     target_port = 8001
@@ -50,7 +66,7 @@
 #    passphrase = myTwinCluster
 #    id_callsign = DD8SB-2
 #    id_interval = 600
-    preamble = 150
+    preamble = 300
     txtail = 10
     slottime = 20
     persistence = 200

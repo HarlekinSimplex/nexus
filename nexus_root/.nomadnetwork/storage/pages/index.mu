@@ -1,8 +1,5 @@
-  ____   _____ ____    _   _
- |  _ \ / ____|  _ \ _| \ | |
- | |_) | (___ | |_) (_)  \| | _____  ___   _ ___
- |  _ < \___ \|  _ <  | . ` |/ _ \ \/ / | | / __|
- | |_) |____) | |_) |_| |\  |  __/>  <| |_| \__ \
- |____/|_____/|____/(_)_| \_|\___/_/\_\\__,_|___/
+l`!_Diese Zeile von Default sollte fett und linksbündig sein_!
 
+`c`*Dieser sollte kursiv und zentriert sein`*
 
+`r`_Und das hier sollte unterstrichen und rechtsbündig sein`_
