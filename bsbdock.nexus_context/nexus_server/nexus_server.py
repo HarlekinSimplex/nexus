@@ -173,6 +173,8 @@ NEXUS_SERVER_TIMEOUT = 43200
 # Re-announce early enough that at least a second announce may reach other servers prior expiration timeout
 NEXUS_SERVER_LONGPOLL: int = int(NEXUS_SERVER_TIMEOUT / 2.5)
 # Delay of initial announcement of this server to the network
+NEXUS_SERVER_SHORTPOLL: int = 10
+# Delay of initial announcement of this server to the network
 INITIAL_ANNOUNCEMENT_DELAY = 5
 
 # Nexus LXM Socket
@@ -1066,7 +1068,7 @@ class NexusLXMSocket:
         RNS.log("NX:-   Signature: " + signature_string, debug_level)
 
     @staticmethod
-    def long_poll(initial=False):
+    def poll(initial=False):
         # Announce this server to the network
         # The initial announcement will omit the timestamp of the latest message by setting the initial parameter to
         # True. For all other poll call the timestamp is included in the announcement (role)
@@ -1074,8 +1076,17 @@ class NexusLXMSocket:
         # All other nexus server with the same aspect will register this server as a distribution target
         NEXUS_LXM_SOCKET.announce(initial)
 
+        # Check if we have some subscriptions already then revert to long poll
+        # Otherwise use short poll as announcement interval
+        if len(DISTRIBUTION_TARGETS) == 0:
+            poll_interval = NEXUS_SERVER_SHORTPOLL
+            RNS.log("NX:Next server announce uses NEXUS_SERVER_SHORTPOLL=" + str(NEXUS_SERVER_SHORTPOLL), RNS.LOG_DEBUG)
+        else:
+            poll_interval = NEXUS_SERVER_LONGPOLL
+            RNS.log("NX:Next server announce uses NEXUS_SERVER_LONGPOLL=" + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_DEBUG)
+
         # Start timer to re announce this server in due time as specified
-        t = threading.Timer(NEXUS_SERVER_LONGPOLL, NEXUS_LXM_SOCKET.long_poll)
+        t = threading.Timer(poll_interval, NEXUS_LXM_SOCKET.poll)
         # Start as daemon so it terminates with main thread
         t.daemon = True
         t.start()
@@ -1339,12 +1350,19 @@ class NexusLXMAnnounceHandler:
 #
 def initialize_server(
         configpath,
-        server_port=None, server_aspect=None, server_role=None, long_poll=None, time_out=None, bridge_links=None
+        server_port=None,
+        server_aspect=None,
+        server_role=None,
+        long_poll=None,
+        short_poll=None,
+        time_out=None,
+        bridge_links=None
 ):
     global NEXUS_SERVER_ADDRESS
     global NEXUS_SERVER_ASPECT
     global NEXUS_SERVER_ROLE
     global NEXUS_SERVER_LONGPOLL
+    global NEXUS_SERVER_SHORTPOLL
     global NEXUS_SERVER_TIMEOUT
     global MESSAGE_STORE
     global BRIDGE_TARGETS
@@ -1412,6 +1430,12 @@ def initialize_server(
         # Overwrite default long poll default with specified value
         NEXUS_SERVER_LONGPOLL = int(long_poll)
 
+    # Short poll configuration
+    # Announcement of this server is repeated after the specified seconds in case no subscriptions are active
+    if short_poll is not None:
+        # Overwrite default short poll default with specified value
+        NEXUS_SERVER_SHORTPOLL = int(short_poll)
+
     # Bridge link configuration
     # Valid server link urls as used in the client for POST/GET HTTP requests
     if bridge_links is not None:
@@ -1420,12 +1444,13 @@ def initialize_server(
 
     RNS.log("NX:...............................................................................", RNS.LOG_INFO)
     RNS.log("NX:Server Configuration:", RNS.LOG_INFO)
-    RNS.log("NX: Port     " + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
-    RNS.log("NX: Aspect   " + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
-    RNS.log("NX: Role     " + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
-    RNS.log("NX: Bridge   " + str(BRIDGE_TARGETS), RNS.LOG_INFO)
-    RNS.log("NX: Timeout  " + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
-    RNS.log("NX: Longpoll " + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
+    RNS.log("NX: Port      " + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
+    RNS.log("NX: Aspect    " + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
+    RNS.log("NX: Role      " + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
+    RNS.log("NX: Bridge    " + str(BRIDGE_TARGETS), RNS.LOG_INFO)
+    RNS.log("NX: Timeout   " + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
+    RNS.log("NX: Longpoll  " + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
+    RNS.log("NX: Shortpoll " + str(NEXUS_SERVER_SHORTPOLL), RNS.LOG_INFO)
     RNS.log("NX:...............................................................................", RNS.LOG_INFO)
 
     # Create LXMF router socket with this server as source endpoint
@@ -1442,9 +1467,9 @@ def initialize_server(
     RNS.log("NX:Initialization complete", RNS.LOG_INFO)
     RNS.log("NX:...............................................................................", RNS.LOG_INFO)
 
-    # After an initial delay start long poll to announce server regularly
+    # After an initial delay start polling to announce server regularly
     time.sleep(INITIAL_ANNOUNCEMENT_DELAY)
-    NexusLXMSocket.long_poll(initial=True)
+    NexusLXMSocket.poll(initial=True)
 
     # Launch HTTP GET/POST processing
     # This is an endless loop
@@ -2113,6 +2138,14 @@ if __name__ == "__main__":
         )
 
         parser.add_argument(
+            "--shortpoll",
+            action="store",
+            default=None,
+            help="time in seconds between recurring announcements if no subscription is actually active",
+            type=str
+        )
+
+        parser.add_argument(
             "--timeout",
             action="store",
             default=None,
@@ -2158,6 +2191,11 @@ if __name__ == "__main__":
         else:
             longpoll_para = None
 
+        if params.shortpoll:
+            shortpoll_para = params.shortpoll
+        else:
+            shortpoll_para = None
+
         if params.timeout:
             timeout_para = params.timeout
         else:
@@ -2169,7 +2207,16 @@ if __name__ == "__main__":
             bridge_para = None
 
         # Call server initialization and startup reticulum and HTTP listeners
-        initialize_server(config_para, port_para, aspect_para, role_para, longpoll_para, timeout_para, bridge_para)
+        initialize_server(
+            config_para,
+            port_para,
+            aspect_para,
+            role_para,
+            longpoll_para,
+            shortpoll_para,
+            timeout_para,
+            bridge_para
+        )
 
         # Flush pending log
         sys.stdout.flush()
