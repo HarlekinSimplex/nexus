@@ -957,8 +957,10 @@ class NexusLXMSocket:
                             " and set next activation time to " + str(queue_entry["next_activity_time"]), RNS.LOG_DEBUG
                             )
                     # Send/Resend message
-                    NEXUS_LXM_SOCKET.send_lxmf_message(queue_entry["message"])
+                    # Tag message as send prior actually sending it to prevent that status is changed already by async
+                    # processing prior send is completed.
                     NEXUS_LXM_SOCKET.message_queue[entry_time]["status"] = QUEUE_ENTRY_STATUS_SEND
+                    NEXUS_LXM_SOCKET.send_lxmf_message(queue_entry["message"])
                     RNS.log("NX:Queue entry message send/resend by postmaster ", RNS.LOG_DEBUG)
                 else:
                     # log message failure
