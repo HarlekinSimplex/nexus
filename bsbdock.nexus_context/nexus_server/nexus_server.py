@@ -595,19 +595,20 @@ def validate_message(message):
                 RNS.LOG_DEBUG
                 )
 
-        # Check for message version 3
-        if message[MESSAGE_JSON_VERSION] == "3":
-            # Messages v3 can be forwarded to be actual ones
-            # Used to handle old clients still posting v3
-            message[MESSAGE_JSON_VERSION] = __message_version__
-            # Log message migration
-            RNS.log("NX:Message was elevated from v3 to v" + __message_version__, RNS.LOG_WARNING)
+        # # Check for message version 3
+        # if message[MESSAGE_JSON_VERSION] == "3":
+        #    # Messages v3 can be forwarded to be actual ones
+        #    # Used to handle old clients still posting v3
+        #    message[MESSAGE_JSON_VERSION] = __message_version__
+        #    # Log message migration
+        #    RNS.log("NX:Message was elevated from v3 to v" + __message_version__, RNS.LOG_WARNING)
+        #
+        # else:
 
-        else:
-            # Actual no migration applied, message will just be invalidated
-            RNS.log("NX:Message is invalidated because no migration possible", RNS.LOG_WARNING)
-            # Set actual message to invalid message
-            message = invalid_message
+        # Actually no migration applied, message will just be invalidated
+        RNS.log("NX:Message is invalidated because no migration possible", RNS.LOG_WARNING)
+        # Set actual message to invalid message
+        message = invalid_message
 
     # Return invalidated or validated (migrated) message
     return message
