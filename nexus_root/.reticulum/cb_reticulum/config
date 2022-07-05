@@ -10,16 +10,36 @@
 
 [interfaces]
 
-  [[TCP Server Interface]]
+  [[TCP Server Interface Nexus.DeltaMatrix.org]]
     type = TCPServerInterface
     interface_enabled = True
     outgoing = True
     listen_ip = 0.0.0.0
     listen_port = 4242
 
-  [[TCP Client Interface - Nexus.DeltaMatrix]]
+#  [[TCP Client Interface - Nexus.DeltaMatrix]]
+#    type = TCPClientInterface
+#    interface_enabled = True
+#    outgoing = True
+#    target_host = frankfurt.rns.unsigned.io
+#    target_port = 4965
+
+# TCP/IP interface to the Dublin hub
+  [[RNS Testnet Dublin]]
     type = TCPClientInterface
-    interface_enabled = True
-    outgoing = True
-    target_host = frankfurt.rns.unsigned.io
+    enabled = yes
+    target_host = dublin.connect.reticulum.network
     target_port = 4965
+
+# TCP/IP interface to the Frankfurt hub
+  [[RNS Testnet Frankfurt]]
+    type = TCPClientInterface
+    enabled = yes
+    target_host = frankfurt.connect.reticulum.network
+    target_port = 5377
+
+# Interface to I2P hub A
+  [[RNS Testnet I2P Hub A]]
+    type = I2PInterface
+    enabled = yes
+    peers = uxg5kubabakh3jtnvsipingbr5574dle7bubvip7llfvwx2tgrua.b32.i2p
