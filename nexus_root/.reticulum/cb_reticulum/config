@@ -17,13 +17,6 @@
     listen_ip = 0.0.0.0
     listen_port = 4242
 
-#  [[TCP Client Interface - Nexus.DeltaMatrix]]
-#    type = TCPClientInterface
-#    interface_enabled = True
-#    outgoing = True
-#    target_host = frankfurt.rns.unsigned.io
-#    target_port = 4965
-
 # TCP/IP interface to the Dublin hub
   [[RNS Testnet Dublin]]
     type = TCPClientInterface

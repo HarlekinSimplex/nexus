@@ -10,7 +10,7 @@
 
 [interfaces]
 
-  [[TCP Server Interface]]
+  [[TCP Server Interface Nexus.Dev]]
     type = TCPServerInterface
     interface_enabled = True
     outgoing = True
