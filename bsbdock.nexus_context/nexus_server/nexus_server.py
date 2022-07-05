@@ -65,6 +65,10 @@ DIGESTION_DELAY = 0.1
 MESSAGE_STORAGE_PATH = os.path.expanduser("~") + "/.nexus/storage"
 MESSAGE_STORAGE_FILE = MESSAGE_STORAGE_PATH + "/messages.umsgpack"
 
+# LXMF Socket storage
+IDENTITY_STORAGE_PATH = os.path.expanduser("~") + "/.nexus/storage"
+IDENTITY_STORAGE_FILE = MESSAGE_STORAGE_PATH + "/server_identity.umsgpack"
+
 # LXMF storage
 LXMF_STORAGE_PATH = os.path.expanduser("~") + "/.nexus/lxmf"
 
@@ -187,8 +191,8 @@ CMD_ADD_MESSAGE = 0
 CMD_REQUEST_MESSAGES_SINCE = 1
 
 # Interval in seconds to wait for lxmf notification until postmaster takes initiative again
-# POSTMASTER_INACTIVE_POLL = 60
-POSTMASTER_INACTIVE_POLL = 5
+NEXUS_POSTMASTER_CONFIG = {"ticks": [0, 1, 2, 3, 5, 8, 13], "poll": 5}
+
 # Message queue stati
 QUEUE_ENTRY_STATUS_NEW = 0
 QUEUE_ENTRY_STATUS_SEND = 1
@@ -226,7 +230,9 @@ def init_bridges():
 # Save messages to storage file
 #
 def save_messages():
-    # Check if storage file is there
+    # Check if message storage path is available
+    validate_path(MESSAGE_STORAGE_PATH)
+    # Check if we can save the messages to disk
     try:
         save_file = open(MESSAGE_STORAGE_FILE, "wb")
         save_file.write(umsgpack.packb(MESSAGE_STORE))
@@ -239,18 +245,25 @@ def save_messages():
 
 
 ##########################################################################################
+# Validate path
+#
+def validate_path(path):
+    # Check if given path is available
+    if not os.path.isdir(path):
+        # Create path
+        os.makedirs(path)
+        # Log that path was created
+        RNS.log("NX:Created file system path " + path, RNS.LOG_NOTICE)
+
+
+##########################################################################################
 # Load messages from storage file
 #
 def load_messages():
     global MESSAGE_STORE
 
-    # Load messages from storage
-    # Check if storage path is available
-    if not os.path.isdir(MESSAGE_STORAGE_PATH):
-        # Create storage path
-        os.makedirs(MESSAGE_STORAGE_PATH)
-        # Log that storage directory was created
-        RNS.log("NX:Created storage path " + MESSAGE_STORAGE_PATH, RNS.LOG_NOTICE)
+    # Check if message storage path is available
+    validate_path(MESSAGE_STORAGE_PATH)
     # Check if we can read some messages from storage
     if os.path.isfile(MESSAGE_STORAGE_FILE):
         try:
@@ -266,7 +279,53 @@ def load_messages():
         # Log how many have survived validation
         RNS.log(str(len(MESSAGE_STORE)) + " messages left after validation", RNS.LOG_DEBUG)
     else:
-        RNS.log("NX:No messages to load from " + MESSAGE_STORAGE_FILE, RNS.LOG_EXTREME)
+        RNS.log("NX:File to load messages from does not exists  " + MESSAGE_STORAGE_FILE, RNS.LOG_EXTREME)
+
+
+##########################################################################################
+# Save lxmf identity to storage file
+#
+def save_lxmf_identity(lxmf_identity):
+    # Check if identity storage path is available
+    validate_path(IDENTITY_STORAGE_PATH)
+    # Check if we can save the given lxmf identity to disk
+    try:
+        lxmf_identity.to_file(IDENTITY_STORAGE_FILE)
+        RNS.log("NX:LXMF identity " + str(lxmf_identity) + " saved to storage file " + IDENTITY_STORAGE_FILE,
+                RNS.LOG_DEBUG
+                )
+
+    except Exception as err:
+        RNS.log("NX:Could not save LXMF identity to storage file " + IDENTITY_STORAGE_FILE, RNS.LOG_ERROR)
+        RNS.log("NX:The contained exception was: %s" % (str(err)), RNS.LOG_ERROR)
+
+
+##########################################################################################
+# Load lxmf identity from storage file
+#
+def load_lxmf_identity():
+    lxmf_identity = None
+    # Check if storage path is available
+    validate_path(IDENTITY_STORAGE_PATH)
+    # Load lxmf identity from storage
+    if os.path.isfile(IDENTITY_STORAGE_FILE):
+        try:
+            lxmf_identity = RNS.Identity.from_file(IDENTITY_STORAGE_FILE)
+            if lxmf_identity is None:
+                RNS.log("NX:LXMF identity stored at " + MESSAGE_STORAGE_FILE + " is invalid",
+                        RNS.LOG_WARNING
+                        )
+            else:
+                RNS.log("NX:LXMF identity " + str(lxmf_identity) + " loaded from storage: " + MESSAGE_STORAGE_FILE,
+                        RNS.LOG_DEBUG
+                        )
+        except Exception as e:
+            RNS.log("NX:Could not load LXMF identity from " + IDENTITY_STORAGE_FILE, RNS.LOG_ERROR)
+            RNS.log("NX:The contained exception was: %s" % (str(e)), RNS.LOG_ERROR)
+    else:
+        RNS.log("NX:File to load LXMF identity from does not exist " + IDENTITY_STORAGE_FILE, RNS.LOG_EXTREME)
+    # Return loaded identity or None in case of failure or file does not exist
+    return lxmf_identity
 
 
 ##########################################################################################
@@ -690,11 +749,15 @@ def log_nexus_message(message):
 # Nexus LXM router socket for LXMF message handling
 #
 class NexusLXMSocket:
+    # LXMF Identity of this Socket
+    socket_identity = None
     # Call back to handle received messages
     message_received_callback = None
     # Postmaster message queue
     message_queue = {}
-    queue_ticks = [0, 1, 2, 3, 5, 8, 13]
+    queue_ticks = NEXUS_POSTMASTER_CONFIG["ticks"]
+    inactive_poll = NEXUS_POSTMASTER_CONFIG["poll"]
+
     # Postmaster ticking flag
     postmaster_is_active = False
 
@@ -725,11 +788,18 @@ class NexusLXMSocket:
         # Log storage path
         RNS.log("NX:LXM Socket storage path is " + self.storage_path, RNS.LOG_INFO)
 
-        # If identity was not given create one for this lxm socket
+        # Initialize socket identity
         self.socket_identity = socket_identity
+        # If identity was not given as parameter try to load it from disk
+        if self.socket_identity is None:
+            self.socket_identity = load_lxmf_identity()
+            # If none is there to load create new one
         if self.socket_identity is None:
             self.socket_identity = RNS.Identity()
-        # Log that storage directory was created
+            # Save actual identity to disk
+            save_lxmf_identity(self.socket_identity)
+
+        # Log that actual socket identity
         RNS.log("NX:LXM Socket identity is " + str(self.socket_identity), RNS.LOG_DEBUG)
 
         # Initialize from destination to be used when sending nexus messages to other nexus servers
@@ -856,7 +926,9 @@ class NexusLXMSocket:
             queue_entry = NEXUS_LXM_SOCKET.message_queue[entry_time]
             RNS.log("NX:Postmaster is processing queue entry with activation time " +
                     str(queue_entry["next_activity_time"]) +
-                    " and tick " + str(queue_entry["queue_tick"]), RNS.LOG_DEBUG
+                    " and tick #" + str(queue_entry["queue_tick"]) +
+                    " [" + str(NEXUS_LXM_SOCKET.queue_ticks[queue_entry["queue_tick"]]) +
+                    " seconds since last activity]", RNS.LOG_DEBUG
                     )
 
             # Check if actual item was delivered (status set to delivered)
@@ -935,11 +1007,11 @@ class NexusLXMSocket:
             else:
                 # Set postmaster active flag to prevent start of multiple postmaster timers
                 NEXUS_LXM_SOCKET.postmaster_is_active = True
-                RNS.log("NX:Trigger postmaster wakeup in " + str(POSTMASTER_INACTIVE_POLL) + " seconds again",
+                RNS.log("NX:Trigger postmaster wakeup in " + str(NEXUS_LXM_SOCKET.inactive_poll) + " seconds again",
                         RNS.LOG_DEBUG
                         )
                 # Start timer to re trigger postmaster
-                t = threading.Timer(POSTMASTER_INACTIVE_POLL, NEXUS_LXM_SOCKET.postmaster_tick)
+                t = threading.Timer(NEXUS_LXM_SOCKET.inactive_poll, NEXUS_LXM_SOCKET.postmaster_tick)
                 # Start as daemon so it terminates with main thread
                 t.daemon = True
                 t.start()
@@ -1477,6 +1549,7 @@ def initialize_server(
         long_poll=None,
         short_poll=None,
         time_out=None,
+        postmaster_config=None,
         bridge_links=None
 ):
     global NEXUS_SERVER_ADDRESS
@@ -1485,8 +1558,9 @@ def initialize_server(
     global NEXUS_SERVER_LONGPOLL
     global NEXUS_SERVER_SHORTPOLL
     global NEXUS_SERVER_TIMEOUT
-    global MESSAGE_STORE
+    global NEXUS_POSTMASTER_CONFIG
     global BRIDGE_TARGETS
+    global MESSAGE_STORE
     global NEXUS_LXM_SOCKET
 
     print("-------------------------------------------------------------")
@@ -1557,6 +1631,12 @@ def initialize_server(
         # Overwrite default short poll default with specified value
         NEXUS_SERVER_SHORTPOLL = int(short_poll)
 
+    # Postmaster configuration
+    # Fibonacci like resend schedule und poll interval
+    if postmaster_config is not None:
+        # Overwrite default postmaster config with specified config
+        NEXUS_POSTMASTER_CONFIG = json.loads(postmaster_config)
+
     # Bridge link configuration
     # Valid server link urls as used in the client for POST/GET HTTP requests
     if bridge_links is not None:
@@ -1565,13 +1645,14 @@ def initialize_server(
 
     RNS.log("NX:...............................................................................", RNS.LOG_INFO)
     RNS.log("NX:Server Configuration:", RNS.LOG_INFO)
-    RNS.log("NX: Port      " + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
-    RNS.log("NX: Aspect    " + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
-    RNS.log("NX: Role      " + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
-    RNS.log("NX: Bridge    " + str(BRIDGE_TARGETS), RNS.LOG_INFO)
-    RNS.log("NX: Timeout   " + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
-    RNS.log("NX: Longpoll  " + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
-    RNS.log("NX: Shortpoll " + str(NEXUS_SERVER_SHORTPOLL), RNS.LOG_INFO)
+    RNS.log("NX: Port       " + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
+    RNS.log("NX: Aspect     " + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
+    RNS.log("NX: Role       " + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
+    RNS.log("NX: Bridge     " + str(BRIDGE_TARGETS), RNS.LOG_INFO)
+    RNS.log("NX: Timeout    " + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
+    RNS.log("NX: Longpoll   " + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
+    RNS.log("NX: Shortpoll  " + str(NEXUS_SERVER_SHORTPOLL), RNS.LOG_INFO)
+    RNS.log("NX: Postmaster " + str(NEXUS_POSTMASTER_CONFIG), RNS.LOG_INFO)
     RNS.log("NX:...............................................................................", RNS.LOG_INFO)
 
     # Create LXMF router socket with this server as source endpoint
@@ -2275,6 +2356,14 @@ if __name__ == "__main__":
         )
 
         parser.add_argument(
+            "--postmaster",
+            action="store",
+            default=None,
+            help="postmaster configuration",
+            type=str
+        )
+
+        parser.add_argument(
             "--bridge",
             action="store",
             default=None,
@@ -2327,6 +2416,11 @@ if __name__ == "__main__":
         else:
             bridge_para = None
 
+        if params.postmaster:
+            postmaster_para = params.postmaster
+        else:
+            postmaster_para = None
+
         # Call server initialization and startup reticulum and HTTP listeners
         initialize_server(
             config_para,
@@ -2336,6 +2430,7 @@ if __name__ == "__main__":
             longpoll_para,
             shortpoll_para,
             timeout_para,
+            postmaster_para,
             bridge_para
         )
 
