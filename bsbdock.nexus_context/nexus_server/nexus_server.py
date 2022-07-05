@@ -191,7 +191,7 @@ CMD_ADD_MESSAGE = 0
 CMD_REQUEST_MESSAGES_SINCE = 1
 
 # Interval in seconds to wait for lxmf notification until postmaster takes initiative again
-NEXUS_POSTMASTER_CONFIG = {"ticks": [0, 1, 2, 3, 5, 8, 13], "poll": 5}
+NEXUS_POSTMASTER_CONFIG = {"ticks": [0, 10, 20, 30, 50, 80, 130], "poll": 1}
 
 # Message queue stati
 QUEUE_ENTRY_STATUS_NEW = 0
