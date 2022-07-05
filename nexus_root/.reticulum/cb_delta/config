@@ -10,7 +10,7 @@
 
 [interfaces]
 
-  [[Server Interface]]
+  [[Server Interface Nexus.Delta]]
     type = TCPServerInterface
     interface_enabled = True
     outgoing = True

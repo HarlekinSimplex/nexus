@@ -9,14 +9,14 @@
 
 [interfaces]
 
-  [[TCP Client Interface]]
+  [[TCP Client Interface Nexus.DeltaMatrix]]
     type = TCPClientInterface
     interface_enabled = True
     outgoing = True
     target_host =  reticulum.deltamatrix.org
     target_port = 4980
 
-  [[TCP Server Interface]]
+  [[TCP Server Interface Nexus.Home]]
     type = TCPServerInterface
     interface_enabled = True
     outgoing = True

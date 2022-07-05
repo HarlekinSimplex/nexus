@@ -10,14 +10,14 @@
 
 [interfaces]
 
-  [[TCP Client Interface]]
+  [[TCP Client Interface Nexus.Delta]]
     type = TCPClientInterface
     interface_enabled = True
     outgoing = True
     target_host = nexus.deltamatrix.org
     target_port = 4252
 
-  [[TCP Server Interface]]
+  [[TCP Server Interface Nexus.Hub]]
     type = TCPServerInterface
     interface_enabled = True
     outgoing = True
