@@ -56,7 +56,7 @@ import RNS.vendor.umsgpack as umsgpack
 __server_version__ = "1.4.1"
 __role_version__ = "2"
 __command_version__ = "1"
-__message_version__ = "4.2"
+__message_version__ = "4.3"
 
 # A moment of time to give LXM a chance to process background stuff while handle outbound messages
 DIGESTION_DELAY = 0.1
