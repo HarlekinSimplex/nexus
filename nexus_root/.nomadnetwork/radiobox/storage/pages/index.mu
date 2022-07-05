@@ -22,6 +22,7 @@ echo " NEXUS_ROLE=$NEXUS_ROLE"
 echo " NEXUS_LONGPOLL=$NEXUS_LONGPOLL"
 echo " NEXUS_SHORTPOLL=$NEXUS_SHORTPOLL"
 echo " NEXUS_TIMEOUT=$NEXUS_TIMEOUT"
+echo " NEXUS_POSTMASTER=$NEXUS_POSTMASTER"
 echo " NEXUS_BRIDGE=$NEXUS_BRIDGE"
 echo
 echo " -------------------------------------------------------------"
