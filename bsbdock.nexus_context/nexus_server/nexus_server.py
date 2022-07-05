@@ -1542,14 +1542,14 @@ class NexusLXMAnnounceHandler:
 # python3 nexus_server.py --config="~/.reticulum" --port:4281 --aspect=server --role="{\"c\":\"root\"}"
 #
 def initialize_server(
-        configpath,
+        configpath=None,
         server_port=None,
         server_aspect=None,
         server_role=None,
         long_poll=None,
         short_poll=None,
         time_out=None,
-        postmaster_config=None,
+        postmaster=None,
         bridge_links=None
 ):
     global NEXUS_SERVER_ADDRESS
@@ -1633,9 +1633,9 @@ def initialize_server(
 
     # Postmaster configuration
     # Fibonacci like resend schedule und poll interval
-    if postmaster_config is not None:
+    if postmaster is not None:
         # Overwrite default postmaster config with specified config
-        NEXUS_POSTMASTER_CONFIG = json.loads(postmaster_config)
+        NEXUS_POSTMASTER_CONFIG = json.loads(postmaster)
 
     # Bridge link configuration
     # Valid server link urls as used in the client for POST/GET HTTP requests
@@ -2423,15 +2423,15 @@ if __name__ == "__main__":
 
         # Call server initialization and startup reticulum and HTTP listeners
         initialize_server(
-            config_para,
-            port_para,
-            aspect_para,
-            role_para,
-            longpoll_para,
-            shortpoll_para,
-            timeout_para,
-            postmaster_para,
-            bridge_para
+            configpath=config_para,
+            server_port=port_para,
+            server_aspect=aspect_para,
+            server_role=role_para,
+            long_poll=longpoll_para,
+            short_poll=shortpoll_para,
+            time_out=timeout_para,
+            postmaster=postmaster_para,
+            bridge_links=bridge_para
         )
 
         # Flush pending log
