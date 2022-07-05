@@ -20,4 +20,5 @@ exec python3 -u ./nexus_server/nexus_server.py \
   ${NEXUS_LONGPOLL:+--longpoll=$NEXUS_LONGPOLL} \
   ${NEXUS_SHORTPOLL:+--shortpoll=$NEXUS_SHORTPOLL} \
   ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
+  ${NEXUS_POSTMASTER:+--postmaster=$NEXUS_POSTMASTER} \
   ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}
