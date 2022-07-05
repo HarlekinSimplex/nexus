@@ -17,7 +17,7 @@
     listen_ip = 0.0.0.0
     listen_port = 4242
 
-  [[TCP Client Interface - Nexus.DeltaMatrix]]
+  [[TCP Client Interface - Nexus.Home]]
     type = TCPClientInterface
     interface_enabled = True
     outgoing = True
