@@ -21,6 +21,7 @@
   [[RNS Testnet Dublin]]
     type = TCPClientInterface
     enabled = yes
+    outgoing = True
     target_host = dublin.connect.reticulum.network
     target_port = 4965
 
@@ -28,6 +29,7 @@
   [[RNS Testnet Frankfurt]]
     type = TCPClientInterface
     enabled = yes
+    outgoing = True
     target_host = frankfurt.connect.reticulum.network
     target_port = 5377
 
@@ -35,4 +37,5 @@
   [[RNS Testnet I2P Hub A]]
     type = I2PInterface
     enabled = yes
+    outgoing = True
     peers = uxg5kubabakh3jtnvsipingbr5574dle7bubvip7llfvwx2tgrua.b32.i2p
