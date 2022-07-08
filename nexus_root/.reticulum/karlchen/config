@@ -48,7 +48,7 @@
     frequency = 169450000
     bandwidth = 41700
     txpower = 15
-    spreadingfactor = 8
+    spreadingfactor = 10
     codingrate = 5
     id_callsign = DD8SB-4
     id_interval = 60
