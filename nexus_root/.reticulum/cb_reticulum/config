@@ -36,6 +36,6 @@
 # Interface to I2P hub A
   [[RNS Testnet I2P Hub A]]
     type = I2PInterface
-    enabled = yes
+    enabled = no
     outgoing = True
     peers = uxg5kubabakh3jtnvsipingbr5574dle7bubvip7llfvwx2tgrua.b32.i2p
