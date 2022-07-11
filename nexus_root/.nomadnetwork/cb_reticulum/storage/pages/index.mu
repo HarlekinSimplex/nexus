@@ -8,6 +8,8 @@ echo
 echo " -------------------------------------------------------------"
 echo " Configured node environment:"
 echo " -------------------------------------------------------------"
+rnsd --version
+nomadnet --version
 echo
 echo " RNS_AUTOSTART=$RNS_AUTOSTART"
 echo " NOMADNET_AUTOSTART=$NOMADNET_AUTOSTART"
