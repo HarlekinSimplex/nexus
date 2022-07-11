@@ -6,11 +6,14 @@ cat $NOMADNET_CONFIG/storage/pages/banner.txt
 
 echo
 echo " -------------------------------------------------------------"
+echo " RNS/Nomadnetwork Versions in use:"
+echo " -------------------------------------------------------------"
+echo " $(rnsd --version)"
+echo " $(nomadnet --version)"
+echo
+echo " -------------------------------------------------------------"
 echo " Configured node environment:"
 echo " -------------------------------------------------------------"
-rnsd --version
-nomadnet --version
-echo
 echo " RNS_AUTOSTART=$RNS_AUTOSTART"
 echo " NOMADNET_AUTOSTART=$NOMADNET_AUTOSTART"
 echo " NGINX_AUTOSTART=$NGINX_AUTOSTART"
