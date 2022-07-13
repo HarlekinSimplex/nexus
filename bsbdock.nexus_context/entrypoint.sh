@@ -69,7 +69,7 @@ export NEXUS_ROLE="${NEXUS_ROLE:-{\"cluster\":\"home\"\}}"
 export NEXUS_LONGPOLL="${NEXUS_LONGPOLL:-17280}"
 export NEXUS_SHORTPOLL="${NEXUS_SHORTPOLL:-10}"
 export NEXUS_TIMEOUT="${NEXUS_TIMEOUT:-43200}"
-export NEXUS_POSTMASTER="${NEXUS_POSTMASTER:-{\"ticks\":[0,10,20,30,50,80,130],\"poll\":1}}"
+export NEXUS_POSTMASTER="${NEXUS_POSTMASTER:-{\"ticks\":[0,30,60,90,150,240,390],\"poll\":1}}"
 export NEXUS_BRIDGE="${NEXUS_BRIDGE:-[]}"
 
 echo ""
