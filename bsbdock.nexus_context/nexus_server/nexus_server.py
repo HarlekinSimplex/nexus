@@ -204,7 +204,7 @@ QUEUE_ENTRY_STATUS_DELIVERED = 2
 QUEUE_ENTRY_STATUS_FAILED = 3
 
 # Distribution of messages subscriptions by a dynamic master or just to all subscribed targets
-DYNAMIC_DISTRIBUTION_MASTER = True
+DYNAMIC_DISTRIBUTION_MASTER = False
 # The master ID of this server instance will be initialized during server startup
 DYNAMIC_MASTER_ID = None
 # Setting these variables to 'None' makes this server act as cluster master
