@@ -204,8 +204,12 @@ QUEUE_ENTRY_STATUS_DELIVERED = 2
 QUEUE_ENTRY_STATUS_FAILED = 3
 
 # Distribution of messages subscriptions by a dynamic master or just to all subscribed targets
-DYNAMIC_DISTRIBUTION_MASTER = False
+DYNAMIC_DISTRIBUTION_MASTER = True
+# The master ID of this server instance will be initialized during server startup
 DYNAMIC_MASTER_ID = None
+# Setting these variables to 'None' makes this server act as cluster master
+# As soon as an announcement with a dynamic master ID is received or a destination is removed
+# these variables will be updated in case a new master needs to be selected
 ACTUAL_DYNAMIC_MASTER_ID = None
 ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH = None
 
@@ -759,6 +763,50 @@ def add_subscription_target(destination_hash, last_heard, announced_identity, an
 def remove_subscription_target(destination_hash):
     # Remove destination from target dict
     DISTRIBUTION_TARGETS.pop(destination_hash)
+    # Check and update selection of dynamic distribution master
+    # The popped one may need to be replaced by a new one
+    select_distribution_master()
+
+
+##########################################################################################
+# Assess subscription targets to identify, select and configure cluster distribution master
+# In case no other master is found configure this server as master
+#
+def select_distribution_master():
+    global ACTUAL_DYNAMIC_MASTER_ID
+    global ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH
+
+    # All starts only when we have dynamic distribution master enabled
+    if DYNAMIC_DISTRIBUTION_MASTER:
+        # Set actual dynamic master ID initially to the ID of this server
+        ACTUAL_DYNAMIC_MASTER_ID = DYNAMIC_MASTER_ID
+        # Now walk through all distribution targets and assess the announced dynamic master ids
+        for destination_hash in DISTRIBUTION_TARGETS.keys():
+            # Get the actual destination dict
+            destination = DISTRIBUTION_TARGETS[destination_hash]
+            # Check if we have a dynamic master ID announced with that target
+            if ROLE_JSON_DYNAMIC_MASTER_ID in destination.keys():
+                # Check if that ID is 'older' then ours
+                if destination[ROLE_JSON_DYNAMIC_MASTER_ID] < DYNAMIC_MASTER_ID:
+                    # If so we have found a new master
+                    # Set actual master ID to the announced master id
+                    ACTUAL_DYNAMIC_MASTER_ID = destination[ROLE_JSON_DYNAMIC_MASTER_ID]
+                    # Set master destination hash to this destination
+                    ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH = destination_hash
+
+        # Now check if actual master ID is still unchanged
+        # If so clear the ID to make this one the master
+        if ACTUAL_DYNAMIC_MASTER_ID == DYNAMIC_MASTER_ID:
+            ACTUAL_DYNAMIC_MASTER_ID = None
+            ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH = None
+            # Log this server is now distribution master
+            RNS.log("NX:This Nexus Node is now cluster distribution master with Master ID: " + str(DYNAMIC_MASTER_ID),
+                    RNS.LOG_INFO)
+        else:
+            # Log actual master found
+            RNS.log("NX: Destination " + RNS.prettyhexrep(ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH) +
+                    " is now cluster distribution master with Master ID: " + ACTUAL_DYNAMIC_MASTER_ID,
+                    RNS.LOG_INFO)
 
 
 ##########################################################################################
@@ -1547,6 +1595,13 @@ class NexusLXMAnnounceHandler:
                         " last heard " + str(last_heard) + "sec ago",
                         RNS.LOG_VERBOSE
                         )
+
+                # In case we have dynamic master distribution enabled:
+                # Check if the announced target has a dynamic master id include that may qualify as cluster master now
+                if DYNAMIC_DISTRIBUTION_MASTER:
+                    # Asses the distribution target dict to find and set up actual cluster distribution master
+                    select_distribution_master()
+
         else:
             # Announce should be ignored since it belongs to a different cluster, and we are not eligible to
             # link with that cluster as gateway too
@@ -2341,6 +2396,7 @@ def signal_handler(_signal, _frame):
     # Exit
     sys.exit(0)
 
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -2350,6 +2406,7 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
