@@ -806,7 +806,7 @@ def select_distribution_master():
                     RNS.LOG_INFO)
         else:
             # Log actual master found
-            RNS.log("NX: Destination " + RNS.prettyhexrep(ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH) +
+            RNS.log("NX:Destination " + RNS.prettyhexrep(ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH) +
                     " is now cluster distribution master with Master ID: " + str(ACTUAL_DYNAMIC_MASTER_ID),
                     RNS.LOG_INFO)
 
@@ -2321,6 +2321,17 @@ def distribute_message(nexus_message):
     # Remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
     for registered_destination_hash in DISTRIBUTION_TARGETS.copy():
+        # If we are in dynamic distribution master mode,
+        # and we are not master then distribute message to the master only
+        # Check if we are dynamic distribution master mode and we ar not the master
+        if DYNAMIC_DISTRIBUTION_MASTER and ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH is not None:
+            # Now check if we shall skip the actual target because it is not the actual cluster master
+            if ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH != registered_destination_hash:
+                continue
+
+        # Distribute message to actual selected subscriber because
+        # we run in standard N:M distribution mode or we are cluster master and need to send message to all subs
+
         # Get target and identity from target dict
         # Initialize message body
         registered_destination_identity = DISTRIBUTION_TARGETS[registered_destination_hash][1]
