@@ -785,12 +785,14 @@ def select_distribution_master():
             # Get the actual destination dict
             destination = DISTRIBUTION_TARGETS[destination_hash]
             # Check if we have a dynamic master ID announced with that target
-            if ROLE_JSON_DYNAMIC_MASTER_ID in destination.keys():
+            if ROLE_JSON_DYNAMIC_MASTER_ID in destination[2].keys():
+                # Get Server Role
+                role = destination[2]
                 # Check if that ID is 'older' then ours
-                if destination[ROLE_JSON_DYNAMIC_MASTER_ID] < DYNAMIC_MASTER_ID:
+                if role[ROLE_JSON_DYNAMIC_MASTER_ID] < DYNAMIC_MASTER_ID:
                     # If so we have found a new master
                     # Set actual master ID to the announced master id
-                    ACTUAL_DYNAMIC_MASTER_ID = destination[ROLE_JSON_DYNAMIC_MASTER_ID]
+                    ACTUAL_DYNAMIC_MASTER_ID = role[ROLE_JSON_DYNAMIC_MASTER_ID]
                     # Set master destination hash to this destination
                     ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH = destination_hash
 
@@ -805,7 +807,7 @@ def select_distribution_master():
         else:
             # Log actual master found
             RNS.log("NX: Destination " + RNS.prettyhexrep(ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH) +
-                    " is now cluster distribution master with Master ID: " + ACTUAL_DYNAMIC_MASTER_ID,
+                    " is now cluster distribution master with Master ID: " + str(ACTUAL_DYNAMIC_MASTER_ID),
                     RNS.LOG_INFO)
 
 
