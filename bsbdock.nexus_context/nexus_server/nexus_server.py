@@ -755,6 +755,9 @@ def add_subscription_target(destination_hash, last_heard, announced_identity, an
         announced_identity,
         announced_role
     )
+    # Check and update selection of dynamic distribution master
+    # The popped one may need to be replaced by a new one
+    select_distribution_master()
 
 
 ##########################################################################################
@@ -1597,12 +1600,6 @@ class NexusLXMAnnounceHandler:
                         " last heard " + str(last_heard) + "sec ago",
                         RNS.LOG_VERBOSE
                         )
-
-                # In case we have dynamic master distribution enabled:
-                # Check if the announced target has a dynamic master id include that may qualify as cluster master now
-                if DYNAMIC_DISTRIBUTION_MASTER:
-                    # Asses the distribution target dict to find and set up actual cluster distribution master
-                    select_distribution_master()
 
         else:
             # Announce should be ignored since it belongs to a different cluster, and we are not eligible to
