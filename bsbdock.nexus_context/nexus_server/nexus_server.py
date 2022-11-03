@@ -53,8 +53,8 @@ import RNS.vendor.umsgpack as umsgpack
 #
 
 # Versions used
-__server_version__ = "1.4.1"
-__role_version__ = "2"
+__server_version__ = "1.4.2"
+__role_version__ = "3"
 __command_version__ = "1"
 __message_version__ = "4.3"
 
@@ -72,7 +72,7 @@ IDENTITY_STORAGE_FILE = MESSAGE_STORAGE_PATH + "/server_identity.umsgpack"
 # LXMF storage
 LXMF_STORAGE_PATH = os.path.expanduser("~") + "/.nexus/lxmf"
 
-# Message buffer used for actually server messages
+# Message buffer used for actual server messages
 MESSAGE_STORE = []  # type: list[dict]
 # Number of messages hold (Size of message buffer)
 MESSAGE_BUFFER_SIZE = 20
@@ -90,17 +90,20 @@ DISTRIBUTION_TARGETS = {}
 
 # Bridge links
 # These links are used to propagate messages into other nexus message server networks
-# This can be used to keep announcement traffic within a small bunch of servers als well as to reduce redundant
+# This can be used to keep announcement traffic within a small bunch of servers as well as to reduce redundant
 # message traffic into the bridged cluster of servers.
-# These links are use as additional distribution targets
-# Links ar specified using an array of json map as startup parameter --bridge
+# These links are used as additional distribution targets
+# Links are specified using an array of json map as startup parameter --bridge
 # BRIDGE_LINKS = [
 #    {'url': 'https://nexus.deltamatrix.org:8241', 'cluster': 'delta'},
 #    {'url': 'https://nexus.deltamatrix.org:8242', 'cluster': 'dev'}
 # ]
 BRIDGE_TARGETS = []
 
+#
 # Json labels used
+#
+
 # Message format used with client app
 # Message Examples:
 # {"id": Integer, "time": "String", "msg": "MessageBody"}
@@ -137,11 +140,11 @@ MERGE_JSON_TAG = "tag"
 
 # Server to server protokoll used for automatic subscription (Cluster and Gateway)
 # The LXM Destination is added with the LXM socket instantiation
-# Role Example: {'c':'ClusterName','g':'GatewayName', 'l': latest_id}
 ROLE_JSON_CLUSTER = "cluster"
 ROLE_JSON_GATEWAY = "gate"
 ROLE_JSON_LAST = "last"
 ROLE_JSON_VERSION = "rolv"
+ROLE_JSON_DYNAMIC_MASTER_ID = "dmid"
 
 # Full version dict added to role
 __full_version__ = {
@@ -162,7 +165,8 @@ NEXUS_SERVER_ASPECT = "home"
 # These servers can later be interconnected by using gateway names (see server role)
 DEFAULT_CLUSTER = "home"
 # The server role has two parts. 'cluster' and 'gateway'. By default, only cluster is used and preset by the global
-# variable above. # If gateway is set as well other nexus server can auto subscribe by announcing the same cluster
+# variable above.
+# If gateway is set as well other nexus server can auto subscribe by announcing the same cluster
 # or same gateway name with their json role specification.
 NEXUS_SERVER_ROLE = {ROLE_JSON_CLUSTER: DEFAULT_CLUSTER}
 
@@ -198,6 +202,12 @@ QUEUE_ENTRY_STATUS_NEW = 0
 QUEUE_ENTRY_STATUS_SEND = 1
 QUEUE_ENTRY_STATUS_DELIVERED = 2
 QUEUE_ENTRY_STATUS_FAILED = 3
+
+# Distribution of messages subscriptions by a dynamic master or just to all subscribed targets
+DYNAMIC_DISTRIBUTION_MASTER = False
+DYNAMIC_MASTER_ID = None
+ACTUAL_DYNAMIC_MASTER_ID = None
+ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH = None
 
 
 ##########################################################################################
@@ -329,7 +339,7 @@ def load_lxmf_identity():
 
 
 ##########################################################################################
-# Load message buffers from all configured bridges, merge them into the messages buffer of
+# Get message buffers from all configured bridges, merge them into the messages buffer of
 # this server.
 # Messages exceeding the maximum message count limit will be dropped.
 # Messages that have newly arrived in the buffer are distributed to all relevant nexus servers
@@ -407,7 +417,7 @@ def sync_from_bridges():
                 # Can be invalid in case any incoming message may have caused drop of that message
                 untag_message(message[MESSAGE_JSON_ID], MERGE_JSON_TAG)
                 # Distribute message to distribution targets and other bridge targets
-                # Copy of message still has bridge tan to indicate its origin
+                # Copy of message still has bridge tag to indicate its origin
                 distribute_message(message)
 
         # Save message buffer after synchronisation
@@ -523,12 +533,12 @@ def validate_command(command):
                 RNS.LOG_DEBUG
                 )
 
-        # Actual no migration applied, message will just be invalidated
+        # Actual no migration applied, command will just be invalidated
         RNS.log("NX:Command is invalidated because no migration possible", RNS.LOG_INFO)
         # Set actual command to invalid command
         command = invalid_command
 
-    # Return invalidated or validated (migrated) message
+    # Return invalidated or validated (migrated) command
     return command
 
 
@@ -626,7 +636,7 @@ def is_valid_message(message):
 
 
 ##########################################################################################
-# Validate/Drop/Migrate Announcement
+# Validate/Drop/Migrate Role
 #
 def validate_role(server_role):
     # Server role signature to invalidate an announce
@@ -660,7 +670,7 @@ def validate_role(server_role):
         # Replace this section with migration if one is possible
         # Actual no migration implemented, announced role is considered valid
 
-    # Return invalidated or validated (migrated) message
+    # Return invalidated or validated (migrated) role
     return server_role
 
 
@@ -707,7 +717,7 @@ def validate_message_store():
     store_size = len(MESSAGE_STORE)
     # If we have any message, validate messages
     if store_size > 0:
-        # Loop through all messages from end to start, so we can pop items securely
+        # Loop through all messages from end to start, so we can pop items safely
         for i in range(store_size):
             # Validation/Migration of the actual messages in buffer
             MESSAGE_STORE[store_size - i - 1] = validate_message(MESSAGE_STORE[store_size - i - 1])
@@ -723,11 +733,32 @@ def validate_message_store():
 def latest_message_id():
     store_size = len(MESSAGE_STORE)
     if store_size < 1:
-        # IF we have no messages yet id is 0 since unix epoch
+        # If we have no messages yet id is 0 since unix epoch
         return 0
     else:
         # Return message id which indicates time since unix epoch
         return MESSAGE_STORE[store_size - 1][MESSAGE_JSON_ID]
+
+
+##########################################################################################
+# Register/update a destination as valid distribution target
+#
+def add_subscription_target(destination_hash, last_heard, announced_identity, announced_role):
+    # Add entry to distribution target dict
+    # Already existing targets get updated last_heard timestamp
+    DISTRIBUTION_TARGETS[destination_hash] = (
+        last_heard,
+        announced_identity,
+        announced_role
+    )
+
+
+##########################################################################################
+# Remove distribution target by destination_hash
+#
+def remove_subscription_target(destination_hash):
+    # Remove destination from target dict
+    DISTRIBUTION_TARGETS.pop(destination_hash)
 
 
 ##########################################################################################
@@ -814,7 +845,7 @@ class NexusLXMSocket:
         # Set proof strategy to PROVE_ALL
         self.socket_destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
-        # Log the crated lxm destination
+        # Log the created lxm destination
         RNS.log("NX:LXM Nexus Server from destination is " + str(self.socket_destination), RNS.LOG_DEBUG)
         RNS.log("NX:LXM Nexus Server hash is " + RNS.prettyhexrep(self.destination_hash()), RNS.LOG_DEBUG)
 
@@ -994,9 +1025,12 @@ class NexusLXMSocket:
                     RNS.log("NX:Removing entry " + str(queue_entry["entry_time"]) + " from message queue",
                             RNS.LOG_DEBUG
                             )
+
+                    # Remove destination subscription (if it still exists) because it is supposed to be unreachable
+                    remove_subscription_target(message["destination_hash"])
                     # Remove actual queue entry from queue
                     NEXUS_LXM_SOCKET.message_queue.pop(queue_entry["entry_time"])
-                    # todo: remove destination subscription (if it still exists)
+
                 # Process one element at the time at every postmaster wakeup
                 break
             else:
@@ -1403,7 +1437,7 @@ class NexusLXMAnnounceHandler:
         # Validate/Migrate announced role
         if not is_valid_role(validate_role(announced_role)):
             # Log app data missing
-            RNS.log("NX:The announce is ignored because it is no valid nexus server role", RNS.LOG_DEBUG)
+            RNS.log("NX:The announce is ignored because its not a valid nexus server role", RNS.LOG_DEBUG)
             return
 
         # Get dict key and timestamp for distribution identity registration
@@ -1434,8 +1468,9 @@ class NexusLXMAnnounceHandler:
             else:
                 new_target = False
 
-            # Register/update destination as valid distribution target
-            DISTRIBUTION_TARGETS[destination_hash] = (
+            # Add/Update announced target to distribution target list
+            add_subscription_target(
+                destination_hash,
                 last_heard,
                 announced_identity,
                 announced_role
@@ -1504,7 +1539,7 @@ class NexusLXMAnnounceHandler:
                             RNS.LOG_DEBUG
                             )
                     # Actually remove destination from dict
-                    DISTRIBUTION_TARGETS.pop(registered_destination_hash)
+                    remove_subscription_target(registered_destination_hash)
 
                 # If actual is still valid log it
                 RNS.log("NX:" +
@@ -1553,6 +1588,7 @@ def initialize_server(
         short_poll=None,
         time_out=None,
         postmaster=None,
+        dynamicmaster=None,
         bridge_links=None
 ):
     global NEXUS_SERVER_ADDRESS
@@ -1565,6 +1601,8 @@ def initialize_server(
     global BRIDGE_TARGETS
     global MESSAGE_STORE
     global NEXUS_LXM_SOCKET
+    global DYNAMIC_DISTRIBUTION_MASTER
+    global DYNAMIC_MASTER_ID
 
     print("-------------------------------------------------------------")
     if configpath is not None:
@@ -1646,16 +1684,27 @@ def initialize_server(
         # Overwrite default role with specified role
         BRIDGE_TARGETS = json.loads(bridge_links)
 
+    # Dynamic Master initialization
+    if dynamicmaster is not None:
+        # Overwrite default configuration according given parameter
+        DYNAMIC_DISTRIBUTION_MASTER = True
+
+    # Initialize dynamic master distribution
+    if DYNAMIC_DISTRIBUTION_MASTER:
+        DYNAMIC_MASTER_ID = nexus_timestamp()
+        NEXUS_SERVER_ROLE[ROLE_JSON_DYNAMIC_MASTER_ID] = DYNAMIC_MASTER_ID
+
     RNS.log("NX:...............................................................................", RNS.LOG_INFO)
     RNS.log("NX:Server Configuration:", RNS.LOG_INFO)
-    RNS.log("NX: Port       " + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
-    RNS.log("NX: Aspect     " + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
-    RNS.log("NX: Role       " + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
-    RNS.log("NX: Bridge     " + str(BRIDGE_TARGETS), RNS.LOG_INFO)
-    RNS.log("NX: Timeout    " + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
-    RNS.log("NX: Longpoll   " + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
-    RNS.log("NX: Shortpoll  " + str(NEXUS_SERVER_SHORTPOLL), RNS.LOG_INFO)
-    RNS.log("NX: Postmaster " + str(NEXUS_POSTMASTER_CONFIG), RNS.LOG_INFO)
+    RNS.log("NX: Port           " + str(NEXUS_SERVER_ADDRESS[1]), RNS.LOG_INFO)
+    RNS.log("NX: Aspect         " + NEXUS_SERVER_ASPECT, RNS.LOG_INFO)
+    RNS.log("NX: Role           " + str(NEXUS_SERVER_ROLE), RNS.LOG_INFO)
+    RNS.log("NX: Bridge         " + str(BRIDGE_TARGETS), RNS.LOG_INFO)
+    RNS.log("NX: Timeout        " + str(NEXUS_SERVER_TIMEOUT), RNS.LOG_INFO)
+    RNS.log("NX: Longpoll       " + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
+    RNS.log("NX: Shortpoll      " + str(NEXUS_SERVER_SHORTPOLL), RNS.LOG_INFO)
+    RNS.log("NX: Postmaster     " + str(NEXUS_POSTMASTER_CONFIG), RNS.LOG_INFO)
+    RNS.log("NX: Dynamic Master " + str(DYNAMIC_DISTRIBUTION_MASTER), RNS.LOG_INFO)
     RNS.log("NX:...............................................................................", RNS.LOG_INFO)
 
     # Create LXMF router socket with this server as source endpoint
@@ -2276,7 +2325,7 @@ def distribute_message(nexus_message):
                         RNS.LOG_VERBOSE
                         )
                 # Remove expired target identity from distribution list
-                DISTRIBUTION_TARGETS.pop(registered_destination_hash)
+                remove_subscription_target(registered_destination_hash)
 
 
 #######################################################
@@ -2292,6 +2341,15 @@ def signal_handler(_signal, _frame):
     # Exit
     sys.exit(0)
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
@@ -2374,6 +2432,15 @@ if __name__ == "__main__":
             type=str
         )
 
+        parser.add_argument(
+            "--dynamicmaster",
+            default=False,
+            const=True,
+            nargs='?',
+            help="Enable dynamic master distribution",
+            type=str2bool
+        )
+
         # Parse passed commandline arguments as specified above
         params = parser.parse_args()
 
@@ -2424,6 +2491,11 @@ if __name__ == "__main__":
         else:
             postmaster_para = None
 
+        if params.dynamicmaster:
+            dynamicmaster_para = params.dynamicmaster
+        else:
+            dynamicmaster_para = None
+
         # Call server initialization and startup reticulum and HTTP listeners
         initialize_server(
             configpath=config_para,
@@ -2434,6 +2506,7 @@ if __name__ == "__main__":
             short_poll=shortpoll_para,
             time_out=timeout_para,
             postmaster=postmaster_para,
+            dynamicmaster=dynamicmaster_para,
             bridge_links=bridge_para
         )
 
