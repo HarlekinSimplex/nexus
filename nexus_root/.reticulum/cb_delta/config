@@ -15,4 +15,4 @@
     interface_enabled = True
     outgoing = True
     listen_ip = 0.0.0.0
-    listen_port = 4242
+    listen_port = 4252
