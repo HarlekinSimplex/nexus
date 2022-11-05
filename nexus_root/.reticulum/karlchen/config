@@ -26,7 +26,7 @@
 
   [[RNode LoRa Interface 868]]
     type = RNodeInterface
-    interface_enabled = False
+    interface_enabled = True
     outgoing = True
     port = /dev/ttyRNODE
     frequency = 867200000
@@ -36,13 +36,13 @@
     codingrate = 5
     id_callsign = DD8SB-3
     id_interval = 60
-    network_name = myTwinCluster
-    passphrase = myTwinCluster
+#    network_name = myTwinCluster
+#    passphrase = myTwinCluster
     flow_control = False
 
   [[RNode LoRa Interface 169]]
     type = RNodeInterface
-    interface_enabled = True
+    interface_enabled = False
     outgoing = True
     port = /dev/ttyRNODE2
     frequency = 169450000
