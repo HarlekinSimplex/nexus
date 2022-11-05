@@ -19,7 +19,7 @@
 
   [[TCP Client Interface - Nexus.Hub]]
     type = TCPClientInterface
-    interface_enabled = False
+    interface_enabled = True
     outgoing = True
     target_host = nexus.deltamatrix.org
     target_port = 4253
