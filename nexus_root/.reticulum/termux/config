@@ -15,12 +15,13 @@
     interface_enabled = True
     outgoing = True
     listen_ip = 0.0.0.0
+    # Don't change the server port because it is mapped into the container by docker-compose.yml
     listen_port = 4242
 
-  [[TCP Client Interface - Nexus.Hub]]
+  [[TCP Client Interface - Nexus.Home]]
     type = TCPClientInterface
-    interface_enabled = False
+    interface_enabled = True
     outgoing = True
     target_host = nexus.deltamatrix.org
-    target_port = 4253
+    target_port = 4251
 

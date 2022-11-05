@@ -9,6 +9,14 @@
 
 [interfaces]
 
+  [[TCP Server Interface Nexus.Home]]
+    type = TCPServerInterface
+    interface_enabled = True
+    outgoing = True
+    listen_ip = 0.0.0.0
+    # Don't change the server port because it is mapped into the container by docker-compose.yml
+    listen_port = 4242
+
   [[TCP Client Interface Nexus.DeltaMatrix]]
     type = TCPClientInterface
     interface_enabled = True
@@ -16,9 +24,3 @@
     target_host =  reticulum.deltamatrix.org
     target_port = 4980
 
-  [[TCP Server Interface Nexus.Home]]
-    type = TCPServerInterface
-    interface_enabled = True
-    outgoing = True
-    listen_ip = 0.0.0.0
-    listen_port = 4242

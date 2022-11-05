@@ -15,6 +15,7 @@
     interface_enabled = True
     outgoing = True
     listen_ip = 0.0.0.0
+    # Don't change the server port because it is mapped into the container by docker-compose.yml
     listen_port = 4242
 
   [[TCP Client Interface - Nexus.Home]]

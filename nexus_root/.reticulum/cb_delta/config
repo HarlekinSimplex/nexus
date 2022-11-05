@@ -15,4 +15,5 @@
     interface_enabled = True
     outgoing = True
     listen_ip = 0.0.0.0
-    listen_port = 4252
+    # Don't change the server port because it is mapped into the container by docker-compose.yml
+    listen_port = 4242
