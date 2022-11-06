@@ -2365,18 +2365,26 @@ def distribute_message(nexus_message):
         # Check if we are dynamic distribution master mode
         if DYNAMIC_MASTER_DISTRIBUTION:
             # Check if we have a cluster master destination
-            if ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH is not None:
+            if ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH is None:
+                # This server is cluster master, and we need to distribute to the actual target
+                cluster_distribution_flag = True
+            else:
                 # Now check if we shall send to the actual target because it is the actual cluster master
                 if ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH == registered_destination_hash:
                     cluster_distribution_flag = True
 
-            # Check if we have a gateway master destination
-            if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH is not None:
-                # Now check if we shall send to the actual target because it is the actual gateway master
-                if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH == registered_destination_hash:
+            # Check if we have a gateway role set
+            if ROLE_JSON_GATEWAY in NEXUS_SERVER_ROLE.keys():
+                # Check if we have a gateway master destination
+                if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH is None:
+                    # This server is cluster master, and we need to distribute to the actual target
                     gateway_distribution_flag = True
+                else:
+                    # Now check if we shall send to the actual target because it is the actual gateway master
+                    if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH == registered_destination_hash:
+                        gateway_distribution_flag = True
 
-            # Don't distribute message to the actual target if we neither cluster nor gateway master for this target
+            # Skip distribution to the actual target if neither cluster nor gateway distribution flag was set
             if not (cluster_distribution_flag or gateway_distribution_flag):
                 # Log message received by distribution event
                 RNS.log("NX:" +
