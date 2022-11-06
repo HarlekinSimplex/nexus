@@ -204,7 +204,7 @@ QUEUE_ENTRY_STATUS_DELIVERED = 2
 QUEUE_ENTRY_STATUS_FAILED = 3
 
 # Distribution of messages subscriptions by a dynamic master or just to all subscribed targets
-DYNAMIC_DISTRIBUTION_MASTER = False
+DYNAMIC_MASTER_DISTRIBUTION = False
 # The master ID of this server instance will be initialized during server startup
 DYNAMIC_MASTER_ID = None
 # Setting these variables to 'None' makes this server act as master with the cluster or gateway group of serves
@@ -785,7 +785,7 @@ def select_distribution_master():
     global ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH
 
     # All starts only when we have dynamic distribution master enabled
-    if DYNAMIC_DISTRIBUTION_MASTER:
+    if DYNAMIC_MASTER_DISTRIBUTION:
         # Set actual dynamic master ID initially to the ID of this server
         ACTUAL_CLUSTER_DYNAMIC_MASTER_ID = DYNAMIC_MASTER_ID
         ACTUAL_GATEWAY_DYNAMIC_MASTER_ID = DYNAMIC_MASTER_ID
@@ -805,15 +805,17 @@ def select_distribution_master():
                     # Set master destination hash to this destination
                     ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH = destination_hash
 
-                # Check if the target role has a gateway entry as well
-                if ROLE_JSON_GATEWAY in role.keys():
-                    # if so check that ID is 'older' then actual gateway master id as well
-                    if role[ROLE_JSON_DYNAMIC_MASTER_ID] < ACTUAL_GATEWAY_DYNAMIC_MASTER_ID:
-                        # If so we have found a new master for the actual cluster
-                        # Set actual master ID to the announced master id
-                        ACTUAL_GATEWAY_DYNAMIC_MASTER_ID = role[ROLE_JSON_DYNAMIC_MASTER_ID]
-                        # Set master destination hash to this destination
-                        ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH = destination_hash
+                # Check if this server is acting as cluster and gateway node
+                if ROLE_JSON_GATEWAY in NEXUS_SERVER_ROLE.keys():
+                    # Check if the target role has a gateway entry as well
+                    if ROLE_JSON_GATEWAY in role.keys():
+                        # If so check ID if it is 'older' then actual gateway master id
+                        if role[ROLE_JSON_DYNAMIC_MASTER_ID] < ACTUAL_GATEWAY_DYNAMIC_MASTER_ID:
+                            # If so we have found a new master for the actual gateway server cluster
+                            # Set actual master ID to the announced master id
+                            ACTUAL_GATEWAY_DYNAMIC_MASTER_ID = role[ROLE_JSON_DYNAMIC_MASTER_ID]
+                            # Set master destination hash to this destination
+                            ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH = destination_hash
 
         # Now check if actual cluster master ID is still unchanged
         # If so clear the ID to make this one the cluster master
@@ -829,19 +831,26 @@ def select_distribution_master():
                     " is now cluster distribution master with Master ID: " + str(ACTUAL_CLUSTER_DYNAMIC_MASTER_ID),
                     RNS.LOG_INFO)
 
-        # Now check if actual gateway master ID is still unchanged
-        # If so clear the ID to make this one the gateway master
-        if ACTUAL_GATEWAY_DYNAMIC_MASTER_ID == DYNAMIC_MASTER_ID:
+        # Check if this server is acting as cluster and gateway node
+        if ROLE_JSON_GATEWAY in NEXUS_SERVER_ROLE.keys():
+            # Now check if actual gateway master ID is still unchanged
+            # If so clear the ID to make this one act as the gateway server group master
+            if ACTUAL_GATEWAY_DYNAMIC_MASTER_ID == DYNAMIC_MASTER_ID:
+                ACTUAL_GATEWAY_DYNAMIC_MASTER_ID = None
+                ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH = None
+                # Log this server is now distribution master
+                RNS.log("NX:This Nexus Node is now gateway distribution master with Master ID: " +
+                        str(DYNAMIC_MASTER_ID),
+                        RNS.LOG_INFO)
+            else:
+                # Log actual master found
+                RNS.log("NX:Destination " + RNS.prettyhexrep(ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH) +
+                        " is now gateway distribution master with Master ID: " + str(ACTUAL_GATEWAY_DYNAMIC_MASTER_ID),
+                        RNS.LOG_INFO)
+        else:
+            # If not clear the gateway data to suppress gateway master distribution
             ACTUAL_GATEWAY_DYNAMIC_MASTER_ID = None
             ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH = None
-            # Log this server is now distribution master
-            RNS.log("NX:This Nexus Node is now gateway distribution master with Master ID: " + str(DYNAMIC_MASTER_ID),
-                    RNS.LOG_INFO)
-        else:
-            # Log actual master found
-            RNS.log("NX:Destination " + RNS.prettyhexrep(ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH) +
-                    " is now gateway distribution master with Master ID: " + str(ACTUAL_GATEWAY_DYNAMIC_MASTER_ID),
-                    RNS.LOG_INFO)
 
 
 ##########################################################################################
@@ -1685,7 +1694,7 @@ def initialize_server(
     global BRIDGE_TARGETS
     global MESSAGE_STORE
     global NEXUS_LXM_SOCKET
-    global DYNAMIC_DISTRIBUTION_MASTER
+    global DYNAMIC_MASTER_DISTRIBUTION
     global DYNAMIC_MASTER_ID
 
     print("-------------------------------------------------------------")
@@ -1771,10 +1780,10 @@ def initialize_server(
     # Dynamic Master initialization
     if dynamicmaster is not None:
         # Overwrite default configuration according given parameter
-        DYNAMIC_DISTRIBUTION_MASTER = True
+        DYNAMIC_MASTER_DISTRIBUTION = True
 
     # Initialize dynamic master distribution
-    if DYNAMIC_DISTRIBUTION_MASTER:
+    if DYNAMIC_MASTER_DISTRIBUTION:
         DYNAMIC_MASTER_ID = nexus_timestamp()
         NEXUS_SERVER_ROLE[ROLE_JSON_DYNAMIC_MASTER_ID] = DYNAMIC_MASTER_ID
 
@@ -1788,7 +1797,7 @@ def initialize_server(
     RNS.log("NX: Longpoll       " + str(NEXUS_SERVER_LONGPOLL), RNS.LOG_INFO)
     RNS.log("NX: Shortpoll      " + str(NEXUS_SERVER_SHORTPOLL), RNS.LOG_INFO)
     RNS.log("NX: Postmaster     " + str(NEXUS_POSTMASTER_CONFIG), RNS.LOG_INFO)
-    RNS.log("NX: Dynamic Master " + str(DYNAMIC_DISTRIBUTION_MASTER), RNS.LOG_INFO)
+    RNS.log("NX: Dynamic Master " + str(DYNAMIC_MASTER_DISTRIBUTION), RNS.LOG_INFO)
     RNS.log("NX:...............................................................................", RNS.LOG_INFO)
 
     # Create LXMF router socket with this server as source endpoint
@@ -2347,27 +2356,28 @@ def distribute_message(nexus_message):
     # Loop through all registered distribution targets
     # Remove all targets that have not announced them self within given timeout period
     # If one target is not expired send message to that target
+    # Skip targets that are not a master if in dynamic master mode
     for registered_destination_hash in DISTRIBUTION_TARGETS.copy():
-        # If we are in dynamic distribution master mode,
+        # If we are in dynamic master distribution mode,
         # and we are not master then distribute message to the master only
-        cluster_master_distribution_flag = False
-        gateway_master_distribution_flag = False
+        cluster_distribution_flag = False
+        gateway_distribution_flag = False
         # Check if we are dynamic distribution master mode
-        if DYNAMIC_DISTRIBUTION_MASTER:
+        if DYNAMIC_MASTER_DISTRIBUTION:
             # Check if we have a cluster master destination
             if ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH is not None:
-                # Now check if we shall skip the actual target because it is not the actual cluster master
-                if ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH != registered_destination_hash:
-                    cluster_master_distribution_flag = True
+                # Now check if we shall send to the actual target because it is the actual cluster master
+                if ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH == registered_destination_hash:
+                    cluster_distribution_flag = True
 
             # Check if we have a gateway master destination
             if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH is not None:
-                # Now check if we shall skip the actual target because it is not the actual gateway master
-                if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH != registered_destination_hash:
-                    gateway_master_distribution_flag = True
+                # Now check if we shall send to the actual target because it is the actual gateway master
+                if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH == registered_destination_hash:
+                    gateway_distribution_flag = True
 
             # Don't distribute message to the actual target if we neither cluster nor gateway master for this target
-            if cluster_master_distribution_flag or gateway_master_distribution_flag:
+            if not (cluster_distribution_flag or gateway_distribution_flag):
                 # Log message received by distribution event
                 RNS.log("NX:" +
                         "Distribution to " + RNS.prettyhexrep(registered_destination_hash) +
