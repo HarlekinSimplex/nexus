@@ -207,11 +207,14 @@ QUEUE_ENTRY_STATUS_FAILED = 3
 DYNAMIC_DISTRIBUTION_MASTER = False
 # The master ID of this server instance will be initialized during server startup
 DYNAMIC_MASTER_ID = None
-# Setting these variables to 'None' makes this server act as cluster master
+# Setting these variables to 'None' makes this server act as master with the cluster or gateway group of serves
 # As soon as an announcement with a dynamic master ID is received or a destination is removed
-# these variables will be updated in case a new master needs to be selected
-ACTUAL_DYNAMIC_MASTER_ID = None
-ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH = None
+# these variables will be updated in case a new master needs to be selected.
+# The actual list of target subscriptions is used to find a new master.
+ACTUAL_CLUSTER_DYNAMIC_MASTER_ID = None
+ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH = None
+ACTUAL_GATEWAY_DYNAMIC_MASTER_ID = None
+ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH = None
 
 
 ##########################################################################################
@@ -776,13 +779,16 @@ def remove_subscription_target(destination_hash):
 # In case no other master is found configure this server as master
 #
 def select_distribution_master():
-    global ACTUAL_DYNAMIC_MASTER_ID
-    global ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH
+    global ACTUAL_CLUSTER_DYNAMIC_MASTER_ID
+    global ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH
+    global ACTUAL_GATEWAY_DYNAMIC_MASTER_ID
+    global ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH
 
     # All starts only when we have dynamic distribution master enabled
     if DYNAMIC_DISTRIBUTION_MASTER:
         # Set actual dynamic master ID initially to the ID of this server
-        ACTUAL_DYNAMIC_MASTER_ID = DYNAMIC_MASTER_ID
+        ACTUAL_CLUSTER_DYNAMIC_MASTER_ID = DYNAMIC_MASTER_ID
+        ACTUAL_GATEWAY_DYNAMIC_MASTER_ID = DYNAMIC_MASTER_ID
         # Now walk through all distribution targets and assess the announced dynamic master ids
         for destination_hash in DISTRIBUTION_TARGETS.keys():
             # Get the actual destination dict
@@ -792,25 +798,49 @@ def select_distribution_master():
                 # Get Server Role
                 role = destination[2]
                 # Check if that ID is 'older' then ours
-                if role[ROLE_JSON_DYNAMIC_MASTER_ID] < DYNAMIC_MASTER_ID:
-                    # If so we have found a new master
+                if role[ROLE_JSON_DYNAMIC_MASTER_ID] < ACTUAL_CLUSTER_DYNAMIC_MASTER_ID:
+                    # If so we have found a new master for the actual cluster
                     # Set actual master ID to the announced master id
-                    ACTUAL_DYNAMIC_MASTER_ID = role[ROLE_JSON_DYNAMIC_MASTER_ID]
+                    ACTUAL_CLUSTER_DYNAMIC_MASTER_ID = role[ROLE_JSON_DYNAMIC_MASTER_ID]
                     # Set master destination hash to this destination
-                    ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH = destination_hash
+                    ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH = destination_hash
 
-        # Now check if actual master ID is still unchanged
-        # If so clear the ID to make this one the master
-        if ACTUAL_DYNAMIC_MASTER_ID == DYNAMIC_MASTER_ID:
-            ACTUAL_DYNAMIC_MASTER_ID = None
-            ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH = None
+                # Check if the target role has a gateway entry as well
+                if ROLE_JSON_GATEWAY in role.keys():
+                    # if so check that ID is 'older' then actual gateway master id as well
+                    if role[ROLE_JSON_DYNAMIC_MASTER_ID] < ACTUAL_GATEWAY_DYNAMIC_MASTER_ID:
+                        # If so we have found a new master for the actual cluster
+                        # Set actual master ID to the announced master id
+                        ACTUAL_GATEWAY_DYNAMIC_MASTER_ID = role[ROLE_JSON_DYNAMIC_MASTER_ID]
+                        # Set master destination hash to this destination
+                        ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH = destination_hash
+
+        # Now check if actual cluster master ID is still unchanged
+        # If so clear the ID to make this one the cluster master
+        if ACTUAL_CLUSTER_DYNAMIC_MASTER_ID == DYNAMIC_MASTER_ID:
+            ACTUAL_CLUSTER_DYNAMIC_MASTER_ID = None
+            ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH = None
             # Log this server is now distribution master
             RNS.log("NX:This Nexus Node is now cluster distribution master with Master ID: " + str(DYNAMIC_MASTER_ID),
                     RNS.LOG_INFO)
         else:
             # Log actual master found
-            RNS.log("NX:Destination " + RNS.prettyhexrep(ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH) +
-                    " is now cluster distribution master with Master ID: " + str(ACTUAL_DYNAMIC_MASTER_ID),
+            RNS.log("NX:Destination " + RNS.prettyhexrep(ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH) +
+                    " is now cluster distribution master with Master ID: " + str(ACTUAL_CLUSTER_DYNAMIC_MASTER_ID),
+                    RNS.LOG_INFO)
+
+        # Now check if actual gateway master ID is still unchanged
+        # If so clear the ID to make this one the gateway master
+        if ACTUAL_GATEWAY_DYNAMIC_MASTER_ID == DYNAMIC_MASTER_ID:
+            ACTUAL_GATEWAY_DYNAMIC_MASTER_ID = None
+            ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH = None
+            # Log this server is now distribution master
+            RNS.log("NX:This Nexus Node is now gateway distribution master with Master ID: " + str(DYNAMIC_MASTER_ID),
+                    RNS.LOG_INFO)
+        else:
+            # Log actual master found
+            RNS.log("NX:Destination " + RNS.prettyhexrep(ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH) +
+                    " is now gateway distribution master with Master ID: " + str(ACTUAL_GATEWAY_DYNAMIC_MASTER_ID),
                     RNS.LOG_INFO)
 
 
@@ -1442,9 +1472,9 @@ def message_received_callback(lxmessage):
 #
 # The Gateway names specified at the server role e.g. {"cluster":"MyCluster","gate":"myGate"} acts identical to the
 # cluster name in a way that an automatic subscription ist triggered if the received announcement contained a nexus
-# server role with has a cluster name that matches the cluster name of the actual server OR the gateway name matches
-# the gateway name of the actual server. This establishes a second layer to create automatic connections. These can be
-# used to daisy-chain nexus servers without any redundancy or to connect one cluster to another cluster.
+# server role with a cluster name that matches the cluster name OR the gateway name of the actual server.
+# This establishes a second layer to create automatic connections. These can be used to daisy-chain nexus servers
+# without any redundancy or to connect one cluster to another cluster.
 #
 # To have this automatic subscription mechanism available effectively provides for having a deterministic client server
 # network with automatic replication on top of the Reticulum mesh network.
@@ -2320,14 +2350,31 @@ def distribute_message(nexus_message):
     for registered_destination_hash in DISTRIBUTION_TARGETS.copy():
         # If we are in dynamic distribution master mode,
         # and we are not master then distribute message to the master only
-        # Check if we are dynamic distribution master mode and we ar not the master
-        if DYNAMIC_DISTRIBUTION_MASTER and ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH is not None:
-            # Now check if we shall skip the actual target because it is not the actual cluster master
-            if ACTUAL_DYNAMIC_MASTER_DESTINATION_HASH != registered_destination_hash:
+        cluster_master_distribution_flag = False
+        gateway_master_distribution_flag = False
+        # Check if we are dynamic distribution master mode
+        if DYNAMIC_DISTRIBUTION_MASTER:
+            # Check if we have a cluster master destination
+            if ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH is not None:
+                # Now check if we shall skip the actual target because it is not the actual cluster master
+                if ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH != registered_destination_hash:
+                    cluster_master_distribution_flag = True
+                    # todo: write log entry
+
+            # Check if we have a gateway master destination
+            if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH is not None:
+                # Now check if we shall skip the actual target because it is not the actual gateway master
+                if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH != registered_destination_hash:
+                    gateway_master_distribution_flag = True
+                    # todo: write log entry
+
+            # Don't distribute message to the actual target if we neigher cluter nor gateway master for this target
+            if cluster_master_distribution_flag or gateway_master_distribution_flag:
+                # todo: write log entry
                 continue
 
         # Distribute message to actual selected subscriber because
-        # we run in standard N:M distribution mode or we are cluster master and need to send message to all subs
+        # we run in standard N:M distribution mode, or we are cluster master and need to send message to all subs
 
         # Get target and identity from target dict
         # Initialize message body
