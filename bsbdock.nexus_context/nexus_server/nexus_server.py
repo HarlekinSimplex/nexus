@@ -2359,18 +2359,21 @@ def distribute_message(nexus_message):
                 # Now check if we shall skip the actual target because it is not the actual cluster master
                 if ACTUAL_CLUSTER_DYNAMIC_MASTER_DESTINATION_HASH != registered_destination_hash:
                     cluster_master_distribution_flag = True
-                    # todo: write log entry
 
             # Check if we have a gateway master destination
             if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH is not None:
                 # Now check if we shall skip the actual target because it is not the actual gateway master
                 if ACTUAL_GATEWAY_DYNAMIC_MASTER_DESTINATION_HASH != registered_destination_hash:
                     gateway_master_distribution_flag = True
-                    # todo: write log entry
 
-            # Don't distribute message to the actual target if we neigher cluter nor gateway master for this target
+            # Don't distribute message to the actual target if we neither cluster nor gateway master for this target
             if cluster_master_distribution_flag or gateway_master_distribution_flag:
-                # todo: write log entry
+                # Log message received by distribution event
+                RNS.log("NX:" +
+                        "Distribution to " + RNS.prettyhexrep(registered_destination_hash) +
+                        " was suppressed because target is not the actual cluster or gateway master",
+                        RNS.LOG_VERBOSE
+                        )
                 continue
 
         # Distribute message to actual selected subscriber because
