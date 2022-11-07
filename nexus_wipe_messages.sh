@@ -13,7 +13,7 @@ docker compose down
 
 # Remove Nexus Message Store file
 echo -e "${PURPLE}Remove ./nexus_root/.nexus/storage/messages.umspack${NC}"
-rm -f ./nexus_root/.nexus/storage/messages.umsgpack
+sudo rm -f ./nexus_root/.nexus/storage/messages.umsgpack
 
 # Launch container composition
 echo -e "${PURPLE}Launch container composition${NC}"
