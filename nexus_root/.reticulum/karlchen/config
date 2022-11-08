@@ -43,7 +43,7 @@
 
   [[RNode LoRa Interface 169]]
     type = RNodeInterface
-    interface_enabled = False
+    interface_enabled = True
     outgoing = True
     port = /dev/ttyRNODE2
     frequency = 169450000
