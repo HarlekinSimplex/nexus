@@ -5,7 +5,7 @@
   instance_control_port = 37429
 
 [logging]
-  # Valid log levels are 0 through 7:
+  # Valid log levels are 0 through 7 with default 4
   loglevel = 5
 
 [interfaces]

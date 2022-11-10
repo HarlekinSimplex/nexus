@@ -1,11 +1,12 @@
 [reticulum]
-  enable_transport = True
+  enable_transport = Yes
   share_instance = Yes
   shared_instance_port = 37428
   instance_control_port = 37429
 
 [logging]
-  loglevel = 5
+  # Valid log levels are 0 through 7 with default 4
+  loglevel = 4
 
 [interfaces]
 
