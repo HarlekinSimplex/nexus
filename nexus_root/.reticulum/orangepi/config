@@ -25,6 +25,22 @@
     target_host = nexus.deltamatrix.org
     target_port = 4251
 
+  [[RNode LoRa Interface 169]]
+    type = RNodeInterface
+    interface_enabled = True
+    outgoing = True
+    port = /dev/ttyRNODE2
+    frequency = 169450000
+    bandwidth = 41700
+    txpower = 14
+    spreadingfactor = 8
+    codingrate = 5
+    id_callsign = DD8SB-2
+    id_interval = 600
+#    network_name = myTwinCluster
+#    passphrase = myTwinCluster
+    flow_control = False
+
   [[TCP KISS Interface #1]]
     type = TCPClientInterface
     interface_enabled = False
