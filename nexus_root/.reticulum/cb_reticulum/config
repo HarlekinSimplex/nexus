@@ -5,8 +5,8 @@
   instance_control_port = 37429
 
 [logging]
-  # Valid log levels are 0 through 7:
-  loglevel = 5
+  # Valid log levels are 0 through 7 with default 4
+  loglevel = 4
 
 [interfaces]
 
@@ -15,12 +15,14 @@
     interface_enabled = True
     outgoing = True
     listen_ip = 0.0.0.0
+    # Don't change the server port because it is mapped into the container by docker-compose.yml
     listen_port = 4242
 
 # TCP/IP interface to the Dublin hub
   [[RNS Testnet Dublin]]
     type = TCPClientInterface
     enabled = yes
+    outgoing = True
     target_host = dublin.connect.reticulum.network
     target_port = 4965
 
@@ -28,11 +30,13 @@
   [[RNS Testnet Frankfurt]]
     type = TCPClientInterface
     enabled = yes
+    outgoing = True
     target_host = frankfurt.connect.reticulum.network
     target_port = 5377
 
 # Interface to I2P hub A
   [[RNS Testnet I2P Hub A]]
     type = I2PInterface
-    enabled = yes
+    enabled = no
+    outgoing = True
     peers = uxg5kubabakh3jtnvsipingbr5574dle7bubvip7llfvwx2tgrua.b32.i2p

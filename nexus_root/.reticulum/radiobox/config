@@ -5,16 +5,17 @@
   instance_control_port = 37429
 
 [logging]
-  # Valid log levels are 0 through 7:
-  loglevel = 7
+  # Valid log levels are 0 through 7 with default 4
+  loglevel = 5
 
 [interfaces]
 
-  [[TCP Server Interface Nexus.Radioboc]]
+  [[TCP Server Interface Nexus.Radiobox]]
     type = TCPServerInterface
     interface_enabled = True
     outgoing = True
     listen_ip = 0.0.0.0
+    # Don't change the server port because it is mapped into the container by docker-compose.yml
     listen_port = 4242
 
   [[TCP Client Interface - Nexus.Hub]]
@@ -24,7 +25,7 @@
     target_host = nexus.deltamatrix.org
     target_port = 4253
 
-  [[RNode LoRa Interface]]
+  [[RNode LoRa Interface 868]]
     type = RNodeInterface
     interface_enabled = True
     outgoing = True
@@ -34,10 +35,10 @@
     txpower = 15
     spreadingfactor = 8
     codingrate = 5
-#    id_callsign = DD8SB-1
-#    id_interval = 600
-    network_name = myLoRaCluster
-    passphrase = myLoraCluster
+    id_callsign = DD8SB-2
+    id_interval = 60
+#    network_name = myTwinCluster
+#    passphrase = myTwinCluster
     flow_control = False
 
   [[TCP KISS Interface #1]]

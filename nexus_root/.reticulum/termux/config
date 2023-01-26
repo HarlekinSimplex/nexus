@@ -6,14 +6,22 @@
 
 [logging]
   # Valid log levels are 0 through 7 with default 4
-  loglevel = 5
+  loglevel = 7
 
 [interfaces]
 
-  [[TCP Server Interface Nexus.Dev]]
+  [[TCP Server Interface Nexus.Termux]]
     type = TCPServerInterface
     interface_enabled = True
     outgoing = True
     listen_ip = 0.0.0.0
     # Don't change the server port because it is mapped into the container by docker-compose.yml
     listen_port = 4242
+
+  [[TCP Client Interface - Nexus.Home]]
+    type = TCPClientInterface
+    interface_enabled = True
+    outgoing = True
+    target_host = nexus.deltamatrix.org
+    target_port = 4251
+

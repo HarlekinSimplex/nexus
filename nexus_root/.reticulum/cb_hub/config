@@ -1,14 +1,22 @@
 [reticulum]
-  enable_transport = True
+  enable_transport = Yes
   share_instance = Yes
   shared_instance_port = 37428
   instance_control_port = 37429
-  panic_on_interface_error = No
 
 [logging]
-  loglevel = 5
+  # Valid log levels are 0 through 7 with default 4
+  loglevel = 4
 
 [interfaces]
+
+  [[TCP Server Interface Nexus.Hub]]
+    type = TCPServerInterface
+    interface_enabled = True
+    outgoing = True
+    listen_ip = 0.0.0.0
+    # Don't change the server port because it is mapped into the container by docker-compose.yml
+    listen_port = 4242
 
   [[TCP Client Interface Nexus.Delta]]
     type = TCPClientInterface
@@ -17,9 +25,3 @@
     target_host = nexus.deltamatrix.org
     target_port = 4252
 
-  [[TCP Server Interface Nexus.Hub]]
-    type = TCPServerInterface
-    interface_enabled = True
-    outgoing = True
-    listen_ip = 0.0.0.0
-    listen_port = 4242

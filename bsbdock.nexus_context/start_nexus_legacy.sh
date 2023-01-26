@@ -12,6 +12,12 @@ echo -e "${LIGHT_BLUE}Startup of Nexus Server [Legacy]${NC}"
 echo -e "${LIGHT_BLUE}-------------------------------------------------------------${NC}"
 
 # Launch nexus_server2 Server with unbuffered logs (docker takes those logs)
+if [ "$NEXUS_DYNAMIC_MASTER" == "True" ] ; then
+	export NEXUS_DYNAMIC_MASTER_FLAG="--dynamicmaster"
+else
+	export NEXUS_DYNAMIC_MASTER_FLAG=
+fi
+
 exec python3 -u ./nexus_server/nexus_server.py \
   ${NEXUS_CONFIG:+--config=$RNS_CONFIG} \
   ${NEXUS_PORT:+--port=$NEXUS_PORT} \
@@ -21,4 +27,5 @@ exec python3 -u ./nexus_server/nexus_server.py \
   ${NEXUS_SHORTPOLL:+--shortpoll=$NEXUS_SHORTPOLL} \
   ${NEXUS_TIMEOUT:+--timeout=$NEXUS_TIMEOUT} \
   ${NEXUS_POSTMASTER:+--postmaster=$NEXUS_POSTMASTER} \
+  "${NEXUS_DYNAMIC_MASTER_FLAG}" \
   ${NEXUS_BRIDGE:+--bridge=$NEXUS_BRIDGE}

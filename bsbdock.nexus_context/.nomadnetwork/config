@@ -1,7 +1,7 @@
 [logging]
 # Valid log levels are 0 through 7:
   loglevel = 4
-#  destination = file
+  destination = file
 
 [client]
   enable_client = yes
@@ -21,6 +21,6 @@
 
 [node]
   enable_node = yes
-  node_name = NX:Radiobox2
+  node_name = Nexus.Server
   announce_interval = 360
   announce_at_start = Yes
